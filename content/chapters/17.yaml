@@ -29,6 +29,7 @@ events:
       entry: { minami: m-start, haruto: h-start }
     statCard: [S07, S01]
     resources: [violence]
+    stage: { place: classroom, time: dusk, cast: [{ id: minami }, { id: haruto }] }
     status: draft
     scenes:
       # ── ミナミの視点 ──
@@ -145,6 +146,7 @@ events:
     triggerWarning: "この章には、SNSで性的な画像を求められる場面があります。"
     statCard: [S08]
     resources: [violence]
+    stage: { place: bedroom, time: night, cast: [{ id: yu, pose: phone }] }
     status: draft
     scenes:
       - id: start
@@ -195,6 +197,7 @@ events:
     kind: fixed
     domains: [避妊の知識, STIの知識]
     statCard: [S09, S05]
+    stage: { place: classroom, time: day, cast: [{ id: kei }] }
     status: draft
     scenes:
       - id: start

@@ -26,8 +26,8 @@ export function mainStage(content: Content, protagonist: CharacterId, age: numbe
   if (!ch) return undefined;
   const own = ch.events.find((e) => e.characters.includes(protagonist) && e.characters.length === 1 && e.stage);
   const any = ch.events.find((e) => e.characters.includes(protagonist) && e.stage);
-  const st = (own ?? any)?.stage;
-  return st ? { ...st, cast: [{ id: protagonist }] } : undefined;
+  // 舞台の人物はそのまま（パートナーや子どもも一緒に描く）
+  return (own ?? any)?.stage;
 }
 
 /** その章で、パラメーターの増減の大きいもの（理由つき） */

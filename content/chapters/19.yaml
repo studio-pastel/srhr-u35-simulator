@@ -29,6 +29,7 @@ events:
       entry: { minami: m-start, haruto: h-start }
     statCard: [S01, S02, S04]
     resources: [violence]
+    stage: { place: campus, time: dusk, cast: [{ id: minami }, { id: haruto }] }
     status: draft
     scenes:
       # ── ミナミの視点 ──
@@ -141,6 +142,7 @@ events:
     domains: [避妊, 緊急避妊]
     statCard: [S25, S26, S11]
     resources: [ec]
+    stage: { place: bedroom, time: night, cast: [{ id: kei }, { id: saki }] }
     status: draft
     scenes:
       - id: start
@@ -238,6 +240,7 @@ events:
     kind: fixed
     domains: [性の多様性, 人権]
     statCard: [S24]
+    stage: { place: campus, time: day, cast: [{ id: yu }] }
     status: draft
     scenes:
       - id: start

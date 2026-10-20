@@ -22,6 +22,7 @@ events:
     kind: fixed
     domains: [妊孕性, ライフコース]
     statCard: [S17, S19]
+    stage: { place: home2, time: dusk, cast: [{ id: minami }, { id: sou }] }
     status: draft
     scenes:
       - id: start
@@ -69,6 +70,7 @@ events:
     domains: [不妊]
     statCard: [S16]
     resources: [health]
+    stage: { place: clinic, time: day, cast: [{ id: haruto }, { id: nao }] }
     status: draft
     scenes:
       - id: start
@@ -99,6 +101,7 @@ events:
     kind: fixed
     domains: [ライフコース, 人権]
     statCard: [S24]
+    stage: { place: home2, time: night, cast: [{ id: yu }, { id: aoi }] }
     status: draft
     scenes:
       - id: start
@@ -139,6 +142,7 @@ events:
     kind: branch
     domains: [ライフコース]
     statCard: [S21, S19]
+    stage: { place: living, time: dusk, cast: [{ id: kei }, { id: saki, when: "flags.keiFather == true" }, { id: keiChild, when: "flags.keiFather == true" }] }
     status: draft
     scenes:
       - id: start

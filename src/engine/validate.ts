@@ -201,7 +201,10 @@ function checkEvent(ev: GameEvent, k: Checkers): void {
   const { errors, warnings } = k;
   const sceneIds = new Set(ev.scenes.map((s) => s.id));
   dupCheck(ev.scenes.map((s) => s.id), `${ev.id} のシーンID`, errors);
-  for (const c of ev.stage?.cast ?? []) if (!k.castIds.has(c.id)) errors.push(`${ev.id}.stage：登場人物 ${c.id} が cast.yaml にありません`);
+  for (const c of ev.stage?.cast ?? []) {
+    if (!k.castIds.has(c.id)) errors.push(`${ev.id}.stage：登場人物 ${c.id} が cast.yaml にありません`);
+    k.expr(`${ev.id}.stage.cast.when`, c.when);
+  }
   if (ev.summary && countChars(ev.summary) > TEXT_LIMITS.summary)
     warnings.push(`${ev.id}.summary：${countChars(ev.summary)}字です（上限 ${TEXT_LIMITS.summary}字）`);
   if (sceneIds.has('END')) errors.push(`${ev.id}：シーンIDに END は使えません`);
@@ -255,7 +258,10 @@ function checkEvent(ev: GameEvent, k: Checkers): void {
       if (n > TEXT_LIMITS.line) warnings.push(`${lw}：吹き出しが ${n}字です（上限 ${TEXT_LIMITS.line}字）`);
       rubyCheck(lw, l.text, errors);
     });
-    for (const c of sc.stage?.cast ?? []) if (!k.castIds.has(c.id)) errors.push(`${w}.stage：登場人物 ${c.id} が cast.yaml にありません`);
+    for (const c of sc.stage?.cast ?? []) {
+      if (!k.castIds.has(c.id)) errors.push(`${w}.stage：登場人物 ${c.id} が cast.yaml にありません`);
+      k.expr(`${w}.stage.cast.when`, c.when);
+    }
     if (sc.effects) {
       effectCheck(w, sc.effects);
       sc.effects.forEach((e, i) => {

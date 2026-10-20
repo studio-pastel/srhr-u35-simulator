@@ -79,7 +79,16 @@ export const stageSchema = z.strictObject({
   place: z.enum(PLACES),
   time: z.enum(TIMES).default('day'),
   cast: z
-    .array(z.strictObject({ id: z.string(), x: z.number().optional(), face: z.enum(FACES).optional(), pose: z.enum(['stand', 'phone']).optional() }))
+    .array(
+      z.strictObject({
+        id: z.string(),
+        x: z.number().optional(),
+        face: z.enum(FACES).optional(),
+        pose: z.enum(['stand', 'phone']).optional(),
+        /** この条件を満たすときだけ描く（例：ケイが父親になったときだけ子どもを描く） */
+        when: z.string().optional(),
+      }),
+    )
     .default([]),
 });
 
@@ -158,6 +167,10 @@ export const castSchema = z.strictObject({
   role: z.string().optional(),
   /** 脇役の年齢（見た目の計算に使う）。主人公は周回の年齢を使う */
   age: z.number().optional(),
+  /** 主人公と同じ年ごろの人物（パートナーなど）。周回の年齢＋この差で描く */
+  peerOffset: z.number().optional(),
+  /** 主人公が何歳のときに生まれた子どもか。周回の年齢から計算して描く */
+  bornAt: z.number().optional(),
   look: z.strictObject({
     skin: hex,
     hair: hex,

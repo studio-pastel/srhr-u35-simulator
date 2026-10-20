@@ -64,3 +64,50 @@
   role: ハルトの父（声だけ。画面には描かない）
   age: 48
   look: { skin: "#e3b38f", hair: "#1f1f24", hairStyle: short, clothes: ["#3b3b3b", "#3b3b3b", "#3b3b3b"], pants: "#2b2b2b" }
+
+# ── 脇役（17歳以降）。名前は仮（付録B-5） ──
+- id: saki
+  name: サキ
+  role: ケイの交際相手
+  peerOffset: 0
+  look: { skin: "#f0c6a4", hair: "#5a3a2a", hairStyle: long, clothes: ["#e0a526", "#7a9e3b", "#9c6644"], pants: "#3d5a80" }
+- id: aoi
+  name: アオイ
+  role: ユウのパートナー
+  peerOffset: 1
+  look: { skin: "#e9bf9c", hair: "#2b2622", hairStyle: short, clothes: ["#3d5a80", "#3d5a80", "#5e8c61"], pants: "#4a4a5a" }
+- id: sou
+  name: ソウ
+  role: ミナミのパートナー
+  peerOffset: 2
+  look: { skin: "#e3b38f", hair: "#3a2c26", hairStyle: mid, clothes: ["#5e8c61", "#5e8c61", "#8d6e63"], pants: "#3a3f4a" }
+- id: nao
+  name: ナオ
+  role: ハルトのパートナー
+  peerOffset: 0
+  look: { skin: "#f2c9a8", hair: "#6a4632", hairStyle: tied, clothes: ["#c0563a", "#c0563a", "#9c6644"], pants: "#4a4038" }
+- id: haruChild
+  name: ハルトの子ども
+  role: ハルトとナオの子ども
+  bornAt: 30
+  look: { skin: "#f0c6a4", hair: "#2b2622", hairStyle: short, clothes: ["#e0a526", "#e0a526", "#e0a526"], pants: "#3d5a80" }
+- id: keiChild
+  name: ケイの子ども
+  role: ケイとサキの子ども
+  bornAt: 22
+  look: { skin: "#e3b08c", hair: "#2a2320", hairStyle: short, clothes: ["#2a9d8f", "#2a9d8f", "#2a9d8f"], pants: "#34404f" }
+- id: minamiChild
+  name: ミナミの子ども
+  role: ミナミとソウの子ども
+  bornAt: 30
+  look: { skin: "#f2c9a8", hair: "#3a2a22", hairStyle: short, clothes: ["#e0a526", "#e0a526", "#e0a526"], pants: "#5b6170" }
+- id: counselor
+  name: 相談員
+  role: 相談窓口の相談員
+  age: 40
+  look: { skin: "#ecc19e", hair: "#4a3a30", hairStyle: bob, clothes: ["#5e8c61", "#5e8c61", "#5e8c61"], pants: "#3a3f4a" }
+- id: coworker
+  name: ユキ
+  role: ミナミの同期
+  peerOffset: 0
+  look: { skin: "#f0c8a6", hair: "#2b2622", hairStyle: bob, clothes: ["#7a6a1f", "#5b6170", "#5b6170"], pants: "#2f3542" }

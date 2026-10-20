@@ -26,6 +26,7 @@ events:
     triggerWarning: "この章には、不妊治療について考える場面があります。"
     statCard: [S16, S17, S18, S31]
     resources: [health]
+    stage: { place: clinic, time: day, cast: [{ id: minami }, { id: sou }] }
     status: draft
     scenes:
       - id: start
@@ -197,6 +198,7 @@ events:
     kind: fixed
     domains: [対人暴力の連鎖]
     statCard: [S04]
+    stage: { place: living, time: dusk, cast: [{ id: haruto }, { id: haruChild }, { id: nao }] }
     status: draft
     scenes:
       - id: start
@@ -229,6 +231,7 @@ events:
     characters: [minami, haruto, yu, kei]
     kind: fixed
     domains: []
+    stage: { place: gate, time: dusk, cast: [{ id: self }] }
     status: draft
     scenes:
       - id: end

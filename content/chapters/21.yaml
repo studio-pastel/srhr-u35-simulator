@@ -26,6 +26,7 @@ events:
     triggerWarning: "この章には、妊娠と人工妊娠中絶について話し合う場面があります。"
     statCard: [S27, S10]
     resources: [health]
+    stage: { place: living, time: night, cast: [{ id: kei }, { id: saki }] }
     status: draft
     scenes:
       - id: start
@@ -76,6 +77,7 @@ events:
     requires: "flags.pregnant != true"
     statCard: [S12]
     resources: [health]
+    stage: { place: clinic, time: day, cast: [{ id: kei }] }
     status: draft
     scenes:
       - id: start
@@ -107,6 +109,7 @@ events:
     triggerWarning: "この章には、別れた交際相手からのつきまといに触れる場面があります。暴力の行為そのものは描きません。"
     statCard: [S03]
     resources: [violence]
+    stage: { place: station, time: night, cast: [{ id: minami, face: anxious }] }
     status: draft
     scenes:
       - id: start
@@ -148,6 +151,7 @@ events:
     kind: branch
     domains: [対人暴力, メンタルヘルス]
     statCard: [S01]
+    stage: { place: campus, time: dusk, cast: [{ id: haruto }] }
     status: draft
     scenes:
       - id: start
@@ -203,6 +207,7 @@ events:
     domains: [がん予防]
     statCard: []   # T7：子宮頸がん検診の受診率は未収集
     resources: [health]
+    stage: { place: clinic, time: day, cast: [{ id: yu }] }
     status: draft
     scenes:
       - id: start

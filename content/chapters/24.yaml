@@ -24,6 +24,7 @@ events:
     domains: [月経, 労働]
     statCard: []   # T7：月経のつらさと労働の統計は未収集
     resources: [health]
+    stage: { place: office, time: night, cast: [{ id: minami }, { id: coworker }] }
     status: draft
     scenes:
       - id: start
@@ -52,6 +53,7 @@ events:
     characters: [haruto]
     kind: fixed
     domains: [関係性, 同意]
+    stage: { place: living, time: dusk, cast: [{ id: haruto }, { id: nao }] }
     status: draft
     scenes:
       - id: start
@@ -80,6 +82,7 @@ events:
     kind: fixed
     domains: [性の多様性, 労働]
     statCard: [S24, S29]
+    stage: { place: home2, time: day, cast: [{ id: yu }, { id: aoi }] }
     status: draft
     scenes:
       - id: start
@@ -141,6 +144,7 @@ events:
     kind: fixed
     domains: [社会経済]
     statCard: [S22, S19, S20]
+    stage: { place: office, time: dusk, cast: [{ id: kei }, { id: saki, when: "flags.keiFather == true" }, { id: keiChild, when: "flags.keiFather == true" }] }
     status: draft
     scenes:
       - id: start

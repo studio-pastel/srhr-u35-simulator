@@ -396,3 +396,30 @@ export function drawScene(canvas: HTMLCanvasElement, spec: SceneSpec): void {
     }
   ctx.putImageData(img, 0, 0);
 }
+
+/** 話している人の顔アイコン（頭のまわりだけを切り出す） */
+export function drawFace(canvas: HTMLCanvasElement, look: Look, age: number, face: Face = 'normal'): void {
+  const g = grid();
+  person(g, { look, age, face, x: 48 });
+  let top = 0;
+  while (top < H && !g[top]!.some((c) => c)) top++;
+  const S = 20;
+  const x0 = 38;
+  const y0 = Math.max(0, top - 1);
+  if (canvas.width !== S) canvas.width = S;
+  if (canvas.height !== S) canvas.height = S;
+  const ctx = canvas.getContext('2d');
+  if (!ctx) return;
+  const img = ctx.createImageData(S, S);
+  for (let y = 0; y < S; y++)
+    for (let x = 0; x < S; x++) {
+      const c = g[y0 + y]?.[x0 + x] ?? '#e7e5df';
+      const [r, gg, b] = h2r(c);
+      const i = (y * S + x) * 4;
+      img.data[i] = r;
+      img.data[i + 1] = gg;
+      img.data[i + 2] = b;
+      img.data[i + 3] = 255;
+    }
+  ctx.putImageData(img, 0, 0);
+}

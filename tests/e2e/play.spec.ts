@@ -49,7 +49,7 @@ async function playToEnd(page: Page): Promise<string[]> {
       // 選択肢 → 吹き出し → そのほかのボタン（はじめる・次へ・物語にもどる など）の順に押す
       const b =
         main.querySelector<HTMLButtonElement>('.choices button.btn') ??
-        main.querySelector<HTMLButtonElement>('button.bubble') ??
+        main.querySelector<HTMLButtonElement>('button.next-tap') ??
         main.querySelector<HTMLButtonElement>('button.btn:not(.small):not([disabled])');
       if (!b) return { ok: false, reviews, stuck: main.innerText.slice(0, 300) };
       b.click();
@@ -98,7 +98,7 @@ test('ブラウザの「戻る」でサイトを離れても、同じタブで�
   await onboard(page);
   await page.getByRole('button', { name: 'ケイで始める' }).click();
   await page.getByRole('button', { name: 'はじめる' }).click();
-  for (let i = 0; i < 3; i++) await page.locator('main button.bubble').first().click();
+  for (let i = 0; i < 3; i++) await page.locator('main button.next-tap').first().click();
   const saved = await page.evaluate(() => sessionStorage.getItem('srhr.v1.run'));
   expect(saved).not.toBeNull();
 
@@ -108,7 +108,7 @@ test('ブラウザの「戻る」でサイトを離れても、同じタブで�
 
   // 「進む」で戻ると、同じ場面から続けられる（場面の中の吹き出しは、その場面の最初から表示する）
   await page.goForward();
-  await expect(page.locator('main button.bubble')).toBeVisible();
+  await expect(page.locator('main button.next-tap')).toBeVisible();
   expect(await page.evaluate(() => sessionStorage.getItem('srhr.v1.run'))).toBe(saved);
 
   // URL を入れ直して開いても（同じタブなら）、「続きから遊ぶ」が出る
@@ -139,7 +139,7 @@ test('キーボードだけで1章を終えられる', async ({ page }) => {
     await page.keyboard.press('Tab');
     const isAction = await page.evaluate(() => {
       const el = document.activeElement as HTMLElement | null;
-      return Boolean(el?.matches('main button.btn:not(.small), main button.bubble'));
+      return Boolean(el?.matches('main button.btn:not(.small), main button.next-tap'));
     });
     if (isAction) await page.keyboard.press('Enter');
   }

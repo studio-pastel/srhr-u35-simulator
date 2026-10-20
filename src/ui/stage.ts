@@ -1,7 +1,8 @@
 // 場面の舞台と吹き出しを、コンテンツから組み立てる（付録B-1・B-2）。
 import type { Content, GameEvent, Scene, Stage } from '../engine/schema';
 import type { RunState } from '../engine/types';
-import { getCharacter } from '../engine/progression';
+import { contextOf, getCharacter } from '../engine/progression';
+import { check } from '../engine/flags';
 import type { Actor, Face, Place, SceneSpec } from './pixel/render';
 
 export interface ShownLine {
@@ -39,17 +40,33 @@ export function sceneSpec(content: Content, run: RunState, stage: Stage | undefi
     const look = content.cast.find((c) => c.id === run.protagonist)!.look;
     return { place: fallbackPlace(age), time: 'day', actors: [{ look, age, x: 34, face: line?.who === run.protagonist ? line.face : undefined }] };
   }
-  const xs = positions(stage.cast.length);
-  const actors: Actor[] = stage.cast.flatMap((c, i) => {
+  const ctx = contextOf(content, run);
+  const cast = stage.cast.filter((c) => check(c.when, ctx));
+  const xs = positions(cast.length);
+  const actors: Actor[] = cast.flatMap((c, i) => {
     const id = c.id === 'self' ? run.protagonist : c.id;
     const member = content.cast.find((m) => m.id === id);
     if (!member) return [];
     const isMain = ['minami', 'haruto', 'yu', 'kei'].includes(member.id);
+    // パートナーは主人公と一緒に年をとり、子どもは生まれた年から数える
+    const npcAge = member.peerOffset !== undefined ? age + member.peerOffset : member.bornAt !== undefined ? age - member.bornAt : (member.age ?? 30);
+    if (!isMain && npcAge < 0) return [];
     const lineWho = line?.who === 'self' ? run.protagonist : line?.who;
     const face = line && lineWho === id && line.face ? line.face : c.face;
-    return [{ look: member.look, age: isMain ? age : (member.age ?? 30), x: c.x ?? xs[i]!, face, pose: c.pose }];
+    return [{ look: member.look, age: isMain ? age : Math.max(1, npcAge), x: c.x ?? xs[i]!, face, pose: c.pose }];
   });
   return { place: stage.place, time: stage.time, actors };
+}
+
+/** 人物の年齢：主人公は周回の年齢、パートナーは一緒に年をとり、子どもは生まれた年から数える */
+export function ageOf(content: Content, run: RunState, id: string): number {
+  const age = run.position.age;
+  if (['minami', 'haruto', 'yu', 'kei'].includes(id)) return age;
+  const m = content.cast.find((c) => c.id === id);
+  if (!m) return age;
+  if (m.peerOffset !== undefined) return age + m.peerOffset;
+  if (m.bornAt !== undefined) return Math.max(1, age - m.bornAt);
+  return m.age ?? 30;
 }
 
 /** 新形式は lines をそのまま、旧形式は地の文を「。」で区切って吹き出しにする */

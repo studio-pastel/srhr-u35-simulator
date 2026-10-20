@@ -1013,3 +1013,263 @@ ul.plain {
   margin: 0;
   font-weight: 700;
 }
+
+/* ── 会話を積み重ねる場面（付録B-27） ── */
+.stage-sticky {
+  position: sticky;
+  top: 56px;
+  z-index: 10;
+  background: var(--bg);
+  padding-bottom: 6px;
+}
+
+.chat-log {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 8px 0 4px;
+}
+
+.chat {
+  display: flex;
+  gap: 8px;
+  align-items: flex-end;
+  max-width: 92%;
+  animation: fade 200ms ease;
+}
+
+.chat.mine {
+  align-self: flex-end;
+  flex-direction: row-reverse;
+}
+
+.chat-body {
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  padding: 6px 12px 8px;
+  line-height: 1.6;
+}
+
+.chat.theirs .chat-body {
+  border-bottom-left-radius: 4px;
+}
+
+.chat.mine .chat-body {
+  border-bottom-right-radius: 4px;
+  border-color: var(--accent);
+}
+
+.chat-name {
+  display: block;
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--text-sub);
+}
+
+.chat-text {
+  display: block;
+  font-size: var(--fs-body);
+}
+
+/* 心の声：吹き出しの枠を点線に、文字を少し控えめに */
+.chat.kind-inner .chat-body {
+  border-style: dashed;
+  background: transparent;
+}
+
+.chat.kind-inner .chat-text {
+  color: var(--text-sub);
+}
+
+/* メッセージ：スマホの通知のように */
+.chat.kind-message .chat-body {
+  border-color: var(--accent);
+  border-width: 2px;
+}
+
+.chat.narration {
+  align-self: center;
+  max-width: 100%;
+  margin: 2px 0;
+  font-size: 15px;
+  color: var(--text);
+  text-align: center;
+}
+
+.face-icon {
+  width: 36px;
+  height: 36px;
+  flex: none;
+  image-rendering: pixelated;
+  border-radius: 50%;
+  border: 2px solid var(--line);
+  background: var(--track);
+}
+
+.next-tap {
+  display: block;
+  width: 100%;
+  min-height: 52px;
+  margin: 8px 0 4px;
+  border: 2px solid var(--accent);
+  border-radius: var(--radius);
+  background: var(--surface);
+  color: var(--accent);
+  font-size: 16px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+/* ── ステータスと変化カード（付録B-28） ── */
+.status-bar {
+  display: grid;
+  grid-template-columns: repeat(6, 1fr);
+  gap: 6px;
+  width: 100%;
+  margin-top: 6px;
+  padding: 6px 4px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: var(--surface);
+  cursor: pointer;
+}
+
+.status-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 3px;
+  color: var(--text-sub);
+}
+
+.status-gauge {
+  display: block;
+  width: 100%;
+  height: 5px;
+  border-radius: 3px;
+  background: var(--track);
+  overflow: hidden;
+}
+
+.status-gauge > span {
+  display: block;
+  height: 100%;
+  background: var(--accent);
+  transition: width 600ms ease;
+}
+
+.status-item.changed {
+  color: var(--accent);
+  animation: pulse 900ms ease 2;
+}
+
+@keyframes pulse {
+  50% {
+    transform: scale(1.18);
+  }
+}
+
+.change-card {
+  position: absolute;
+  left: 8px;
+  right: 8px;
+  bottom: 8px;
+  max-height: calc(100% - 16px);
+  overflow: auto;
+  background: var(--surface);
+  border: 2px solid var(--accent);
+  border-radius: var(--radius);
+  padding: 8px 10px;
+  animation: rise 260ms ease;
+}
+
+@keyframes rise {
+  from {
+    transform: translateY(12px);
+    opacity: 0;
+  }
+  to {
+    transform: none;
+    opacity: 1;
+  }
+}
+
+.change-row + .change-row {
+  border-top: 1px solid var(--line);
+  margin-top: 4px;
+  padding-top: 4px;
+}
+
+.change-reasons .reason {
+  font-size: 11px;
+  padding: 1px 6px;
+}
+
+.change-head {
+  display: grid;
+  grid-template-columns: auto 5.5em 1fr auto;
+  align-items: center;
+  gap: 6px;
+}
+
+.change-label {
+  font-weight: 700;
+}
+
+.change-delta {
+  font-size: 20px;
+  font-weight: 700;
+  min-width: 2.2em;
+  text-align: right;
+}
+
+.change-row.up .change-delta {
+  color: var(--accent);
+}
+
+.change-row.down .change-delta {
+  color: var(--text);
+}
+
+.change-gauge {
+  position: relative;
+  height: 10px;
+  border-radius: 5px;
+  background: var(--track);
+}
+
+.change-fill {
+  display: block;
+  height: 100%;
+  border-radius: 5px;
+  background: var(--accent);
+  transition: width 700ms ease;
+}
+
+.change-mark {
+  position: absolute;
+  top: -3px;
+  bottom: -3px;
+  width: 2px;
+  background: var(--text);
+}
+
+.change-reasons {
+  margin: 2px 0 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+}
+
+.change-ok {
+  display: block;
+  margin: 6px 0 0 auto;
+  border: 1px solid var(--line);
+  background: var(--surface);
+  border-radius: 999px;
+  padding: 2px 12px;
+  min-height: 32px;
+  font-size: 13px;
+  cursor: pointer;
+}

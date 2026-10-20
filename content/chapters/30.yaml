@@ -23,6 +23,7 @@ events:
     kind: fixed
     domains: [両立, ジェンダー規範]
     statCard: [S21, S20]
+    stage: { place: living, time: day, cast: [{ id: haruto }, { id: nao }, { id: haruChild }] }
     status: draft
     scenes:
       - id: start
@@ -63,6 +64,7 @@ events:
     domains: [栄養, 妊娠]
     statCard: [S14, S15, S30]
     resources: [health]
+    stage: { place: home2, time: day, cast: [{ id: minami }, { id: sou }] }
     status: draft
     scenes:
       - id: start
@@ -129,6 +131,7 @@ events:
     kind: fixed
     domains: [人権, 制度]
     statCard: [S29]
+    stage: { place: home2, time: day, cast: [{ id: yu }, { id: aoi }] }
     status: draft
     scenes:
       - id: start
@@ -187,6 +190,7 @@ events:
     kind: fixed
     domains: [両立]
     statCard: [S21]
+    stage: { place: living, time: dusk, cast: [{ id: kei }, { id: saki, when: "flags.keiFather == true" }, { id: keiChild, when: "flags.keiFather == true" }] }
     status: draft
     scenes:
       - id: start
