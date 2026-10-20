@@ -51,7 +51,7 @@ export function FactorLegend({ hasActor }: { hasActor?: boolean }) {
           <li key={s}>
             <svg width="20" height="14" aria-hidden="true">
               <FactorPatterns prefix={prefix} />
-              <rect width="20" height="14" rx="2" fill={`url(#${prefix}-${s})`} />
+              <rect x="0.5" y="0.5" width="19" height="13" rx="2" fill={`url(#${prefix}-${s})`} stroke="var(--text)" stroke-width="0.75" />
             </svg>
             {SOURCE_LABELS[s]}
           </li>
@@ -112,13 +112,13 @@ export function FactorChart({ data, title, hasActor }: { data: Breakdown; title:
             const { plus, minus } = data[p][s];
             if (plus > 0) {
               const w = plus * scale;
-              out.push(<rect key={`${s}+`} x={right} y={y + 6} width={w} height={rowH - 12} fill={`url(#${prefix}-${s})`} stroke="var(--surface)" stroke-width="1" />);
+              out.push(<rect key={`${s}+`} x={right} y={y + 6} width={w} height={rowH - 12} fill={`url(#${prefix}-${s})`} stroke="var(--text)" stroke-width="0.75" />);
               right += w;
             }
             if (minus < 0) {
               const w = -minus * scale;
               left -= w;
-              out.push(<rect key={`${s}-`} x={left} y={y + 6} width={w} height={rowH - 12} fill={`url(#${prefix}-${s})`} stroke="var(--surface)" stroke-width="1" />);
+              out.push(<rect key={`${s}-`} x={left} y={y + 6} width={w} height={rowH - 12} fill={`url(#${prefix}-${s})`} stroke="var(--text)" stroke-width="0.75" />);
             }
             return out;
           });

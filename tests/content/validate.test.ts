@@ -37,6 +37,12 @@ describe('実コンテンツ', () => {
     const events = r.content!.chapters.flatMap((c) => c.events);
     expect(events.every((e) => e.status === 'draft')).toBe(true);
   });
+  it('統計の原典確認（T8 など）がすべて済めば、ALLOW_UNVERIFIED なしの本番の検証が通る（§14 フェーズ3）', () => {
+    const raw: any = rawContent();
+    for (const st of raw.stats) st.verified = true;
+    for (const c of raw.conditions) for (const o of c.options) o.verified = true;
+    expect(validateContent(raw, { production: true, allowUnverified: false, requireAllChapters: true }).errors).toEqual([]);
+  });
   it('本番ビルドでは verified: false の統計カードで失敗し、ALLOW_UNVERIFIED=1 なら通る', () => {
     const prod = validateContent(rawContent(), { production: true, allowUnverified: false });
     expect(prod.errors.length).toBeGreaterThan(0);

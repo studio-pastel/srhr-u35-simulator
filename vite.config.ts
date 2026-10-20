@@ -1,6 +1,7 @@
 import { defineConfig, type Plugin } from 'vite';
 import { contentFiles, loadRawContent } from './scripts/lib/load-content';
 import { validateContent } from './src/engine/validate';
+import { SECURITY_HEADERS } from './scripts/lib/security-headers';
 
 const VIRTUAL = 'virtual:content';
 const RESOLVED = '\0' + VIRTUAL;
@@ -39,6 +40,8 @@ export default defineConfig(({ command }) => ({
   esbuild: { jsx: 'automatic', jsxImportSource: 'preact' },
   // 「このサイトについて」の更新日（§7.13）
   define: { __BUILD_DATE__: JSON.stringify(new Date().toISOString().slice(0, 10)) },
+  // E2E では、本番と同じセキュリティヘッダー（CSP など）の下で動くことを確かめる（§13.2）
+  preview: { headers: SECURITY_HEADERS, port: 4173, strictPort: true },
   build: {
     target: 'es2022',
     // CSP（§13.2）の下で動くよう、インラインのスクリプト・データURIを出さない

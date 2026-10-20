@@ -11,7 +11,7 @@
 | preact | 11.0.1 | MIT |
 | zod | 4.6.7 | MIT |
 
-## 開発・ビルドにだけ使うパッケージ（41件）
+## 開発・ビルドにだけ使うパッケージ（44件）
 
 | パッケージ | バージョン | ライセンス |
 | --- | --- | --- |
@@ -19,6 +19,7 @@
 | @jridgewell/resolve-uri | 3.1.2 | MIT |
 | @jridgewell/sourcemap-codec | 1.6.0 | MIT |
 | @jridgewell/trace-mapping | 0.3.31 | MIT |
+| @playwright/test | 1.64.1 | Apache-2.0 |
 | @rollup/rollup-darwin-arm64 | 4.64.12 | MIT |
 | @types/chai | 5.2.3 | MIT |
 | @types/deep-eql | 4.0.2 | MIT |
@@ -41,6 +42,8 @@
 | obug | 3.0.0 | MIT |
 | picocolors | 1.1.1 | ISC |
 | picomatch | 4.0.7 | MIT |
+| playwright | 1.64.1 | Apache-2.0 |
+| playwright-core | 1.64.1 | Apache-2.0 |
 | postcss | 8.5.31 | MIT |
 | pure-rand | 8.4.2 | MIT |
 | rollup | 4.64.12 | MIT |

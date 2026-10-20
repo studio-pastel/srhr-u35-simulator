@@ -6,3 +6,5 @@ dist/
 .env
 .env.*
 .claude/
+test-results/
+playwright-report/

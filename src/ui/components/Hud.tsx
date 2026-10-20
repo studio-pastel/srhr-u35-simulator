@@ -31,7 +31,7 @@ export function Hud({ params, onOpen, quiet }: { params: Params; onOpen: () => v
         const v = displayValue(params[k]);
         const d = deltas[k];
         return (
-          <div class="hud-row" key={k}>
+          <span class="hud-row" key={k}>
             <span>{PARAM_LABELS[k]}</span>
             <span class="hud-bar" aria-hidden="true">
               {/* 暴力を扱うイベントでは、減少を強調する演出を使わない（§16.6） */}
@@ -43,7 +43,7 @@ export function Hud({ params, onOpen, quiet }: { params: Params; onOpen: () => v
               {v.clamped && <span aria-hidden="true">{v.clamped === 'upper' ? '▲' : '▼'}</span>}
               {d !== undefined && <span class="hud-delta"> {d > 0 ? `+${d}` : d}</span>}
             </span>
-          </div>
+          </span>
         );
       })}
     </button>

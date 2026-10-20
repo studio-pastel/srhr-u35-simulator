@@ -36,6 +36,26 @@ button {
   font-variant-numeric: tabular-nums;
 }
 
+.skip-link {
+  position: absolute;
+  left: 16px;
+  top: -100px;
+  z-index: 40;
+  background: var(--surface);
+  color: var(--accent);
+  padding: 8px 12px;
+  border-radius: 8px;
+  border: 2px solid var(--accent);
+}
+
+.skip-link:focus {
+  top: 8px;
+}
+
+main:focus {
+  outline: none;
+}
+
 .sr-only {
   position: absolute;
   width: 1px;
@@ -306,7 +326,7 @@ h3 {
   font-size: 15px;
 }
 
-.tab[aria-selected='true'] {
+.tab[aria-pressed='true'] {
   border: 2px solid var(--accent);
   font-weight: 700;
 }

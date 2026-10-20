@@ -1,0 +1,25 @@
+# SPEC.md §13.2。dist/ にそのままコピーされる。
+# ヘッダーの値は scripts/lib/security-headers.ts と同じにする（npm test で一致を確認する）。
+#
+# アップロード後の確認（ヘッダーが付いているか）：
+#   curl -sI https://（公開先のURL）/ | grep -iE "content-security|referrer|nosniff|permissions|cache-control"
+
+<IfModule mod_headers.c>
+  Header always set Content-Security-Policy "default-src 'self'; img-src 'self' data:; style-src 'self'; script-src 'self'; connect-src 'none'; font-src 'self'; frame-ancestors 'none'; base-uri 'self'; form-action 'none'"
+  Header always set Referrer-Policy "no-referrer"
+  Header always set X-Content-Type-Options "nosniff"
+  Header always set Permissions-Policy "camera=(), microphone=(), geolocation=(), interest-cohort=()"
+
+  # HTTPS で表示できることを確認してから、次の行の先頭の # を外す
+  # Header always set Strict-Transport-Security "max-age=31536000"
+
+  # ファイル名にハッシュが付く assets/ は長期キャッシュ、index.html は毎回確認する
+  <FilesMatch "\.(js|css)$">
+    Header set Cache-Control "public, max-age=31536000, immutable"
+  </FilesMatch>
+  <FilesMatch "^(index\.html)?$">
+    Header set Cache-Control "no-cache"
+  </FilesMatch>
+</IfModule>
+
+DirectoryIndex index.html

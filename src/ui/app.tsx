@@ -42,9 +42,17 @@ function routeFromHash(): Route {
   return r === 'dev' && !import.meta.env.DEV ? 'intro' : r;
 }
 
+/**
+ * サイト内の移動。履歴を増やさない（location.replace）。
+ * 履歴が残ると、「すぐに閉じる」のあとでブラウザの「戻る」を押したときに、このサイトに戻れてしまうため（§8.1）。
+ */
 export function navigate(r: Route): void {
   const path = Object.entries(ROUTES).find(([, v]) => v === r)?.[0] ?? '/';
-  location.hash = path === '' ? '/' : path;
+  replaceHash(path === '' ? '/' : path);
+}
+
+function replaceHash(path: string): void {
+  location.replace(`#${path}`);
 }
 
 /** すぐに閉じる（§8.1）：sessionStorage の進行状況を消し、replace で移動する（「戻る」で戻れない） */
@@ -105,8 +113,19 @@ export function App() {
       setRoute(routeFromHash());
       window.scrollTo(0, 0);
     };
+    // サイト内のリンク（href="#/..."）も、履歴を増やさずに移動する
+    const onClick = (e: MouseEvent) => {
+      const a = (e.target as HTMLElement | null)?.closest?.('a[href^="#/"]');
+      if (!a || e.defaultPrevented || e.button !== 0 || e.metaKey || e.ctrlKey || e.shiftKey) return;
+      e.preventDefault();
+      replaceHash(a.getAttribute('href')!.slice(1));
+    };
     addEventListener('hashchange', f);
-    return () => removeEventListener('hashchange', f);
+    document.addEventListener('click', onClick);
+    return () => {
+      removeEventListener('hashchange', f);
+      document.removeEventListener('click', onClick);
+    };
   }, []);
 
   useEffect(() => {
@@ -169,13 +188,16 @@ export function App() {
   return (
     <Ctx.Provider value={state}>
       <div class="app">
+        <a class="skip-link" href="#main" onClick={(e) => { e.preventDefault(); document.getElementById('main')?.focus(); }}>
+          本文へ移動
+        </a>
         <header class="topbar">
           <div class="topbar-title">{title}</div>
           <button type="button" class="exit-btn" onClick={quickExit}>
             すぐに閉じる
           </button>
         </header>
-        <main id="main">
+        <main id="main" tabIndex={-1}>
           {route === 'intro' && <Intro />}
           {route === 'select' && <Select />}
           {route === 'play' && <Play />}

@@ -166,7 +166,7 @@ function SceneView({ run }: { run: RunState }) {
     <section class={`panel fade-in${ev.triggerWarning ? ' caution' : ''}`} key={`${pos.eventId}/${pos.sceneId}/${pos.viewpoint}`}>
       {ev.viewpointSwitch && pos.tracks && (
         <>
-          <div class="tabs" role="tablist" aria-label="視点の切り替え">
+          <div class="tabs" role="group" aria-label="視点の切り替え">
             {(Object.keys(pos.tracks) as CharacterId[]).map((id) => {
               const done = Boolean(pos.tracksDone?.[id]);
               const selected = id === pos.viewpoint;
@@ -174,9 +174,8 @@ function SceneView({ run }: { run: RunState }) {
                 <button
                   key={id}
                   type="button"
-                  role="tab"
                   class="tab"
-                  aria-selected={selected}
+                  aria-pressed={selected}
                   disabled={done && !selected}
                   onClick={() => !selected && setRun(switchViewpoint(content, run, id))}
                 >
@@ -208,14 +207,14 @@ function SceneView({ run }: { run: RunState }) {
       </p>
       <div style={{ marginTop: 16 }}>
         {choices.length > 0 ? (
-          <>
+          <div role="group" aria-label="選択肢">
             {choices.map((c) => (
               <button key={c.id} type="button" class="btn" onClick={() => setRun(choose(content, run, c.id))}>
                 <RichText text={c.label} />
               </button>
             ))}
             {neutral && <p class="sub">どれを選んでも、正解・不正解はありません。</p>}
-          </>
+          </div>
         ) : (
           <button type="button" class="btn primary" onClick={() => setRun(advanceScene(content, run))}>
             {scene.chance ? 'どうなるかを見る' : '次へ'}
