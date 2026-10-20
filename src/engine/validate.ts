@@ -98,6 +98,17 @@ export function validateContent(raw: unknown, opts: ValidateOptions): ValidateRe
   content.characters.forEach((c) => c.statRefs.forEach((s) => statRef(`人物 ${c.id}`, s, 'other')));
   content.conditions.forEach((c) => c.options.forEach((o) => o.statRefs.forEach((s) => statRef(`社会条件 ${c.id}.${o.id}`, s, 'other'))));
 
+  // ── 統計カードの文（§11-7、付録A-10） ──
+  for (const st of content.stats) {
+    const w = `統計 ${st.id}.cardText`;
+    const head = st.jpData ? '日本では、' : '米国では、';
+    if (!st.cardText.startsWith(head)) errors.push(`${w}：「${head}」で始めてください`);
+    rubyCheck(w, st.cardText, errors);
+    const allowed = new Set(numbersIn(`${st.value} ${st.definition} ${st.label}`));
+    for (const n of numbersIn(st.cardText))
+      if (!allowed.has(n)) errors.push(`${w}：数字 ${n} が value・definition・label にありません（§10.5 の表にない数値は書かない）`);
+  }
+
   // ── 既知のフラグ ──
   const knownFlags = new Set<string>();
   for (const c of content.conditions) for (const o of c.options) Object.keys(o.setFlags ?? {}).forEach((k) => knownFlags.add(k));
@@ -274,6 +285,12 @@ function checkEvent(ev: GameEvent, k: Checkers): void {
       }
     }
   }
+}
+
+/** 文中の数字（7,480 や 22.7 のような区切りも1つとして扱う）。ルビの読みは除く */
+export function numbersIn(text: string): string[] {
+  const plain = text.replace(/\{([^|{}]+)\|[^{}]+\}/g, '$1');
+  return plain.match(/\d+(?:[.,]\d+)*/g) ?? [];
 }
 
 function rubyCheck(where: string, text: string, errors: string[]): void {

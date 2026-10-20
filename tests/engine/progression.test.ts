@@ -6,6 +6,7 @@ import { validateContent } from '../../src/engine/validate';
 import {
   advanceScene,
   beginChapter,
+  chapterResourceTags,
   choose,
   createRun,
   currentScene,
@@ -217,6 +218,12 @@ describe('読まずに進む章（§6.2-3、付録A-4）', () => {
     expect(e16.some((e) => e.source === 'upbringing')).toBe(true);
     expect(s.flags.harutoToldHome).toBe(false); // canonical は「見ないふりをする」
     expect(s.ledger.filter((e) => e.age === 17).every((e) => !e.skipped)).toBe(true);
+  });
+
+  it('読まずに進んだ章でも、その章の相談窓口のタグを集められる（付録A-11）', () => {
+    const s = playThrough(real, createRun(real, { protagonist: 'yu', seed: '0'.repeat(32) }), () => 0, { skipChapter: (a) => a === 17 });
+    expect(chapterResourceTags(real, s, 17)).toEqual(['violence']);
+    expect(chapterResourceTags(real, s, 16)).toEqual([]);
   });
 
   it('視点切替のある章を読まずに進んでも、両方の視点が canonical で解決される', () => {

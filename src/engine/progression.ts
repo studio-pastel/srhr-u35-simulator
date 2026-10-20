@@ -94,6 +94,14 @@ export function chapterWarnings(content: Content, state: RunState, age: number):
     .filter((w): w is string => Boolean(w));
 }
 
+/** その章で終えたイベントに付いている相談窓口のタグ（重複なし） */
+export function chapterResourceTags(content: Content, state: RunState, age: number): string[] {
+  const tags = getChapter(content, age)
+    .events.filter((e) => state.completedEvents.includes(e.id))
+    .flatMap((e) => e.resources ?? []);
+  return [...new Set(tags)];
+}
+
 export function currentEvent(content: Content, state: RunState): GameEvent | undefined {
   if (!state.position.eventId) return undefined;
   return getChapter(content, state.position.age).events.find((e) => e.id === state.position.eventId);

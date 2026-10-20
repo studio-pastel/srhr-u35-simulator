@@ -3,6 +3,7 @@ import { useEffect, useState } from 'preact/hooks';
 import type { Content, Resource, Stat } from '../../engine/schema';
 import type { ChanceLogEntry } from '../../engine/types';
 import { SOURCE_LABELS } from '../../engine/types';
+import { RichText } from './RichText';
 
 export const pct = (p: number) => `${(Math.round(p * 1000) / 10).toString()}%`;
 
@@ -37,9 +38,8 @@ export function StatSource({ stat }: { stat: Stat }) {
   );
 }
 
-/** 文型「日本では、〜（S01、2023年度）」（§11-7）。数値は stats.yaml の value をそのまま使う */
+/** 文型「日本では、〜（S01、2023年度）」（§11-7）。文は stats.yaml の cardText */
 export function StatCard({ stat }: { stat: Stat }) {
-  const where = stat.jpData ? '日本では' : '米国では';
   return (
     <article class="panel" aria-labelledby={`stat-${stat.id}`}>
       <p>
@@ -47,7 +47,7 @@ export function StatCard({ stat }: { stat: Stat }) {
       </p>
       <h3 id={`stat-${stat.id}`}>{stat.label}</h3>
       <p>
-        {where}、{stat.value}（{stat.id}、{stat.source.year}）
+        <RichText text={stat.cardText} />（{stat.id}、{stat.source.year}）
       </p>
       {stat.definition && <p class="sub">注：{stat.definition}</p>}
       <StatSource stat={stat} />

@@ -2,7 +2,7 @@
 # profile は本人の言葉で書く。特定の属性を強調する見出しにしない（§7.2）。
 - id: minami
   name: ミナミ
-  profile: "女の子。好きになるのは男の子。家では、からだの話をしたことがない。"
+  profile: "女性。好きになるのは男性。家では、からだの話をしたことがない。"
   upbringingSummary: "家計はふつう。家族と性の話をすることはない。"
   upbringing:
     economy: middle
@@ -12,7 +12,7 @@
   canonical: true
 - id: haruto
   name: ハルト
-  profile: "男の子。好きになるのは女の子。家の中のことは、あまり人に話さない。"
+  profile: "男性。好きになるのは女性。家の中のことは、あまり人に話さない。"
   upbringingSummary: "家計は安定している。父が母を支配する家庭で育った。"
   upbringing:
     economy: stable
@@ -23,7 +23,7 @@
 - id: yu
   name: ユウ
   # 自認の言葉は物語の中で本人が選ぶ（§10.1、§11-6）。ここではラベルを使わない。
-  profile: "女の子。好きになる相手は女の子が多い。それを何と呼ぶかは、まだ決めていない。"
+  profile: "女性。好きになる相手は女性が多い。それを何と呼ぶかは、まだ決めていない。"
   upbringingSummary: "家計はふつう。自分のことを話したら、どう思われるかが気になっている。"
   upbringing:
     economy: middle
@@ -33,7 +33,7 @@
   canonical: true
 - id: kei
   name: ケイ
-  profile: "男の子。好きになるのは女の子。放課後は、たいてい弟と妹と一緒にいる。"
+  profile: "男性。好きになるのは女性。放課後は、たいてい弟と妹と一緒にいる。"
   upbringingSummary: "ひとり親の家庭で、家計は苦しい。弟と妹の世話をしている。"
   upbringing:
     economy: hardship

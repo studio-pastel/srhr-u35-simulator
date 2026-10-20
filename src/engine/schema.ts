@@ -149,6 +149,8 @@ export const statSchema = z.strictObject({
   id: statIdSchema,
   label: z.string().min(1),
   value: z.string().min(1),
+  /** 統計カードに出す文（§11-7、付録A-10）。数字は value・definition・label にあるものだけ */
+  cardText: z.string().min(1),
   numbers: z.record(z.string(), z.number()).optional(),
   definition: z.string(),
   source: z.strictObject({

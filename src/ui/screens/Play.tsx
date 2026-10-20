@@ -7,6 +7,7 @@ import {
   advanceScene,
   advanceStatCards,
   beginChapter,
+  chapterResourceTags,
   chapterWarnings,
   choose,
   currentEvent,
@@ -250,8 +251,6 @@ function StatCardsView({ run }: { run: RunState }) {
   const ev = currentEvent(content, run)!;
   const h = useFocusHeading(`stats-${ev.id}`);
   const stats = (ev.statCard ?? []).map((id) => content.stats.find((s) => s.id === id)!).filter(Boolean);
-  const tags = ev.resources ?? [];
-  const resources = content.resources.filter((r) => r.tags.some((t) => tags.includes(t)));
   return (
     <section class="fade-in">
       <h1 tabIndex={-1} ref={h}>
@@ -260,20 +259,29 @@ function StatCardsView({ run }: { run: RunState }) {
       {stats.map((s) => (
         <StatCard key={s.id} stat={s} />
       ))}
-      {resources.length > 0 && (
-        <>
-          <h2>相談できるところ</h2>
-          {tags.map((t) => (
-            <p key={t} class="sub">
-              {content.config.resourceTags[t]}
-            </p>
-          ))}
-          <ResourceList items={resources} />
-        </>
-      )}
+      <SupportResources tags={ev.resources ?? []} />
       <button type="button" class="btn primary" onClick={() => setRun(advanceStatCards(content, run))}>
         次へ
       </button>
+    </section>
+  );
+}
+
+/** 相談窓口への案内（前向きな言葉で。付録A-11） */
+function SupportResources({ tags, lead }: { tags: string[]; lead?: string }) {
+  const { content } = useApp();
+  const items = content.resources.filter((r) => r.tags.some((t) => tags.includes(t)));
+  if (items.length === 0) return null;
+  return (
+    <section aria-labelledby="support-title">
+      <h2 id="support-title">話を聞いてくれるところ</h2>
+      {lead && <p>{lead}</p>}
+      <p>ひとりで抱えなくて大丈夫です。気になることがあったら、話を聞いてくれる窓口があります。</p>
+      <p class="sub">{tags.map((t) => content.config.resourceTags[t]).join('、')}</p>
+      <ResourceList items={items} />
+      <p class="sub">
+        ほかの窓口は<a href="#/resources">相談窓口</a>のページにあります。
+      </p>
     </section>
   );
 }
@@ -331,7 +339,7 @@ function ChapterReview({ run }: { run: RunState }) {
       </h1>
       {skipped && (
         <p class="panel caution" style={{ margin: '8px 0' }}>
-          読まずに進んだ章：この章の選択は自動で決まりました。
+          読まずに進んだ章：この章の選択は自動で決まりました。読むかどうかは、自分で決めてかまいません。
         </p>
       )}
       <div class="panel">
@@ -361,6 +369,7 @@ function ChapterReview({ run }: { run: RunState }) {
         )}
         {entries.length === 0 && <p class="sub">この章では、パラメーターは変化しませんでした。</p>}
       </div>
+      {skipped && <SupportResources tags={chapterResourceTags(content, run, age)} />}
       <button type="button" class="btn primary" onClick={() => setRun(advanceReview(content, run))}>
         {isLast ? '次へ' : '次の章へ'}
       </button>
