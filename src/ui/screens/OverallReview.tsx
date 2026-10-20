@@ -10,6 +10,7 @@ import { standardRoutes, trajectory } from '../../engine/standard';
 import { loadHistory, saveCompleted } from '../../engine/storage';
 import { DASHES, LineChart, type Series } from '../components/LineChart';
 import { FactorChart } from '../components/FactorChart';
+import { LifeMap } from '../components/LifeMap';
 
 const OTHER_COLORS = ['var(--p-options)', 'var(--p-connection)', 'var(--p-autonomy)'];
 
@@ -67,6 +68,11 @@ export function OverallReview({ run, onRestart }: { run: RunState; onRestart: ()
       {run.skippedChapters.length > 0 && (
         <p class="panel caution">読まずに進んだ章：{run.skippedChapters.map((a) => `${a}歳`).join('、')}（選択は自動で決まりました）</p>
       )}
+
+      <div class="panel">
+        <h2 style={{ marginTop: 0 }}>{me.name}の人生の地図</h2>
+        <LifeMap run={run} />
+      </div>
 
       <div class="panel">
         <h2 style={{ marginTop: 0 }}>{me.name}のパラメーターの軌跡</h2>

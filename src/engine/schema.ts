@@ -62,7 +62,7 @@ export const chanceNodeSchema = z.strictObject({
 });
 
 export const FACES = ['normal', 'smile', 'anxious', 'sad', 'relieved'] as const;
-export const PLACES = ['classroom', 'nurse', 'hallway', 'bedroom', 'living', 'campus', 'station', 'office', 'clinic', 'home2'] as const;
+export const PLACES = ['classroom', 'nurse', 'hallway', 'bedroom', 'living', 'campus', 'station', 'office', 'clinic', 'home2', 'gate'] as const;
 export const TIMES = ['day', 'dusk', 'night'] as const;
 export const LINE_KINDS = ['say', 'inner', 'message', 'narration'] as const;
 

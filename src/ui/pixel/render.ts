@@ -7,7 +7,7 @@ export const H = 64;
 export type Face = 'normal' | 'smile' | 'anxious' | 'sad' | 'relieved';
 export type Pose = 'stand' | 'phone';
 export type TimeOfDay = 'day' | 'dusk' | 'night';
-export type Place = 'classroom' | 'nurse' | 'hallway' | 'bedroom' | 'living' | 'campus' | 'station' | 'office' | 'clinic' | 'home2';
+export type Place = 'classroom' | 'nurse' | 'hallway' | 'bedroom' | 'living' | 'campus' | 'station' | 'office' | 'clinic' | 'home2' | 'gate';
 export type HairStyle = 'short' | 'mid' | 'bob' | 'long' | 'tied';
 
 export interface Look {
@@ -155,13 +155,14 @@ function background(place: Place, time: TimeOfDay): Grid {
     office: '#e3e6ea',
     clinic: '#e8f0ee',
     home2: '#efe3cf',
+    gate: '#9fd0f0',
   };
-  const floorBase: Partial<Record<Place, string>> = { station: '#6b6f78', office: '#9aa0a8', clinic: '#c2ccc9', nurse: '#c9d4d1', campus: '#8db36a' };
+  const floorBase: Partial<Record<Place, string>> = { gate: '#a89f90', station: '#6b6f78', office: '#9aa0a8', clinic: '#c2ccc9', nurse: '#c9d4d1', campus: '#8db36a' };
   const wall = t(wallBase[place]);
   const floor = t(floorBase[place] ?? '#b58c5f');
   rect(g, 0, 0, W, H, wall);
   rect(g, 0, floorY, W, H - floorY, floor);
-  if (place !== 'campus' && place !== 'station') for (let x = 0; x < W; x += 12) rect(g, x, floorY, 1, H - floorY, shade(floor, -0.5));
+  if (place !== 'campus' && place !== 'station' && place !== 'gate') for (let x = 0; x < W; x += 12) rect(g, x, floorY, 1, H - floorY, shade(floor, -0.5));
   rect(g, 0, floorY - 1, W, 1, shade(wall, -0.6));
 
   switch (place) {
@@ -225,6 +226,21 @@ function background(place: Place, time: TimeOfDay): Grid {
       rect(g, 66, 28, 14, 10, t('#2f3542'));
       rect(g, 67, 29, 12, 8, time === 'night' ? '#7fb0d8' : '#a8c8e0');
       break;
+    case 'gate': {
+      // 夕方の校門：空、校舎、門柱、桜の木
+      rect(g, 0, 0, W, 50, T.sky);
+      if (time === 'dusk') rect(g, 0, 30, W, 20, shade(T.sky, -0.3));
+      rect(g, 8, 14, 80, 30, t('#e8e1d3'), true);
+      for (let x = 12; x < 86; x += 8) rect(g, x, 20, 5, 6, t('#7f9fb8'));
+      for (let x = 12; x < 86; x += 8) rect(g, x, 32, 5, 6, t('#7f9fb8'));
+      rect(g, 44, 6, 8, 8, t('#e8e1d3'), true);
+      ell(g, 48, 10, 2, 2, t('#f4f1ea'));
+      rect(g, 2, 30, 5, 20, t('#9a9387'), true);
+      rect(g, 89, 30, 5, 20, t('#9a9387'), true);
+      ell(g, 6, 22, 9, 8, t('#f0b8c0'));
+      ell(g, 90, 20, 8, 7, t('#f0b8c0'));
+      break;
+    }
     case 'clinic':
       rect(g, 50, 30, 40, 4, t('#9fbfb8'), true);
       rect(g, 50, 34, 40, 6, t('#7fa59c'));

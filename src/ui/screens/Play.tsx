@@ -1,5 +1,5 @@
 // プレイ画面（付録B）：幕間、会話中心の場面、確率カード、暴力の場面のあとの支援カード、章のふりかえり。
-import { useEffect, useRef, useState } from 'preact/hooks';
+import { useEffect, useMemo, useRef, useState } from 'preact/hooks';
 import { navigate, useApp } from '../app';
 import {
   advanceChance,
@@ -30,6 +30,10 @@ import { RichText, plainText } from '../components/RichText';
 import { PixelStage } from '../components/PixelStage';
 import { OverallReview } from './OverallReview';
 import { linesOf, sceneSpec, stageOf } from '../stage';
+import { LifeMap, LifeStrip } from '../components/LifeMap';
+import { chapterHighlights, chosenLines, mainStage } from '../review';
+import { standardRoutes } from '../../engine/standard';
+import { CHARACTER_IDS } from '../../engine/constants';
 
 /** 画面が変わったら見出しにフォーカスを移す（§9） */
 function useFocusHeading(key: string) {
@@ -130,7 +134,10 @@ export function Play() {
   return (
     <>
       {showParams && (
-        <Modal title="いまのパラメーター" onClose={() => setShowParams(false)}>
+        <Modal title="これまでの記録" onClose={() => setShowParams(false)}>
+          <h3>人生の地図</h3>
+          <LifeMap run={run} />
+          <h3>いまのパラメーター</h3>
           <Hud params={run.params} onOpen={() => undefined} quiet />
           <FactorChart
             data={breakdown(run.ledger, (e) => e.age === run.position.age)}
@@ -180,6 +187,7 @@ function Interlude({ run, onStart }: { run: RunState; onStart: () => void }) {
   const h = useFocusHeading(`interlude-${ch.age}`);
   return (
     <section class="interlude fade-in">
+      <LifeStrip run={run} />
       <p class="interlude-elapsed num">{prev ? `${ch.age - prev.age}年後` : 'はじまり'}</p>
       <h1 tabIndex={-1} ref={h} class="interlude-title">
         <span class="num">{ch.age}歳</span>　{ch.season}
@@ -274,7 +282,7 @@ function SceneView(props: {
           ◀ 戻る
         </button>
         <button type="button" class="tool" onClick={props.openParams}>
-          パラメーター
+          記録
         </button>
         <button type="button" class="tool" onClick={props.skip}>
           この場面をとばす
@@ -393,44 +401,95 @@ function ParamChanges({ run, age }: { run: RunState; age: number }) {
 }
 
 function ChapterReview({ run, onNext }: { run: RunState; onNext: () => void }) {
-  const { content } = useApp();
+  const { content, animate } = useApp();
   const age = run.position.age;
   const h = useFocusHeading(`review-${age}`);
   const chapter = getChapter(content, age);
+  const me = getCharacter(content, run.protagonist);
   const played = chapter.events.filter((e) => run.completedEvents.includes(e.id));
   const skippedHere = played.filter((e) => run.skippedEvents.includes(e.id));
   const statIds = [...new Set(played.flatMap((e) => e.statCard ?? []))];
   const stats = statIds.flatMap((id) => content.stats.filter((s) => s.id === id));
-  const entries = run.ledger.filter((e) => e.age === age);
   const isLast = sortedChapters(content).at(-1)?.age === age;
+  const said = chosenLines(content, run, age);
+  const highlights = chapterHighlights(run, age);
+  const psych = run.ledger.filter((e) => e.age === age && e.param === 'psychSafety').reduce((a, e) => a + e.delta, 0);
+  const face = psych < 0 ? ('sad' as const) : psych > 0 ? ('relieved' as const) : ('normal' as const);
+  const stage = mainStage(content, run.protagonist, age);
+  const spec = sceneSpec(content, run, stage ? { ...stage, cast: [{ id: run.protagonist, face }] } : undefined);
+  // そのころ、ほかの3人は（標準ルート。付録A-19）
+  const routes = useMemo(() => standardRoutes(content, run), [run.runId, age]);
   return (
-    <section class="fade-in">
+    <section class="fade-in review">
+      <LifeStrip run={run} />
       <h1 tabIndex={-1} ref={h}>
         <span class="num">{age}歳</span>のふりかえり
       </h1>
-      {skippedHere.length > 0 && <p class="skipped-note">とばした場面：{skippedHere.map((e) => e.summary ?? e.domains.join('・')).join('／')}</p>}
+      <PixelStage spec={spec} label={`${me.name}、${age}歳`} animate={animate} />
+      <p class="sub" style={{ textAlign: 'center' }}>
+        {chapter.season}
+      </p>
+
       <div class="panel">
-        <h2 style={{ marginTop: 0 }}>パラメーターの変化</h2>
-        <ParamChanges run={run} age={age} />
+        <h2 style={{ marginTop: 0 }}>あなたが選んだこと</h2>
+        {said.length === 0 && <p class="sub">この章では、選ぶ場面はありませんでした。</p>}
+        {said.map((t, i) => (
+          <p key={i} class="review-said">
+            <RichText text={t} />
+          </p>
+        ))}
+        {skippedHere.length > 0 && <p class="skipped-note">とばした場面：{skippedHere.map((e) => e.summary ?? e.domains.join('・')).join('／')}</p>}
       </div>
+
       <div class="panel">
-        <h2 style={{ marginTop: 0 }}>変化の理由</h2>
-        <p class="sub">変化を、選択・生育条件・社会条件・他者の行為・偶然の5つに分けて示します。中心線より右が増えた分、左が減った分です。</p>
-        <FactorChart data={breakdown(run.ledger, (e) => e.age === age)} title={`${age}歳の章の要因分解`} hasActor={run.chanceLog.some((c) => c.age === age && c.actorLabel)} />
-        {entries.length > 0 && (
-          <details>
-            <summary>ひとつずつ見る（{entries.length}件）</summary>
-            <ul style={{ paddingLeft: '1.2em', fontSize: 14 }}>
-              {entries.map((e, i) => (
-                <li key={i} class="num">
-                  {PARAM_LABELS[e.param]} {e.delta > 0 ? `+${e.delta}` : e.delta}：{e.note}（{SOURCE_LABELS[e.source]}
-                  {e.statRef ? `、${e.statRef}` : ''}）{e.skipped ? '［とばした場面］' : ''}
-                </li>
-              ))}
-            </ul>
-          </details>
-        )}
+        <h2 style={{ marginTop: 0 }}>変わったこと</h2>
+        {highlights.length === 0 && <p class="sub">この章では、パラメーターは変わりませんでした。</p>}
+        <ul class="plain">
+          {highlights.map(([param, v]) => (
+            <li key={param} class="review-change">
+              <p class="review-change-head num">
+                {PARAM_LABELS[param as keyof typeof PARAM_LABELS]} <strong>{v.delta > 0 ? `+${v.delta}` : v.delta === 0 ? '±0' : v.delta}</strong>
+              </p>
+              <p class="review-reasons">
+                {v.reasons.map((r, i) => (
+                  <span key={i} class={`reason f-${r.source}`}>
+                    {r.note}（{SOURCE_LABELS[r.source as keyof typeof SOURCE_LABELS]} {r.delta > 0 ? `+${r.delta}` : r.delta}）
+                  </span>
+                ))}
+              </p>
+            </li>
+          ))}
+        </ul>
+        <details>
+          <summary>グラフと表で見る</summary>
+          <ParamChanges run={run} age={age} />
+          <FactorChart data={breakdown(run.ledger, (e) => e.age === age)} title={`${age}歳の章の要因分解`} hasActor={run.chanceLog.some((c) => c.age === age && c.actorLabel)} />
+        </details>
       </div>
+
+      <div class="panel">
+        <h2 style={{ marginTop: 0 }}>そのころ、ほかの3人は</h2>
+        <ul class="plain">
+          {CHARACTER_IDS.filter((id) => id !== run.protagonist).map((id) => {
+            const r = routes[id];
+            const quote = r ? chosenLines(content, r, age)[0] : undefined;
+            return (
+              <li key={id} class="review-other">
+                <p class="review-other-name">{getCharacter(content, id).name}</p>
+                <p style={{ margin: 0 }}>
+                  <RichText text={chapter.intro[id] ?? ''} />
+                </p>
+                {quote && (
+                  <p class="review-said small">
+                    <RichText text={quote} />
+                  </p>
+                )}
+              </li>
+            );
+          })}
+        </ul>
+      </div>
+
       {stats.length > 0 && (
         <>
           <h2>この章に関係するデータ</h2>
@@ -440,7 +499,7 @@ function ChapterReview({ run, onNext }: { run: RunState; onNext: () => void }) {
         </>
       )}
       <button type="button" class="btn primary" onClick={onNext}>
-        {isLast ? '次へ' : '次の章へ'}
+        {isLast ? '20年をふりかえる' : '次の章へ'}
       </button>
     </section>
   );

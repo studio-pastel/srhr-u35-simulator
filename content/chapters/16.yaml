@@ -45,7 +45,7 @@ events:
         lines:
           - { who: sato, text: "今日は、避妊、性的同意、デートDV、相談窓口の話をします。" }
           - { who: sato, text: "どれも、自分と相手を大切にするための知識です。" }
-          - { who: sato, text: "{腟外射精|ちつがいしゃせい}は、確実な避妊法ではありません。" }
+          - { who: sato, text: "「外に出せば大丈夫」は、確実な避妊法ではありません。" }
           - { who: sato, text: "同意は、いつでも取り消せます。" }
           - { who: sato, text: "相手の行動を縛ることも、暴力になりえます。" }
           - { who: narration, text: "配られたカードには、相談窓口の番号が並んでいた。" }
@@ -93,8 +93,8 @@ events:
         stage: { place: bedroom, time: night, cast: [{ id: yu, x: 34, pose: phone }] }
         lines:
           - { who: narration, text: "その夜、厚生労働省や自治体の資料を読み比べた。" }
-          - { who: yu, kind: inner, text: "（性的接触のある女性の半数以上が、一生に一度は感染する……）" }
-          - { who: yu, kind: inner, text: "（ワクチンで、子宮頸がんの原因の50〜70%を防げる、か）" }
+          - { who: yu, kind: inner, text: "（性的な経験がある女の人の、半分以上が一度はかかるんだ……）" }
+          - { who: yu, kind: inner, text: "（ワクチンで、子宮頸がんの原因の50〜70%を防げるって書いてある）" }
         next: decide
       - id: decide
         stage: { place: clinic, time: day, cast: [{ id: yu, x: 34 }] }

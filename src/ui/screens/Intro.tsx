@@ -1,66 +1,134 @@
-// 7.1 はじめに
+// オンボーディング（付録B-24）：タイトル → あそびかた → 安心して遊ぶために。
+// 1画面に伝えることを1つにしぼり、ドット絵で見せる。
+import { useEffect, useRef, useState } from 'preact/hooks';
 import { navigate, useApp } from '../app';
 import { isPersistent } from '../../engine/storage';
+import { CHARACTER_IDS, SOURCES } from '../../engine/constants';
+import { SOURCE_LABELS } from '../../engine/types';
+import type { SceneSpec } from '../pixel/render';
+import { PixelStage } from '../components/PixelStage';
 
 export function Intro() {
-  const { run, content } = useApp();
+  const { run, content, animate } = useApp();
+  const [step, setStep] = useState(0);
+  const h = useRef<HTMLHeadingElement>(null);
+  useEffect(() => h.current?.focus(), [step]);
   const canResume = run !== null && run.position.step !== 'finished';
+  const look = (id: string) => content.cast.find((c) => c.id === id)!.look;
+
+  // タイトル：夕方の校門に、4人が並ぶ
+  const title: SceneSpec = {
+    place: 'gate',
+    time: 'dusk',
+    actors: CHARACTER_IDS.map((id, i) => ({ look: look(id), age: 16, x: 18 + i * 20, face: 'normal' as const })),
+  };
+  // あそびかた：一人が、相手の言葉を聞いている
+  const talk: SceneSpec = {
+    place: 'classroom',
+    time: 'day',
+    actors: [
+      { look: look('minami'), age: 16, x: 30, face: 'anxious' },
+      { look: look('riko'), age: 16, x: 64, face: 'smile' },
+    ],
+  };
+
   return (
-    <>
-      <h1 tabIndex={-1}>はじめに</h1>
-      <section class="panel">
-        <p style={{ marginTop: 0 }}>
-          同じ高校に通う4人の、16歳から35歳までの人生をたどる学習コンテンツです。選択を重ねながら、からだ・安全・心理的安全・選択肢の幅・つながり・自己決定の変化を見ていきます。
-        </p>
-        <p>
-          変化の理由は「選択」だけではありません。育った環境（生育条件）、社会のしくみ（社会条件）、まわりの人の行い（他者の行為）、そして偶然が重なっていることを、その都度、分けて示します。暴力を受けたことによる変化は、本人の選択ではなく「他者の行為」として示します。
-        </p>
-        <p style={{ marginBottom: 0 }}>
-          点数や「よい結末」はありません。どの人生にも、正解・不正解の判定はしません。
-        </p>
-      </section>
-
-      <h2>扱う内容</h2>
-      <section class="panel caution">
-        <p style={{ margin: 0 }}>
-          性、避妊、妊娠、からだの悩み、交際相手や家族からの暴力、性的な被害を扱います。暴力の行為そのものは描きません。つらくなったら、どの場面でも「この場面をとばす」で先に進めます。とばしても、その場面で起きたことは1行で伝えます。
-        </p>
-      </section>
-
-      <h2>「すぐに閉じる」ボタン</h2>
-      <section class="panel">
-        <p style={{ marginTop: 0 }}>
-          画面の右上に、いつも「すぐに閉じる」ボタンがあります。押すか、キーボードの Esc キーを押すと、天気の検索結果のページに移動します。ブラウザの「戻る」では、このサイトに戻りません。
-        </p>
-        <p style={{ marginBottom: 0 }}>
-          ただし、ブラウザの閲覧履歴そのものは消えません。履歴を消したいときは、ブラウザの設定から消してください。
-        </p>
-      </section>
-
-      <h2>保存について</h2>
-      <section class="panel">
-        <p style={{ margin: 0 }}>
-          名前や年齢などの個人情報は入力しません。進行状況は、{isPersistent() ? 'この端末に保存しています（設定で変えられます）' : 'このタブを閉じると消える場所に保存します'}。
-          「設定」で、この端末に保存して続きから遊ぶこともできます。
-        </p>
-      </section>
-
-      <h2>数字と出典</h2>
-      <section class="panel">
-        <p style={{ margin: 0 }}>
-          確率や統計の数字は、公的な調査などにもとづいています。すべての数字に出典を付け、「出典」のページで一覧できます。原典を確認できていない数字には「暫定値」、日本以外のデータには「米国のデータ」などのラベルを付けています。
-        </p>
-      </section>
-
-      {canResume && (
-        <button type="button" class="btn primary" onClick={() => navigate('play')}>
-          続きから遊ぶ
-        </button>
+    <section class="onboarding">
+      {step === 0 && (
+        <div class="ob-title fade-in">
+          <PixelStage spec={title} label="夕方の校門に、4人の高校生が並んでいる" animate={animate} />
+          <h1 tabIndex={-1} ref={h} class="ob-logo">
+            SRHR U35 SIMULATOR
+          </h1>
+          <p class="ob-tagline">
+            16歳から35歳まで。
+            <br />
+            4人の人生を、生きてみる。
+          </p>
+          {canResume && (
+            <button type="button" class="btn primary" onClick={() => navigate('play')}>
+              続きから遊ぶ
+            </button>
+          )}
+          <button type="button" class={canResume ? 'btn' : 'btn primary'} onClick={() => setStep(1)}>
+            {canResume ? '新しく始める' : 'はじめる'}
+          </button>
+        </div>
       )}
-      <button type="button" class={canResume ? 'btn' : 'btn primary'} onClick={() => navigate('select')}>
-        {canResume ? '新しく始める' : 'はじめる'}
-      </button>
-      <p class="sub">{content.config.siteName}</p>
-    </>
+
+      {step === 1 && (
+        <div class="fade-in">
+          <p class="ob-step num">1 / 2</p>
+          <h1 tabIndex={-1} ref={h}>
+            あそびかた
+          </h1>
+          <div class="ob-card">
+            <PixelStage spec={talk} label="教室で、友だちと話している" animate={animate} />
+            <h2>その人になって、選ぶ</h2>
+            <p>吹き出しを押して読み進め、自分が言うセリフや、とる行動を選びます。</p>
+          </div>
+          <div class="ob-card">
+            <h2>人生は、選択だけでは決まらない</h2>
+            <p>変化には、5つの理由があります。</p>
+            <ul class="ob-factors">
+              {SOURCES.map((s) => (
+                <li key={s} class={`ob-factor f-${s}`}>
+                  {SOURCE_LABELS[s]}
+                </li>
+              ))}
+            </ul>
+          </div>
+          <div class="ob-card">
+            <h2>20年を、ふりかえる</h2>
+            <ol class="life-strip" aria-label="8つの章">
+              {[...content.chapters]
+                .sort((a, b) => a.age - b.age)
+                .map((c) => (
+                  <li key={c.age} class="life-dot future">
+                    <span class="num">{c.age}</span>
+                  </li>
+                ))}
+            </ol>
+            <p>16歳から35歳まで、8つの章。点数や「よい結末」はありません。</p>
+          </div>
+          <button type="button" class="btn primary" onClick={() => setStep(2)}>
+            次へ
+          </button>
+        </div>
+      )}
+
+      {step === 2 && (
+        <div class="fade-in">
+          <p class="ob-step num">2 / 2</p>
+          <h1 tabIndex={-1} ref={h}>
+            安心して遊ぶために
+          </h1>
+          <ul class="ob-safety">
+            <li>
+              <span class="ob-key ob-exit">すぐに閉じる</span>
+              <span>右上のボタンか Esc キーで、すぐに別のページに移ります。「戻る」でも、このサイトには戻りません。</span>
+            </li>
+            <li>
+              <span class="ob-key">この場面をとばす</span>
+              <span>性や暴力の場面もあります。行為そのものは描きません。つらくなったら、どの場面でもとばせます。</span>
+            </li>
+            <li>
+              <span class="ob-key">保存</span>
+              <span>{isPersistent() ? 'この端末に保存しています。' : 'タブを閉じると消えます。'}名前などの個人情報は聞きません。</span>
+            </li>
+            <li>
+              <span class="ob-key">話せる場所</span>
+              <span>画面のいちばん下の「私も相談したいことがある」から、いつでも相談先を見られます。</span>
+            </li>
+          </ul>
+          <button type="button" class="btn primary" onClick={() => navigate('select')}>
+            主人公を選ぶ
+          </button>
+          <button type="button" class="tool" onClick={() => setStep(1)}>
+            ◀ 戻る
+          </button>
+        </div>
+      )}
+    </section>
   );
 }

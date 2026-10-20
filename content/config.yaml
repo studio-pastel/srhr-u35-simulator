@@ -1,5 +1,5 @@
 # サイト全体の設定。値の根拠は SPEC.md §2.2・§8.1・§15。
-siteName: "（仮）SRHR Japan 学習コンテンツ"   # T1：最終名はTBD
+siteName: "SRHR U35 SIMULATOR"   # 2026-10-21 発注者が決定（付録B-22）
 publisher: "一般社団法人SRHR Japan"
 # 「すぐに閉じる」の移動先（§8.1）
 exitUrl: "https://www.google.co.jp/search?q=%E5%A4%A9%E6%B0%97"

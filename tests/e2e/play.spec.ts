@@ -20,6 +20,13 @@ async function blockExternal(page: Page) {
   );
 }
 
+/** オンボーディング（タイトル → あそびかた → 安心して遊ぶために）を進めて、主人公を選ぶ画面へ */
+async function onboard(page: Page) {
+  await page.getByRole('button', { name: 'はじめる' }).click();
+  await page.getByRole('button', { name: '次へ' }).click();
+  await page.getByRole('button', { name: '主人公を選ぶ' }).click();
+}
+
 async function start(page: Page, name: string) {
   await page.goto('/#/select');
   await page.getByRole('button', { name: `${name}で始める` }).click();
@@ -73,7 +80,7 @@ for (const name of ['ミナミ', 'ハルト', 'ユウ', 'ケイ']) {
 test('「すぐに閉じる」で exitUrl に移動し、ブラウザの「戻る」で戻れない', async ({ page }) => {
   // トップページから、画面の操作だけで進む（サイト内の移動では履歴を増やさない）
   await page.goto('/');
-  await page.getByRole('button', { name: 'はじめる' }).click();
+  await onboard(page);
   await page.getByRole('button', { name: 'ユウで始める' }).click();
   await page.getByRole('button', { name: 'はじめる' }).click();
   await page.getByRole('link', { name: /私も相談したいことがある/ }).click();
@@ -88,7 +95,7 @@ test('ブラウザの「戻る」でサイトを離れても、同じタブで�
   // 別のサイトから来た状態をつくる
   await page.goto('https://www.google.co.jp/search?q=before');
   await page.goto('/');
-  await page.getByRole('button', { name: 'はじめる' }).click();
+  await onboard(page);
   await page.getByRole('button', { name: 'ケイで始める' }).click();
   await page.getByRole('button', { name: 'はじめる' }).click();
   for (let i = 0; i < 3; i++) await page.locator('main button.bubble').first().click();

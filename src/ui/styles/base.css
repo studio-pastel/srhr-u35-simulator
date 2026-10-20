@@ -723,3 +723,293 @@ ul.plain {
 .support-labels {
   margin-top: 4px !important;
 }
+
+/* オンボーディング（付録B-24） */
+.ob-title {
+  text-align: center;
+  padding-top: 8px;
+}
+
+.ob-logo {
+  font-size: 30px;
+  letter-spacing: 0.06em;
+  line-height: 1.2;
+  margin: 18px 0 6px;
+}
+
+.ob-tagline {
+  font-size: 17px;
+  margin: 0 0 18px;
+}
+
+.ob-step {
+  margin: 12px 0 0;
+  color: var(--text-sub);
+  font-size: 13px;
+}
+
+.ob-card {
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  padding: 12px 14px;
+  margin: 12px 0;
+}
+
+.ob-card h2 {
+  margin: 10px 0 4px;
+  font-size: 18px;
+}
+
+.ob-card p {
+  margin: 0 0 4px;
+}
+
+.ob-factors {
+  list-style: none;
+  padding: 0;
+  margin: 8px 0 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+/* 要因のチップ：文字は通常の色、左の色帯で要因を示す（文字のコントラストを保つため） */
+.ob-factor,
+.reason {
+  font-size: 13px;
+  padding: 2px 8px;
+  border-radius: 6px;
+  color: var(--text);
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-left-width: 6px;
+}
+
+.f-choice { border-left-color: var(--f-choice); }
+.f-upbringing { border-left-color: var(--f-upbringing); }
+.f-society { border-left-color: var(--f-society); }
+.f-others { border-left-color: var(--f-others); }
+.f-chance { border-left-color: var(--f-chance); }
+
+.ob-safety {
+  list-style: none;
+  padding: 0;
+  margin: 12px 0;
+}
+
+.ob-safety li {
+  display: grid;
+  grid-template-columns: 8.5em 1fr;
+  gap: 10px;
+  align-items: start;
+  padding: 10px 0;
+  border-bottom: 1px solid var(--line);
+  font-size: 14px;
+}
+
+.ob-key {
+  font-weight: 700;
+  font-size: 13px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  padding: 2px 6px;
+  text-align: center;
+}
+
+.ob-key.ob-exit {
+  background: var(--exit);
+  color: var(--exit-text);
+  border-color: var(--exit);
+}
+
+/* 主人公を選ぶ */
+.char-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 12px;
+}
+
+.char-card2 h2 {
+  margin: 10px 0 4px;
+}
+
+/* 人生の地図（付録B-7・B-23） */
+.life-strip {
+  list-style: none;
+  padding: 0;
+  margin: 12px 0;
+  display: flex;
+  justify-content: space-between;
+  position: relative;
+}
+
+.life-strip::before {
+  content: '';
+  position: absolute;
+  left: 12px;
+  right: 12px;
+  top: 50%;
+  border-top: 2px solid var(--line);
+}
+
+.life-dot {
+  position: relative;
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 12px;
+  background: var(--surface);
+  border: 2px solid var(--line);
+  color: var(--text-sub);
+}
+
+.life-dot.done {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: var(--surface);
+}
+
+.life-dot.current {
+  border-color: var(--accent);
+  color: var(--accent);
+  font-weight: 700;
+  transform: scale(1.15);
+}
+
+.life-map {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.life-node {
+  display: grid;
+  grid-template-columns: 3.4em 1fr;
+  gap: 10px;
+  position: relative;
+  padding-bottom: 14px;
+}
+
+.life-node::before {
+  content: '';
+  position: absolute;
+  left: 1.7em;
+  top: 28px;
+  bottom: 0;
+  border-left: 2px solid var(--line);
+}
+
+.life-node:last-child::before {
+  display: none;
+}
+
+.life-age {
+  font-weight: 700;
+  font-size: 14px;
+  background: var(--surface);
+  border: 2px solid var(--line);
+  border-radius: 999px;
+  text-align: center;
+  height: 28px;
+  line-height: 24px;
+  position: relative;
+}
+
+.life-node.done .life-age {
+  border-color: var(--accent);
+}
+
+.life-node.current .life-age {
+  background: var(--accent);
+  color: var(--surface);
+  border-color: var(--accent);
+}
+
+.life-node.future {
+  opacity: 0.55;
+}
+
+.life-thumb {
+  max-width: 220px;
+}
+
+.life-thumb.future {
+  aspect-ratio: 96 / 64;
+  border: 2px dashed var(--line);
+  border-radius: var(--radius);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 22px;
+  color: var(--text-sub);
+}
+
+.life-stage {
+  margin: 4px 0 0;
+  font-size: 13px;
+  color: var(--text-sub);
+}
+
+.life-news {
+  margin: 0;
+  font-size: 14px;
+}
+
+.life-said,
+.review-said {
+  margin: 6px 0 0;
+  padding: 6px 10px;
+  border-left: 3px solid var(--accent);
+  background: var(--bg);
+  border-radius: 0 8px 8px 0;
+  font-size: 15px;
+}
+
+.review-said.small {
+  font-size: 13px;
+}
+
+.life-here {
+  margin: 4px 0 0;
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--accent);
+}
+
+/* 章のふりかえり */
+.review .pixel-stage {
+  max-width: 320px;
+  margin: 0 auto;
+}
+
+.review-change {
+  padding: 8px 0;
+  border-bottom: 1px solid var(--line);
+}
+
+.review-change-head {
+  margin: 0;
+}
+
+.review-reasons {
+  margin: 4px 0 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+}
+
+
+.review-other {
+  padding: 8px 0;
+  border-bottom: 1px solid var(--line);
+  font-size: 14px;
+}
+
+.review-other-name {
+  margin: 0;
+  font-weight: 700;
+}
