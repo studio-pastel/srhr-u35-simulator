@@ -1,0 +1,65 @@
+# 社会条件（SPEC.md §10.2）。既定値は設計値であり、日本の多数派を表すものではない。
+- id: sexEducation
+  label: "学校の性教育"
+  options:
+    - id: taught
+      label: "避妊・同意・デートDV・相談窓口を学校で学んだ"
+      statRefs: [S06, S09]
+      verified: true
+      # E16-ALL-SEXED の開始時に反映する（付録A-5）
+      setFlags:
+        knowsConsent: true
+        knowsDateDV: true
+        knowsWithdrawalUnreliable: true
+        knowsHelplines: true
+    - id: notTaught
+      label: "学校では学ばなかった"
+      statRefs: [S06, S09]
+      verified: true
+      setFlags:
+        knowsConsent: false
+        knowsDateDV: false
+        knowsWithdrawalUnreliable: false
+        knowsHelplines: false
+  defaultOption: taught
+  affects: [minami, haruto, yu, kei]
+- id: ecAccess
+  label: "緊急避妊薬の入手"
+  options:
+    - id: otc2026
+      label: "薬局で処方箋なしで買える"
+      statRefs: [S11]
+      verified: true
+    - id: prescriptionOnly
+      label: "受診して処方を受ける必要がある（2026年2月以前）"
+      statRefs: [S11]
+      verified: true
+  defaultOption: otc2026
+  affects: [kei]
+- id: parentalLeave
+  label: "職場の育児休業"
+  options:
+    - id: easy
+      label: "育休を取りやすい職場"
+      statRefs: [S21]
+      verified: false
+    - id: hard
+      label: "育休を取りにくい職場"
+      statRefs: [S21]
+      verified: false
+  defaultOption: hard
+  affects: [haruto, kei]
+- id: partnership
+  label: "自治体のパートナーシップ制度"
+  options:
+    - id: available
+      label: "制度がある"
+      statRefs: []
+      verified: false
+    - id: notAvailable
+      label: "制度がない"
+      statRefs: []
+      verified: false
+  # T4：既定値はTBD。根拠統計も未収集
+  defaultOption: null
+  affects: [yu]

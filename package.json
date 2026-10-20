@@ -1,0 +1,32 @@
+{
+  "name": "srhr-educator",
+  "private": true,
+  "version": "0.1.0",
+  "type": "module",
+  "license": "UNLICENSED",
+  "engines": {
+    "node": ">=24"
+  },
+  "scripts": {
+    "dev": "vite",
+    "validate": "tsx scripts/validate-content.ts",
+    "test": "vitest run",
+    "typecheck": "tsc --noEmit",
+    "licenses": "tsx scripts/licenses.ts",
+    "build": "npm run licenses && tsx scripts/validate-content.ts --production && tsc --noEmit && vite build",
+    "preview": "vite preview"
+  },
+  "dependencies": {
+    "preact": "^11.0.1",
+    "zod": "^4.6.7"
+  },
+  "devDependencies": {
+    "@types/node": "^26.6.5",
+    "fast-check": "^4.10.2",
+    "tsx": "^4.23.15",
+    "typescript": "^7.0.2",
+    "vite": "^7.3.7",
+    "vitest": "^5.0.5",
+    "yaml": "^2.9.1"
+  }
+}

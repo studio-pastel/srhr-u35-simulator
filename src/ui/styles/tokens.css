@@ -1,0 +1,48 @@
+/* デザイントークン（§16.4・§16.5）。暫定値（T2）。最終値はこのファイルだけを差し替える */
+:root {
+  --bg: #f7f6f2;
+  --surface: #ffffff;
+  --text: #1e1f24;
+  --text-sub: #5b5e66;
+  --accent: #3d5a80;
+  --exit: #b42318;
+  --exit-text: #ffffff;
+  --caution-bg: #f3efe3;
+  --line: #d9d7d0;
+  --track: #e7e5df;
+
+  /* 4要因（色と模様を併用する） */
+  --f-choice: #3d5a80;
+  --f-upbringing: #9c6644;
+  --f-society: #2a9d8f;
+  --f-chance: #e0a526;
+
+  --font: system-ui, -apple-system, 'Hiragino Sans', 'Noto Sans JP', 'Yu Gothic UI', sans-serif;
+  --fs-body: 16px;
+  --fs-choice: 17px;
+  --fs-h1: 24px;
+  --fs-h2: 20px;
+  --lh: 1.8;
+  --radius: 12px;
+  --col: 480px;
+}
+
+:root[data-font='large'] {
+  --fs-body: 19px;
+  --fs-choice: 19px;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #17181c;
+    --surface: #22242a;
+    --text: #ececef;
+    --text-sub: #a9acb4;
+    --accent: #8fb0d9;
+    --exit: #ff6b5e;
+    --exit-text: #17181c;
+    --caution-bg: #2a2720;
+    --line: #3a3d45;
+    --track: #33363e;
+  }
+}

@@ -1,0 +1,8 @@
+node_modules/
+dist/
+.DS_Store
+*.log
+# 接続情報・トークンはリポジトリに置かない（§13.1）
+.env
+.env.*
+.claude/

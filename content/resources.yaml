@@ -1,0 +1,59 @@
+# 相談窓口（SPEC.md §10.6）。公開直前に、各窓口の公式ページで番号と受付時間を再確認する。
+# url: null … 公式ページのURLは未確定（T11 ほか）。リンクなしで名称だけ表示する。
+# tags … イベントの後に出す窓口の絞り込み（violence／ec／health）。フッターからは全窓口を出す。
+- id: dv-plus
+  name: "DV相談＋（プラス）"
+  contact: "0120-279-889。電話・メールは24時間、SNSは12〜22時（10言語）"
+  tel: "0120279889"
+  url: null
+  target: "配偶者・恋人からの暴力"
+  checkedAt:
+    title: "警察庁 犯罪被害者白書"
+    url: "https://www.npa.go.jp/hanzaihigai/whitepaper/2024/zenbun/part3_siryo/siryo-9.html"
+  tags: [violence]
+- id: dv-navi
+  name: "DV相談ナビ"
+  contact: "#8008（最寄りの配偶者暴力相談支援センターにつながる）"
+  tel: "#8008"
+  url: null
+  target: "配偶者・恋人からの暴力"
+  checkedAt:
+    title: "警察庁 犯罪被害者白書"
+    url: "https://www.npa.go.jp/hanzaihigai/whitepaper/2024/zenbun/part3_siryo/siryo-9.html"
+  tags: [violence]
+- id: one-stop
+  name: "性犯罪・性暴力被害者のためのワンストップ支援センター"
+  contact: "#8891"
+  tel: "#8891"
+  url: null
+  target: "性暴力の被害"
+  checkedAt:
+    title: "警察庁 犯罪被害者白書"
+    url: "https://www.npa.go.jp/hanzaihigai/whitepaper/2024/zenbun/part3_siryo/siryo-9.html"
+  tags: [violence]
+- id: police-8103
+  name: "性犯罪被害相談電話"
+  contact: "#8103"
+  tel: "#8103"
+  url: null
+  target: "性犯罪の被害（警察）"
+  checkedAt:
+    title: "政府広報オンライン"
+    url: "https://www.gov-online.go.jp/kurashinosodan/list/ct_higaisoudan.html"
+  tags: [violence]
+- id: ec-pharmacy
+  name: "緊急避妊薬の販売薬局"
+  contact: "厚生労働省の販売可能薬局一覧（URLは準備中）"
+  url: null   # T11
+  target: "避妊の失敗・避妊なしの性交"
+  checkedAt:
+    title: "鹿児島県"
+    url: "https://www.pref.kagoshima.jp/ae10/kinkyuuhininyaku.html"
+  tags: [ec]
+- id: health-center
+  name: "性と健康の相談センター"
+  contact: "都道府県・市の窓口一覧（URLは準備中）"
+  url: null   # T11
+  target: "からだ・妊娠・不妊・性の悩み全般"
+  checkedAt: null   # 確認元TBD
+  tags: [ec, health]

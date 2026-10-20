@@ -1,0 +1,224 @@
+# 17歳の章（SPEC.md §10.3）。Claude Code の下書き。すべて status: draft。
+#
+# 文字数の上限（src/engine/limits.ts、SPEC.md 付録A-7）
+#   シーン本文 text ……… 200字以内（超えると警告）
+#   選択肢 label ………… 30字以内（超えると警告）
+#   効果 note …………… 20字以内（超えるとエラー。ビルドが止まる）
+#   数え方：ルビ {漢字|かんじ} は親文字だけを数える。改行は数えない。
+#
+# P7：ミナミの視点（viewpoint: minami）のシーンから harutoRoute・harutoControl17 を書き換えない。
+age: 17
+title: "17歳"
+season: "高校2年・夏"
+status: draft
+intro:
+  minami: "高校2年の夏。同じクラスのハルトと付き合い始めた。"
+  haruto: "高校2年の夏。同じクラスのミナミと付き合い始めた。"
+  yu: "高校2年の夏。SNSで、好きなバンドの話が合う相手ができた。"
+  kei: "高校2年の夏。友人たちの話題は、恋愛のことが多くなった。"
+events:
+  - id: E17-MH-CONTROL
+    age: 17
+    characters: [minami, haruto]
+    kind: fixed
+    domains: [デートDV予防, 同意]
+    triggerWarning: "この章には、交際相手による束縛（デートDV）に触れる場面があります。暴力の行為そのものは描きません。"
+    viewpointSwitch:
+      from: minami
+      to: haruto
+      entry: { minami: m-start, haruto: h-start }
+    statCard: [S07, S01]
+    resources: [violence]
+    status: draft
+    scenes:
+      # ── ミナミの視点 ──
+      - id: m-start
+        viewpoint: minami
+        text: "付き合って二か月。「心配だから」と、ハルトに位置情報の共有を頼まれた。最近は「スマホ見せて」と言われることもある。"
+        next: m-plans
+      - id: m-plans
+        viewpoint: minami
+        text: "週末に友人と出かける予定を話すと、ハルトは急に黙った。あとから「誰と行くの」「何時に帰るの」と、何度もメッセージが来る。"
+        branches:
+          - when: "flags.knowsDateDV == true"
+            next: m-know
+        next: m-choose
+      - id: m-know
+        viewpoint: minami
+        text: "授業で聞いた話が浮かぶ。相手の行動を縛ることも、デートDVになりうる。"
+        next: m-choose
+      - id: m-choose
+        viewpoint: minami
+        text: "スマホの通知が、また光る。"
+        choices:
+          - id: accept
+            label: "受け入れる"
+            effects:
+              - { param: autonomy, sign: -1, size: S, source: society, statRef: S06, when: "cond.sexEducation == 'notTaught'", note: "学ぶ機会がなかった" }
+            setFlags: { minamiResponse17: accepted }
+            next: m-accept
+          - id: speak
+            label: "違和感を言う"
+            canonical: true
+            effects:
+              - { param: autonomy, sign: 1, size: M, source: choice, note: "違和感を言葉にした" }
+              - { param: autonomy, sign: 1, size: S, source: society, statRef: S06, when: "flags.knowsDateDV == true", note: "授業で学んだ言葉がある" }
+              - { param: autonomy, sign: -1, size: S, source: society, statRef: S06, when: "cond.sexEducation == 'notTaught'", note: "学ぶ機会がなかった" }
+            setFlags: { minamiResponse17: spoke }
+            next: m-speak
+          - id: friend
+            label: "友人に話す"
+            effects:
+              - { param: connection, sign: 1, size: M, source: choice, note: "友人に話した" }
+              - { param: safety, sign: 1, size: S, source: society, when: "flags.knowsHelplines == true", note: "相談先を知っている" }
+              - { param: autonomy, sign: -1, size: S, source: society, statRef: S06, when: "cond.sexEducation == 'notTaught'", note: "学ぶ機会がなかった" }
+            setFlags: { minamiResponse17: toldFriend }
+            next: m-friend
+      - id: m-accept
+        viewpoint: minami
+        text: "言われたとおりにすると、その場は静かになった。でも、友人との予定を決めるたびに、ハルトの顔が浮かぶ。"
+        next: END
+      - id: m-speak
+        viewpoint: minami
+        text: "「見られるのは嫌だ」と伝えた。ハルトがどう受け取ったかは、わからない。それでも、自分の気持ちを言葉にできたことは残る。"
+        next: END
+      - id: m-friend
+        viewpoint: minami
+        text: "友人は最後まで聞いて、「それ、ミナミのせいじゃないよ」と言った。一人で考えなくていいのだと思えた。"
+        next: END
+
+      # ── ハルトの視点 ──
+      - id: h-start
+        viewpoint: haruto
+        text: "ミナミと付き合って二か月。返信が少し遅れるだけで、落ち着かなくなる。位置情報を見ると、ほっとする。"
+        next: h-think
+      - id: h-think
+        viewpoint: haruto
+        text: "ふと、父が母のスマホを確かめていた姿が浮かぶ。それが「大切にする」ことだと、どこかで思っていた。"
+        branches:
+          - when: "flags.knowsDateDV == true"
+            next: h-know
+        next: h-choose
+      - id: h-know
+        viewpoint: haruto
+        text: "授業で聞いた話を思い出す。相手の行動を縛ることも、デートDVになりうる。"
+        next: h-choose
+      - id: h-choose
+        viewpoint: haruto
+        text: "ミナミに送るメッセージを、打ちかけて止める。"
+        choices:
+          - id: keepChecking
+            label: "「心配だから」と確認を続ける"
+            canonical: true
+            effects:
+              - { param: connection, sign: -1, size: S, source: choice, note: "関係が窮屈になる" }
+              - { param: autonomy, sign: -1, size: S, source: upbringing, statRef: S04, when: "up.witnessedDV == true", note: "支配を見て育った" }
+            setFlags: { harutoControl17: continued }
+            next: h-continue
+          - id: stop
+            label: "確認するのをやめる"
+            effects:
+              - { param: autonomy, sign: 1, size: M, source: choice, note: "自分で行動を変えた" }
+              - { param: autonomy, sign: 1, size: S, source: society, statRef: S06, when: "flags.knowsDateDV == true", note: "授業で学んだ言葉がある" }
+              - { param: autonomy, sign: -1, size: S, source: upbringing, statRef: S04, when: "up.witnessedDV == true", note: "支配を見て育った" }
+            setFlags: { harutoControl17: stopped }
+            next: h-stop
+      - id: h-continue
+        viewpoint: haruto
+        text: "「心配だから」と、今日も位置を確かめる。不安は少しのあいだ消えて、また戻ってくる。この不安のことを、誰かに話したことはない。"
+        next: END
+      - id: h-stop
+        viewpoint: haruto
+        text: "位置情報の共有をやめようと伝えた。不安は消えない。それでも、不安を、相手を縛る理由にはしないと決めた。"
+        next: END
+
+  - id: E17-YU-SEXTING
+    age: 17
+    characters: [yu]
+    kind: fixed
+    domains: [オンラインの性的被害]
+    triggerWarning: "この章には、SNSで性的な画像を求められる場面があります。"
+    statCard: [S08]
+    resources: [violence]
+    status: draft
+    scenes:
+      - id: start
+        text: "SNSで知り合った相手とは、好きなバンドの話でずっと盛り上がってきた。ある夜、「写真送ってよ。顔じゃないやつ」とメッセージが来る。"
+        next: choose
+      - id: choose
+        text: "画面を見たまま、指が止まる。"
+        choices:
+          - id: refuse
+            label: "断る"
+            canonical: true
+            effects:
+              - { param: autonomy, sign: 1, size: M, source: choice, note: "自分で断った" }
+            setFlags: { yuSexting: refused }
+            next: refuse
+          - id: record
+            label: "記録して相談する"
+            effects:
+              - { param: safety, sign: 1, size: M, source: choice, note: "記録して相談した" }
+              - { param: connection, sign: 1, size: S, source: choice, note: "一人で抱えなかった" }
+              - { param: safety, sign: 1, size: S, source: society, when: "flags.knowsHelplines == true", note: "授業で相談先を知った" }
+            setFlags: { yuSexting: consulted }
+            next: record
+          - id: send
+            label: "画像を送る"
+            setFlags: { yuSexting: sent }
+            next: send
+      - id: refuse
+        text: "「それは送らない」と返した。相手からの返信は、それきり来なくなった。画面を閉じても、少しだけ手がふるえていた。"
+        next: after
+      - id: record
+        text: "やり取りの画面を保存してから、相手をブロックした。次の日、保健室で画面を見せて相談した。"
+        next: after
+      - id: send
+        text: "送ったあと、胸がざわざわして眠れない。画像のことは、一人で抱えなくていい。送ったあとからでも、相談できる場所がある。"
+        next: after
+      - id: after
+        text: "求められて困ったときも、送ったあとで不安になったときも、相談できる窓口がある。このあと、連絡先を紹介する。"
+        next: END
+
+  - id: E17-KEI-MYTH
+    age: 17
+    characters: [kei]
+    kind: fixed
+    domains: [避妊の知識, STIの知識]
+    statCard: [S09, S05]
+    status: draft
+    scenes:
+      - id: start
+        text: "昼休み、友人が言った。「外に出せば大丈夫らしいよ。先輩が言ってた」。周りは笑ってうなずいている。"
+        branches:
+          - when: "flags.knowsWithdrawalUnreliable == true"
+            next: class
+        next: choose
+      - id: class
+        text: "授業で、{腟外射精|ちつがいしゃせい}は確実な避妊法ではないと聞いた気がする。でも、みんながそう言うなら、そうなのかもしれない。"
+        next: choose
+      - id: choose
+        text: "ケイは、少し考える。"
+        choices:
+          - id: believe
+            label: "信じる"
+            setFlags: { method: withdrawal }
+            next: believe
+          - id: research
+            label: "自分で調べる"
+            canonical: true
+            setFlags: { method: condom, knowsWithdrawalUnreliable: true }
+            next: research
+          - id: nurse
+            label: "保健室で聞く"
+            setFlags: { method: condom, knowsWithdrawalUnreliable: true }
+            next: nurse
+      - id: believe
+        text: "「へえ、そうなんだ」と話を合わせた。それ以上、調べることはなかった。"
+        next: END
+      - id: research
+        text: "夜、公的機関のサイトで調べた。{腟外射精|ちつがいしゃせい}は確実な避妊法ではないと書いてある。避妊の方法ごとの違いも、くわしく載っていた。"
+        next: END
+      - id: nurse
+        text: "保健室で聞くと、{養護教諭|ようごきょうゆ}は、{腟外射精|ちつがいしゃせい}は確実な避妊法ではないことと、避妊の方法を選ぶときの相談先を教えてくれた。"
+        next: END

@@ -1,0 +1,205 @@
+# 16歳の章（SPEC.md §10.3）。Claude Code の下書き。すべて status: draft。
+#
+# 文字数の上限（src/engine/limits.ts、SPEC.md 付録A-7）
+#   シーン本文 text ……… 200字以内（超えると警告）
+#   選択肢 label ………… 30字以内（超えると警告）
+#   効果 note …………… 20字以内（超えるとエラー。ビルドが止まる）
+#   数え方：ルビ {漢字|かんじ} は親文字だけを数える。改行は数えない。
+#
+# 書き方のきまり：SPEC.md §11。暴力の行為を描写しない。選択を評価する言い方をしない。
+age: 16
+title: "16歳"
+season: "高校1年・秋"
+status: draft
+intro:
+  minami: "高校1年の秋。友人と始めたダイエットが、クラスで少し話題になっている。"
+  haruto: "高校1年の秋。家にいるときは、なるべく自分の部屋で過ごしている。"
+  yu: "高校1年の秋。HPVワクチンの案内が、家のテーブルに置いたままになっている。"
+  kei: "高校1年の秋。放課後は、弟と妹の迎えに走る毎日だ。"
+events:
+  - id: E16-ALL-SEXED
+    age: 16
+    characters: [minami, haruto, yu, kei]
+    kind: fixed
+    domains: [包括的性教育]
+    applyConditionFlags: [sexEducation]
+    statCard: [S06, S09]
+    status: draft
+    scenes:
+      - id: start
+        text: "3時間目は保健の授業。教室の空気が、いつもより少しだけ落ち着かない。"
+        branches:
+          - when: "cond.sexEducation == 'taught'"
+            next: taught
+        next: notTaught
+      - id: taught
+        speaker: "保健の先生"
+        text: "「今日は、避妊の方法、性的同意、デートDV、困ったときの相談窓口について話します。どれも、自分と相手を大切にするための知識です」"
+        next: taught2
+      - id: taught2
+        text: "{腟外射精|ちつがいしゃせい}は確実な避妊法ではないこと。同意は、いつでも取り消せること。相手の行動を縛ることも、暴力になりうること。配られたカードには、相談窓口の番号が並んでいる。"
+        next: END
+      - id: notTaught
+        text: "授業は、教科書の数ページを読んで終わった。避妊や同意、デートDVの話は出なかった。わからないことは、わからないままになった。"
+        next: END
+
+  - id: E16-YU-HPV
+    age: 16
+    characters: [yu]
+    kind: fixed
+    domains: [ワクチンで防げる疾患]
+    statCard: [S13]
+    status: draft
+    scenes:
+      - id: start
+        text: "HPVワクチンの定期接種は、今年度が最後だと案内に書いてある。母は「どうしようかね」と言ったまま、決めかねている。"
+        choices:
+          - id: research
+            label: "自分で調べて決める"
+            canonical: true
+            effects:
+              - { param: autonomy, sign: 1, size: M, source: choice, note: "自分で調べて決めた" }
+            setFlags: { yuHpv: researched }
+            next: research
+          - id: parent
+            label: "親に任せる"
+            setFlags: { yuHpv: leftToParent }
+            next: parent
+          - id: decline
+            label: "受けない"
+            setFlags: { yuHpv: declined }
+            next: decline
+      - id: research
+        text: "自治体のページや、学校で配られた資料を読み比べる。わからないところは、医療機関で聞いてみることにした。決めるのは自分だと思うと、少し背すじが伸びる。"
+        next: END
+      - id: parent
+        text: "「お母さんが決めて」と言うと、母はうなずいた。案内の紙は、冷蔵庫に貼られた。"
+        next: END
+      - id: decline
+        text: "今は受けないことにした。案内の紙はファイルにしまう。気になったときは、医療機関で相談できる。"
+        next: END
+
+  - id: E16-MINAMI-DIET
+    age: 16
+    characters: [minami]
+    kind: fixed
+    domains: [栄養, 月経]
+    statCard: [S14]
+    status: draft
+    scenes:
+      - id: start
+        text: "友人と始めたダイエットは、もう二か月になる。体重は減ったけれど、先月から月経が来ていない。"
+        branches:
+          - when: "up.talkAboutSex == false"
+            next: noTalk
+        next: choose
+      - id: noTalk
+        text: "母に言おうか迷う。でも、家で月経の話をしたことは一度もない。どう切り出せばいいのか、わからない。"
+        next: choose
+      - id: choose
+        text: "このまま様子を見るか、誰かに相談するか。"
+        choices:
+          - id: nurse
+            label: "保健室で相談する"
+            canonical: true
+            effects:
+              - { param: body, sign: 1, size: M, source: choice, note: "保健室で相談した" }
+              - { param: connection, sign: 1, size: S, source: choice, note: "話を聞いてもらえた" }
+              - { param: connection, sign: 1, size: S, source: society, when: "flags.knowsHelplines == true", note: "授業で相談先を知った" }
+            next: nurse
+          - id: clinic
+            label: "婦人科を受診する"
+            effects:
+              - { param: body, sign: 1, size: M, source: choice, note: "婦人科を受診した" }
+              - { param: autonomy, sign: 1, size: S, source: choice, note: "自分で予約した" }
+            next: clinic
+          - id: keepOn
+            label: "ダイエットを続ける"
+            effects:
+              - { param: body, sign: -1, size: M, source: choice, note: "食事を減らし続けた" }
+              - { param: body, sign: -1, size: S, source: upbringing, when: "up.talkAboutSex == false", note: "家で相談しにくい" }
+            next: keepOn
+      - id: nurse
+        speaker: "{養護教諭|ようごきょうゆ}"
+        text: "「話してくれてありがとう。一度、婦人科で相談してみようか」。責める言葉はひとつもなく、近くの医療機関の探し方を一緒に調べてくれた。"
+        next: END
+      - id: clinic
+        text: "一人で予約の電話をかけるのは、思ったより勇気がいった。医師は食事のことを丁寧に聞き、これからのことを一緒に考えてくれた。"
+        next: END
+      - id: keepOn
+        text: "数字が減るのを見ると、少し安心する。月経のことは、まだ誰にも話していない。気になったときは、保健室や医療機関で相談できる。"
+        next: END
+
+  - id: E16-KEI-CARE
+    age: 16
+    characters: [kei]
+    kind: fixed
+    domains: [家族, 社会経済]
+    statCard: [S22, S23]
+    status: draft
+    scenes:
+      - id: start
+        text: "母は夜まで仕事だ。弟の保育園の迎えと、妹の夕食は、ケイの役目になっている。今週は2回、6時間目を早退した。"
+        next: teacher
+      - id: teacher
+        speaker: "担任"
+        text: "「最近、早退が多いな。何かあった？」"
+        choices:
+          - id: tell
+            label: "担任に事情を話す"
+            canonical: true
+            effects:
+              - { param: connection, sign: 1, size: M, source: choice, note: "担任に事情を話した" }
+              - { param: connection, sign: -1, size: S, source: upbringing, statRef: S23, when: "up.familyCare == true", note: "世話で放課後が埋まる" }
+            setFlags: { keiToldTeacher: true }
+            next: tell
+          - id: silent
+            label: "黙っている"
+            effects:
+              - { param: connection, sign: -1, size: S, source: upbringing, statRef: S23, when: "up.familyCare == true", note: "世話で放課後が埋まる" }
+            setFlags: { keiToldTeacher: false }
+            next: silent
+      - id: tell
+        text: "話し終えると、担任は「話してくれて助かった」と言った。スクールカウンセラーや、地域の支援につなぐ方法を、一緒に調べることになった。"
+        next: END
+      - id: silent
+        text: "「大丈夫です」と言うと、担任はそれ以上聞かなかった。家のことを話すのは、まだ少しこわい。"
+        next: END
+
+  - id: E16-HARUTO-HOME
+    age: 16
+    characters: [haruto]
+    kind: fixed
+    domains: [対人暴力]
+    triggerWarning: "この章には、家庭の中で親が親を怒鳴る場面があります。暴力の行為そのものは描きません。"
+    statCard: [S04]
+    resources: [violence]
+    status: draft
+    scenes:
+      - id: start
+        text: "夕食のあと、居間から父の大きな声が聞こえる。母の返事は聞こえない。ハルトはイヤホンをつけ、音量を上げる。"
+        next: think
+      - id: think
+        text: "小さいころから、こういう夜は何度もあった。どこの家でも同じなのかもしれない。そう思うようにしてきた。"
+        choices:
+          - id: tell
+            label: "誰かに話してみる"
+            effects:
+              - { param: connection, sign: 1, size: M, source: choice, note: "家のことを人に話した" }
+              - { param: safety, sign: 1, size: S, source: society, when: "flags.knowsHelplines == true", note: "授業で相談先を知った" }
+              - { param: safety, sign: -1, size: S, source: upbringing, statRef: S04, when: "up.witnessedDV == true", note: "家庭内の支配を見て育つ" }
+            setFlags: { harutoToldHome: true }
+            next: tell
+          - id: ignore
+            label: "見ないふりをする"
+            canonical: true
+            effects:
+              - { param: safety, sign: -1, size: S, source: upbringing, statRef: S04, when: "up.witnessedDV == true", note: "家庭内の支配を見て育つ" }
+            setFlags: { harutoToldHome: false }
+            next: ignore
+      - id: tell
+        text: "次の日、保健室で「家がちょっとしんどい」とだけ言ってみた。{養護教諭|ようごきょうゆ}は急かさずに聞き、相談できる場所がいくつもあることを教えてくれた。"
+        next: END
+      - id: ignore
+        text: "音量をもう一段上げる。明日になれば、いつもの朝が来る。それでも、胸のどこかが重いままだ。"
+        next: END

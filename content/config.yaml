@@ -1,0 +1,15 @@
+# サイト全体の設定。値の根拠は SPEC.md §2.2・§8.1・§15。
+siteName: "（仮）SRHR Japan 学習コンテンツ"   # T1：最終名はTBD
+publisher: "一般社団法人SRHR Japan"
+# 「すぐに閉じる」の移動先（§8.1）
+exitUrl: "https://www.google.co.jp/search?q=%E5%A4%A9%E6%B0%97"
+# パラメーター変動幅（§2.2。T3：監修で調整する前提の暫定値）
+effectSize:
+  S: 5
+  M: 10
+  L: 20
+# 相談窓口のタグの表示名（§10.6）
+resourceTags:
+  violence: "暴力・性暴力について"
+  ec: "避妊・緊急避妊について"
+  health: "からだ・妊娠・不妊について"

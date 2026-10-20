@@ -1,0 +1,318 @@
+# 統計（SPEC.md §10.5）。この表にない数値を、本文・確率・統計カードに書かない。
+# verified: false … 二次資料などのため原典で未確認（T8）。本番ビルドでは参照すると失敗する。
+# jpData: false … 日本以外のデータ。
+# value は §10.5 の「数値」の列をそのまま写す（丸めない・言い換えない。§11-7）。
+
+- id: S01
+  label: "交際相手からの暴力の被害経験"
+  value: "女性22.7%、男性12.0%。被害者の39.1%はどこにも相談せず。女性被害者の23.3%が命の危険を感じた"
+  definition: "交際経験のある18〜59歳"
+  source:
+    title: "内閣府 男女間における暴力に関する調査 概要版"
+    url: "https://www.gender.go.jp/kaigi/senmon/boryoku/siryo/pdf/bo124-2.pdf"
+    year: "2023年度"
+  verified: true
+  jpData: true
+
+- id: S02
+  label: "不同意性交等の被害経験"
+  value: "女性8.1%、男性0.7%。加害者は交際相手・元交際相手が各16.4%。被害時期は20代が約4割、18・19歳と中学卒業〜17歳が各約2割。55.7%は相談せず"
+  definition: "被害時期・加害者は複数回答"
+  source:
+    title: "内閣府 男女間における暴力に関する調査 概要版"
+    url: "https://www.gender.go.jp/kaigi/senmon/boryoku/siryo/pdf/bo124-2.pdf"
+    year: "2023年度"
+  verified: true
+  jpData: true
+
+- id: S03
+  label: "執拗なつきまとい等の被害経験"
+  value: "女性14.0%、男性5.7%。加害者は元交際相手が23.9%で最多"
+  definition: ""
+  source:
+    title: "内閣府 男女間における暴力に関する調査 概要版"
+    url: "https://www.gender.go.jp/kaigi/senmon/boryoku/siryo/pdf/bo124-2.pdf"
+    year: "2023年度"
+  verified: true
+  jpData: true
+
+- id: S04
+  label: "配偶者からの暴力の被害経験"
+  value: "結婚経験のある女性27.5%、男性22.0%。女性の性的強要10.6%。子どもがいる被害者の30.8%で子どもにも被害"
+  definition: "性的強要には「避妊に協力しない」を含む"
+  source:
+    title: "内閣府 男女間における暴力に関する調査 概要版"
+    url: "https://www.gender.go.jp/kaigi/senmon/boryoku/siryo/pdf/bo124-2.pdf"
+    year: "2023年度"
+  verified: true
+  jpData: true
+
+- id: S05
+  label: "性交経験率"
+  value: "高校男子12.0%、高校女子14.8%、大学男子53.7%、大学女子43.8%"
+  definition: "学年平均値"
+  source:
+    title: "日本性教育協会 第9回青少年の性行動全国調査（現代性教育研究ジャーナル No.166）"
+    url: "https://www.jase.faje.or.jp/jigyo/journal/seikyoiku_journal_202501.pdf"
+    year: "2023年度"
+  verified: true
+  jpData: true
+
+- id: S06
+  label: "「性的同意」の認知と理解"
+  value: "言葉の認知：高校男子74.2%、高校女子62.5%。意味の正答：高校生7割前後、大学生8割前後"
+  definition: ""
+  source:
+    title: "日本性教育協会 第9回青少年の性行動全国調査（現代性教育研究ジャーナル No.166）"
+    url: "https://www.jase.faje.or.jp/jigyo/journal/seikyoiku_journal_202501.pdf"
+    year: "2023年度"
+  verified: true
+  jpData: true
+
+- id: S07
+  label: "デートDVの被害パターン"
+  value: "被害経験者の66.9〜77.0%が「友達づきあい干渉のみ」「精神的暴力のみ」「その両方」のいずれか。女子の「性的被害のみ」は高校5.4%、大学8.1%"
+  definition: "被害経験者に占める割合"
+  source:
+    title: "日本性教育協会 第9回青少年の性行動全国調査（現代性教育研究ジャーナル No.166）"
+    url: "https://www.jase.faje.or.jp/jigyo/journal/seikyoiku_journal_202501.pdf"
+    year: "2023年度"
+  verified: true
+  jpData: true
+
+- id: S08
+  label: "交際相手以外からの性的被害（高校女子）"
+  value: "セクスティング要求13.3%、つきまとい・待ち伏せ15.2%、痴漢8.2%"
+  definition: "高校男子のセクスティング要求は3.1%"
+  source:
+    title: "日本性教育協会 第9回青少年の性行動全国調査（現代性教育研究ジャーナル No.166）"
+    url: "https://www.jase.faje.or.jp/jigyo/journal/seikyoiku_journal_202501.pdf"
+    year: "2023年度"
+  verified: true
+  jpData: true
+
+- id: S09
+  label: "性知識の正答率（高校生）"
+  value: "「腟外射精は確実な避妊法ではない」男子67.7%、女子58.9%"
+  definition: "学校で教わった群の方が、多くの項目で正答率が高い"
+  source:
+    title: "日本性教育協会 第9回青少年の性行動全国調査（現代性教育研究ジャーナル No.166）"
+    url: "https://www.jase.faje.or.jp/jigyo/journal/seikyoiku_journal_202501.pdf"
+    year: "2023年度"
+  verified: true
+  jpData: true
+
+- id: S10
+  label: "人工妊娠中絶実施率"
+  value: "20歳未満4.1、20〜24歳11.1、25〜29歳9.1"
+  definition: "女子人口千対。原典は衛生行政報告例"
+  source:
+    title: "せんだい男女共同参画財団 データの部屋"
+    url: "https://ssl.sendai-l.jp/wp/wp-content/uploads/2026/03/pdf-chousa-7-1-4-260331.pdf"
+    year: "2024年度"
+  verified: false
+  jpData: true
+
+- id: S11
+  label: "緊急避妊薬の市販化"
+  value: "2026年2月2日から薬局で処方箋なしで販売。年齢制限・親の同意なし。薬剤師の面前で服用。希望小売価格7,480円。販売可能店舗は約7千"
+  definition: "性交後72時間以内の服用が原則"
+  source:
+    title: "秋田魁新報（共同通信）"
+    url: "https://www.sakigake.jp/news/article/20260202CO0031/"
+    year: "2026年"
+    additional:
+      - title: "鹿児島県"
+        url: "https://www.pref.kagoshima.jp/ae10/kinkyuuhininyaku.html"
+  verified: true
+  jpData: true
+
+- id: S12
+  label: "梅毒の報告数"
+  value: "2023年15,055件（過去最多）、2024年14,663件（暫定値）。女性は20代が多い"
+  definition: "2025年の全国確定値は未確認"
+  source:
+    title: "京都府"
+    url: "https://www.pref.kyoto.jp/kentai/baidoku.html"
+    year: "2023〜2024年"
+    additional:
+      - title: "名古屋市"
+        url: "https://www.city.nagoya.jp/kenkofukushi/cmsfiles/contents/0000010/10332/202516baidoku.pdf"
+      - title: "中央区"
+        url: "https://www.city.chuo.lg.jp/a0031/kenkouiryou/kenkou/kenkouzoushin/baidoku.html"
+  verified: false
+  jpData: true
+
+- id: S13
+  label: "HPVワクチン累積初回接種率"
+  value: "2009年度生まれ（2025年度に16歳）で全国55.1%"
+  definition: "定期接種は小6〜高1相当。原典は厚労省審議会資料"
+  source:
+    title: "札幌市"
+    url: "https://www.city.sapporo.jp/hokenjo/f1kansen/documents/hp.pdf"
+    year: "2025年度末"
+  verified: false
+  jpData: true
+
+- id: S14
+  label: "若年女性のやせ"
+  value: "20〜30代女性のBMI18.5未満は20.2%"
+  definition: "女性全体は12.2%"
+  source:
+    title: "厚労省 e-ヘルスネット（国民健康・栄養調査）"
+    url: "https://kennet.mhlw.go.jp/information/information/food/e-02-006"
+    year: "2023年"
+  verified: true
+  jpData: true
+
+- id: S15
+  label: "低出生体重児の割合"
+  value: "出生の9.8%が2,500g未満"
+  numbers: { p: 0.098 }
+  definition: "原典は人口動態統計"
+  source:
+    title: "福山市 人口動態"
+    url: "https://www.city.fukuyama.hiroshima.jp/uploaded/attachment/330781.pdf"
+    year: "2024年"
+  verified: false
+  jpData: true
+
+- id: S16
+  label: "不妊の検査・治療経験"
+  value: "夫婦の22.8%（4.4組に1組）"
+  definition: "妻が55歳未満の夫婦"
+  source:
+    title: "社人研 第17回出生動向基本調査"
+    url: "https://www.ipss.go.jp/ps-doukou/j/doukou17/doukou17_gaiyo.html"
+    year: "2025年"
+  verified: true
+  jpData: true
+
+- id: S17
+  label: "生殖補助医療の年齢別生産率"
+  value: "22〜35歳頃は約30%前後、42歳7.5%、43歳5.7%、44歳3.4%"
+  numbers: { p35: 0.30 }
+  definition: "総治療周期あたり、全凍結周期を除く。35歳の正確な値は未取得"
+  source:
+    title: "ニッセイ基礎研究所（日本産科婦人科学会ARTデータ）"
+    url: "https://www.nli-research.co.jp/files/topics/79892_ext_18_0.pdf?site=nli"
+    year: "2022年"
+  verified: false
+  jpData: true
+
+- id: S18
+  label: "不妊治療の保険適用条件"
+  value: "治療開始時に女性43歳未満。40歳未満は通算6回、40〜43歳未満は通算3回まで"
+  definition: "子ども1人あたりの移植回数"
+  source:
+    title: "ニッセイ基礎研究所（日本産科婦人科学会ARTデータ）"
+    url: "https://www.nli-research.co.jp/files/topics/79892_ext_18_0.pdf?site=nli"
+    year: "2022年〜"
+  verified: true
+  jpData: true
+
+- id: S19
+  label: "結婚・子どもについての意識（18〜34歳未婚者）"
+  value: "「いずれ結婚するつもり」男性75.1%、女性77.8%。希望子ども数は男性1.64人、女性1.70人。6人に1人が結婚しても子を望まない。恋人がいるのは男性19.6%、女性27.8%"
+  definition: ""
+  source:
+    title: "社人研 第17回出生動向基本調査"
+    url: "https://www.ipss.go.jp/ps-doukou/j/doukou17/doukou17_gaiyo.html"
+    year: "2025年"
+  verified: true
+  jpData: true
+
+- id: S20
+  label: "第1子出産前後の妻の就業継続率"
+  value: "80.5%（2020〜24年出産）。就業継続者の82.4%が育児休業を利用"
+  numbers: { p: 0.805 }
+  definition: "2015〜19年出産は69.9%"
+  source:
+    title: "社人研 第17回出生動向基本調査"
+    url: "https://www.ipss.go.jp/ps-doukou/j/doukou17/doukou17_gaiyo.html"
+    year: "2025年"
+  verified: true
+  jpData: true
+
+- id: S21
+  label: "育児休業取得率"
+  value: "男性50.9%、女性88.3%"
+  definition: "原典は雇用均等基本調査"
+  source:
+    title: "かいけつ！人事労務"
+    url: "https://www.kaiketsu-j.com/?p=23268"
+    year: "2025年度"
+  verified: false
+  jpData: true
+
+- id: S22
+  label: "子どもの貧困率"
+  value: "子ども11.0%、ひとり親世帯44.7%"
+  definition: "相対的貧困率。原典は国民生活基礎調査"
+  source:
+    title: "グッドネーバーズ・ジャパン"
+    url: "https://zaikei.co.jp/releases/3528448/"
+    year: "2025年調査"
+  verified: false
+  jpData: true
+
+- id: S23
+  label: "家族の世話をしている中高生"
+  value: "中学2年5.7%、全日制高校2年4.1%"
+  definition: "国の初回全国調査"
+  source:
+    title: "nippon.com"
+    url: "https://www.nippon.com/ja/japan-data/h00997/"
+    year: "2020〜21年"
+  verified: true
+  jpData: true
+
+- id: S24
+  label: "性的マイノリティの割合"
+  value: "全国3.5%（埼玉県調査では3.3%）。子どもを持ちたい割合は、同性愛・両性愛の人で38.6%、全体で23.4%"
+  definition: "18〜69歳の無作為抽出調査"
+  source:
+    title: "釜野・平森ほか 全国調査"
+    url: "https://newscast.jp/smart/news/0895323"
+    year: "2023年、2020年"
+    additional:
+      - title: "埼玉県"
+        url: "https://www.pref.saitama.lg.jp/a0303/2020lgbtqchousa.html"
+  verified: true
+  jpData: true
+
+- id: S25
+  label: "避妊法の1年目の失敗率（典型的な使用）"
+  value: "腟外射精20%、男性用コンドーム13%、避妊なし85%"
+  numbers: { withdrawal: 0.20, condom: 0.13 }
+  definition: "米国データ。日本の公的統計がないため代替として使う"
+  source:
+    title: "CDC MMWR US SPR 2014 Appendix D"
+    url: "https://www.cdc.gov/mmwr/preview/mmwrhtml/rr6304a5.htm"
+    year: "2014年"
+  verified: true
+  jpData: false
+
+- id: S26
+  label: "緊急避妊薬（レボノルゲストレル）の妊娠阻止率"
+  value: "84%"
+  numbers: { prevention: 0.84 }
+  definition: "性交後72時間以内の服用。原典は日本産科婦人科学会「緊急避妊法の適正使用に関する指針」"
+  source:
+    title: "日本医事新報（福原・水沼）"
+    url: "https://jmedj.co.jp/journal/paper/detail.php?id=4309"
+    year: "2014年"
+  verified: false
+  jpData: true
+
+- id: S27
+  label: "妊娠したときに人工妊娠中絶を選ぶ割合"
+  value: "20歳未満71.8%、20〜24歳44.1%、全年齢15.7%"
+  numbers: { p2024: 0.441 }
+  definition: "中絶件数÷（出生数＋中絶件数）"
+  source:
+    title: "日本産婦人科医会 記者懇談会資料"
+    url: "https://www.jaog.or.jp/wp/wp-content/uploads/2026/05/20260513_press207_1.pdf"
+    year: "2024年"
+  verified: true
+  jpData: true
