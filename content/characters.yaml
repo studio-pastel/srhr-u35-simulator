@@ -1,4 +1,5 @@
 # 登場人物（SPEC.md §10.1）。初期値は設計値（T3）。監修で調整する。
+# psychSafety（心理的安全）の初期値は未定（T17）。仮置きとして、各人物の safety と同じ値を入れている。
 # profile は本人の言葉で書く。特定の属性を強調する見出しにしない（§7.2）。
 - id: minami
   name: ミナミ
@@ -7,7 +8,7 @@
   upbringing:
     economy: middle
     talkAboutSex: false
-  initial: { body: 60, safety: 60, options: 65, connection: 45, autonomy: 50 }
+  initial: { body: 60, safety: 60, psychSafety: 60, options: 65, connection: 45, autonomy: 50 }
   statRefs: [S01, S14]
   canonical: true
 - id: haruto
@@ -17,7 +18,7 @@
   upbringing:
     economy: stable
     witnessedDV: true
-  initial: { body: 70, safety: 55, options: 70, connection: 40, autonomy: 60 }
+  initial: { body: 70, safety: 55, psychSafety: 55, options: 70, connection: 40, autonomy: 60 }
   statRefs: [S04]
   canonical: true
 - id: yu
@@ -28,7 +29,7 @@
   upbringing:
     economy: middle
     comingOutAnxiety: true
-  initial: { body: 65, safety: 60, options: 60, connection: 40, autonomy: 55 }
+  initial: { body: 65, safety: 60, psychSafety: 60, options: 60, connection: 40, autonomy: 55 }
   statRefs: [S24]
   canonical: true
 - id: kei
@@ -39,6 +40,6 @@
     economy: hardship
     singleParent: true
     familyCare: true
-  initial: { body: 55, safety: 60, options: 45, connection: 45, autonomy: 45 }
+  initial: { body: 55, safety: 60, psychSafety: 60, options: 45, connection: 45, autonomy: 45 }
   statRefs: [S22, S23]
   canonical: true

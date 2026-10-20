@@ -91,7 +91,7 @@ export function loadRun(): RunState | null {
   if (!raw) return null;
   try {
     const v = JSON.parse(raw) as RunState;
-    return v && v.version === 1 ? v : null;
+    return v && v.version === 2 ? v : null;
   } catch {
     return null;
   }

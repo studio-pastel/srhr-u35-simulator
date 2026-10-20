@@ -39,14 +39,16 @@ export function DevPreview() {
     happened: u < c.finalP,
   };
   const bd = emptyBreakdown();
-  bd.body.choice = 10;
-  bd.body.upbringing = -5;
-  bd.safety.society = 5;
-  bd.safety.chance = -20;
-  bd.options.society = -5;
-  bd.options.choice = 5;
-  bd.connection.chance = 10;
-  bd.autonomy.upbringing = -5;
+  bd.body.choice.plus = 10;
+  bd.body.upbringing.minus = -5;
+  bd.safety.society.plus = 5;
+  bd.safety.chance.minus = -20;
+  bd.options.society.minus = -5;
+  bd.options.choice.plus = 5;
+  bd.connection.chance.plus = 10;
+  bd.autonomy.upbringing.minus = -5;
+  bd.psychSafety.others.minus = -20;
+  bd.psychSafety.others.plus = 10;
   return (
     <>
       <h1>開発用の確認画面</h1>

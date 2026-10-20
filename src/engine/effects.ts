@@ -43,23 +43,29 @@ export function applyEffects(
   }
 }
 
-export type Breakdown = Record<ParamKey, Record<Source, number>>;
+/** 要因ごとの増えた分（plus）と減った分（minus、0以下）。相殺せずに分けて持つ（例：加害と支援） */
+export interface PlusMinus {
+  plus: number;
+  minus: number;
+}
+export type Breakdown = Record<ParamKey, Record<Source, PlusMinus>>;
 
 export function emptyBreakdown(): Breakdown {
   const b = {} as Breakdown;
   for (const p of PARAM_KEYS) {
-    b[p] = {} as Record<Source, number>;
-    for (const s of SOURCES) b[p][s] = 0;
+    b[p] = {} as Record<Source, PlusMinus>;
+    for (const s of SOURCES) b[p][s] = { plus: 0, minus: 0 };
   }
   return b;
 }
 
-/** ledger を source ごとに合計する。filter で章などに絞れる */
+/** ledger を source ごとに、増えた分と減った分に分けて合計する。filter で章などに絞れる */
 export function breakdown(ledger: readonly LedgerEntry[], filter?: (e: LedgerEntry) => boolean): Breakdown {
   const b = emptyBreakdown();
   for (const e of ledger) {
     if (filter && !filter(e)) continue;
-    b[e.param][e.source] += e.delta;
+    if (e.delta > 0) b[e.param][e.source].plus += e.delta;
+    else b[e.param][e.source].minus += e.delta;
   }
   return b;
 }

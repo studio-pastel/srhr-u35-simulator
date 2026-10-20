@@ -2,7 +2,7 @@
 import { PARAM_KEYS, SOURCES } from '../../engine/constants';
 import type { ParamKey, Source } from '../../engine/schema';
 import { PARAM_LABELS, SOURCE_LABELS } from '../../engine/types';
-import type { Breakdown } from '../../engine/effects';
+import type { Breakdown, PlusMinus } from '../../engine/effects';
 
 let uid = 0;
 
@@ -10,10 +10,11 @@ const FILL: Record<Source, string> = {
   choice: 'var(--f-choice)',
   upbringing: 'var(--f-upbringing)',
   society: 'var(--f-society)',
+  others: 'var(--f-others)',
   chance: 'var(--f-chance)',
 };
 
-/** 模様の定義：選択＝塗りつぶし、生育条件＝右上がりの斜線、社会条件＝ドット、偶然＝斜め格子 */
+/** 模様の定義：選択＝塗りつぶし、生育条件＝右上がりの斜線、社会条件＝ドット、他者の行為＝横じま、偶然＝斜め格子 */
 export function FactorPatterns({ prefix }: { prefix: string }) {
   const ink = 'rgb(255 255 255 / 0.7)';
   return (
@@ -28,6 +29,10 @@ export function FactorPatterns({ prefix }: { prefix: string }) {
       <pattern id={`${prefix}-society`} width="8" height="8" patternUnits="userSpaceOnUse">
         <rect width="8" height="8" fill={FILL.society} />
         <circle cx="4" cy="4" r="1.6" fill={ink} />
+      </pattern>
+      <pattern id={`${prefix}-others`} width="8" height="8" patternUnits="userSpaceOnUse">
+        <rect width="8" height="8" fill={FILL.others} />
+        <path d="M0 2H8M0 6H8" stroke={ink} stroke-width="1.4" />
       </pattern>
       <pattern id={`${prefix}-chance`} width="8" height="8" patternUnits="userSpaceOnUse">
         <rect width="8" height="8" fill={FILL.chance} />
@@ -59,8 +64,16 @@ export function FactorLegend({ hasActor }: { hasActor?: boolean }) {
 
 const sign = (n: number) => (n > 0 ? `+${n}` : `${n}`);
 
-function rowSummary(p: ParamKey, b: Record<Source, number>): string {
-  const parts = SOURCES.filter((s) => b[s] !== 0).map((s) => `${SOURCE_LABELS[s]} ${sign(b[s])}`);
+/** 表やラベル用：「+10」「−20」「+10 −20」 */
+function pmText(v: PlusMinus): string {
+  const parts = [];
+  if (v.plus) parts.push(sign(v.plus));
+  if (v.minus) parts.push(sign(v.minus));
+  return parts.length ? parts.join(' ') : '0';
+}
+
+function rowSummary(p: ParamKey, b: Record<Source, PlusMinus>): string {
+  const parts = SOURCES.filter((s) => b[s].plus || b[s].minus).map((s) => `${SOURCE_LABELS[s]} ${pmText(b[s])}`);
   return `${PARAM_LABELS[p]}：${parts.length ? parts.join('、') : '変化なし'}`;
 }
 
@@ -77,9 +90,8 @@ export function FactorChart({ data, title, hasActor }: { data: Breakdown; title:
     let pos = 0;
     let neg = 0;
     for (const s of SOURCES) {
-      const v = data[p][s];
-      if (v > 0) pos += v;
-      else neg -= v;
+      pos += data[p][s].plus;
+      neg -= data[p][s].minus;
     }
     maxAbs = Math.max(maxAbs, pos, neg);
   }
@@ -94,19 +106,21 @@ export function FactorChart({ data, title, hasActor }: { data: Breakdown; title:
           const y = 4 + i * rowH;
           let right = center;
           let left = center;
-          const segs = SOURCES.map((s) => {
-            const v = data[p][s];
-            if (v === 0) return null;
-            const w = Math.abs(v) * scale;
-            let x: number;
-            if (v > 0) {
-              x = right;
+          // 増えた分は中心線から右へ、減った分は左へ。同じ要因でも相殺せずに両方描く
+          const segs = SOURCES.flatMap((s) => {
+            const out = [];
+            const { plus, minus } = data[p][s];
+            if (plus > 0) {
+              const w = plus * scale;
+              out.push(<rect key={`${s}+`} x={right} y={y + 6} width={w} height={rowH - 12} fill={`url(#${prefix}-${s})`} stroke="var(--surface)" stroke-width="1" />);
               right += w;
-            } else {
-              left -= w;
-              x = left;
             }
-            return <rect key={s} x={x} y={y + 6} width={w} height={rowH - 12} fill={`url(#${prefix}-${s})`} stroke="var(--surface)" stroke-width="1" />;
+            if (minus < 0) {
+              const w = -minus * scale;
+              left -= w;
+              out.push(<rect key={`${s}-`} x={left} y={y + 6} width={w} height={rowH - 12} fill={`url(#${prefix}-${s})`} stroke="var(--surface)" stroke-width="1" />);
+            }
+            return out;
           });
           return (
             <g key={p}>
@@ -145,7 +159,7 @@ export function FactorChart({ data, title, hasActor }: { data: Breakdown; title:
               <tr key={p}>
                 <th scope="row">{PARAM_LABELS[p]}</th>
                 {SOURCES.map((s) => (
-                  <td key={s}>{data[p][s] === 0 ? '0' : sign(data[p][s])}</td>
+                  <td key={s}>{pmText(data[p][s])}</td>
                 ))}
               </tr>
             ))}

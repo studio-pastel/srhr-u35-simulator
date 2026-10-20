@@ -34,6 +34,9 @@ events:
       # ── ミナミの視点 ──
       - id: m-start
         viewpoint: minami
+        # 加害による低下は、ミナミの選択と関係なく「他者の行為」として記録する（付録A-14・A-15）
+        effects:
+          - { param: psychSafety, sign: -1, size: L, source: others, statRef: S07, note: "交際相手からの束縛" }
         text: "付き合って二か月。「心配だから」と、ハルトに位置情報の共有を頼まれた。最近は「スマホ見せて」と言われることもある。"
         next: m-plans
       - id: m-plans
@@ -84,6 +87,8 @@ events:
         next: END
       - id: m-friend
         viewpoint: minami
+        effects:
+          - { param: psychSafety, sign: 1, size: M, source: others, note: "友人が受け止めた" }
         text: "友人は最後まで聞いて、「それ、ミナミのせいじゃないよ」と言った。一人で考えなくていいのだと思えた。"
         next: END
 
@@ -143,6 +148,8 @@ events:
     status: draft
     scenes:
       - id: start
+        effects:
+          - { param: psychSafety, sign: -1, size: M, source: others, statRef: S08, note: "性的な画像を求められた" }
         text: "SNSで知り合った相手とは、好きなバンドの話でずっと盛り上がってきた。ある夜、「写真送ってよ。顔じゃないやつ」とメッセージが来る。"
         next: choose
       - id: choose
@@ -171,6 +178,8 @@ events:
         text: "「それは送らない」と返した。相手からの返信は、それきり来なくなった。画面を閉じても、少しだけ手がふるえていた。"
         next: after
       - id: record
+        effects:
+          - { param: psychSafety, sign: 1, size: S, source: others, note: "保健室で受け止められた" }
         text: "やり取りの画面を保存してから、相手をブロックした。次の日、保健室で画面を見せて相談した。"
         next: after
       - id: send

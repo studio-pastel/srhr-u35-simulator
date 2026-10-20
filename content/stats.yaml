@@ -345,3 +345,16 @@
     year: "2024年"
   verified: true
   jpData: true
+
+# S28 は 2026-10-20 に発注者の承認を得て追加（SPEC.md 付録A-16）
+- id: S28
+  label: "HPVの感染とHPVワクチンで防げる範囲"
+  value: "性的接触のある女性の50%以上が一生に一度はHPVに感染する。HPVワクチンで感染を防ぐことで、子宮頸がんの原因の50〜70%を防げる"
+  cardText: "日本では、性的接触のある女性の50%以上が、一生に一度はHPVに感染するとされています。HPVワクチンで感染を防ぐことで、子宮頸がんの原因の50〜70%を防げます。"
+  definition: "厚生労働省の広報誌での説明"
+  source:
+    title: "厚生労働省 広報誌『厚生労働』2022年5月号「HPVワクチンについて知ってください」"
+    url: "https://www.mhlw.go.jp/stf/houdou_kouhou/kouhou_shuppan/magazine/202205_00001.html"
+    year: "2022年"
+  verified: true
+  jpData: true

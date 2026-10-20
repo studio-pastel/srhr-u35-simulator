@@ -47,7 +47,7 @@ export const chanceModifierSchema = z.strictObject({
   when: z.string(),
   op: z.enum(['set', 'mul']),
   value: z.number().min(0),
-  source: z.enum(['choice', 'upbringing', 'society']),
+  source: z.enum(['choice', 'upbringing', 'society', 'others']),
   statRef: statIdSchema,
   note: z.string().min(1),
 });
@@ -72,6 +72,8 @@ export const sceneSchema = z.strictObject({
   choices: z.array(choiceSchema).optional(),
   chance: chanceNodeSchema.optional(),
   branches: z.array(branchSchema).optional(),
+  /** シーンに入ったときに適用する効果（付録A-15）。選択と関係なく起きる変化に使う。source に choice は使えない */
+  effects: z.array(effectSchema).optional(),
   next: z.string().optional(),
 });
 
@@ -109,6 +111,7 @@ export const chapterSchema = z.strictObject({
 const paramRecord = z.strictObject({
   body: z.number(),
   safety: z.number(),
+  psychSafety: z.number(),
   options: z.number(),
   connection: z.number(),
   autonomy: z.number(),

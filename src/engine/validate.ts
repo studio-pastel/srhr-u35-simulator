@@ -235,6 +235,12 @@ function checkEvent(ev: GameEvent, k: Checkers): void {
     const w = `${ev.id}/${sc.id}`;
     if (vs && !sc.viewpoint) errors.push(`${w}：視点切替イベントのシーンには viewpoint が必要です`);
     k.textCheck(w, sc.text);
+    if (sc.effects) {
+      effectCheck(w, sc.effects);
+      sc.effects.forEach((e, i) => {
+        if (e.source === 'choice') errors.push(`${w}.effects[${i}]：シーンに入ったときの効果に choice は使えません（選択と関係なく起きる変化のため。付録A-15）`);
+      });
+    }
     if (sc.speaker) rubyCheck(`${w}.speaker`, sc.speaker, errors);
     const hasChoices = (sc.choices?.length ?? 0) > 0;
     if (hasChoices && sc.chance) errors.push(`${w}：choices と chance を同じシーンに書けません`);

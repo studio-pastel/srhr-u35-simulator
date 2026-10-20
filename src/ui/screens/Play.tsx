@@ -348,7 +348,7 @@ function ChapterReview({ run }: { run: RunState }) {
       </div>
       <div class="panel">
         <h2 style={{ marginTop: 0 }}>変化の理由（要因分解）</h2>
-        <p class="sub">変化を、選択・生育条件・社会条件・偶然の4つに分けて示します。中心線より右が増えた分、左が減った分です。</p>
+        <p class="sub">変化を、選択・生育条件・社会条件・他者の行為・偶然の5つに分けて示します。中心線より右が増えた分、左が減った分です。</p>
         <FactorChart
           data={breakdown(run.ledger, (e) => e.age === age)}
           title={`${age}歳の章の要因分解`}

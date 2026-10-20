@@ -24,9 +24,9 @@ describe('実コンテンツ', () => {
   it('テスト用の章を足しても通る（到達性を含む）', () => {
     expect(validateWith(() => {}).errors).toEqual([]);
   });
-  it('S01〜S27 がすべてある', () => {
+  it('S01〜S28 がすべてある', () => {
     const r = validateContent(rawContent(), dev);
-    expect(r.content!.stats.map((s) => s.id)).toEqual(Array.from({ length: 27 }, (_, i) => `S${String(i + 1).padStart(2, '0')}`));
+    expect(r.content!.stats.map((s) => s.id)).toEqual(Array.from({ length: 28 }, (_, i) => `S${String(i + 1).padStart(2, '0')}`));
   });
   it('Claude Code が書いた本文はすべて status: draft', () => {
     const r = validateContent(rawContent(), dev);
@@ -67,6 +67,7 @@ describe('ビルドを失敗させる条件（§12.1）', () => {
     ['統計カードの文に、表にない数字を書く', (r) => (r.stats[0].cardText = '日本では、女性の22.7%、男性の99.9%です。'), /数字 99\.9 が value/],
     ['統計カードの文の書き出し', (r) => (r.stats[0].cardText = '女性で22.7%です。'), /「日本では、」で始めて/],
     ['米国データの書き出し', (r) => (r.stats[24].cardText = '日本では、20%です。'), /「米国では、」で始めて/],
+    ['シーンに入ったときの効果に choice', (r) => (ks(r).scenes[3].effects = [{ param: 'safety', sign: -1, size: 'S', source: 'choice', note: 'x' }]), /choice は使えません/],
     ['ルビの書き方の誤り', (r) => (ks(r).scenes[3].text = '{漢字かんじ}'), /ルビ/],
   ];
   it.each(cases)('%s', (_, mutate, re) => {

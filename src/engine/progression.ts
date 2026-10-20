@@ -59,7 +59,7 @@ export function createRun(content: Content, opts: NewRunOptions): RunState {
   if (!first) throw new ProgressionError('章がひとつもありません');
   const salts = Object.fromEntries(CHARACTER_IDS.map((id) => [id, opts.avatarSalts?.[id] ?? 0])) as Record<CharacterId, number>;
   const state: RunState = {
-    version: 1,
+    version: 2,
     runId: opts.runId ?? newSeed().slice(0, 12),
     seed: opts.seed ?? newSeed(),
     protagonist: opts.protagonist,
@@ -174,6 +174,18 @@ function startEvent(content: Content, s: RunState, ev: GameEvent, index: number)
     delete pos.tracksDone;
     pos.sceneId = ev.scenes[0]!.id;
   }
+  applySceneEntry(content, s, ev);
+}
+
+/**
+ * シーンに入ったときの効果（付録A-15）。選択と関係なく起きる変化（他者の行為など）に使う。
+ * 主人公の視点のシーンだけに適用する。視点を切り替えて戻ったときには再び適用しない
+ * （呼ぶのは、イベントの開始と next による移動のときだけ）。
+ */
+function applySceneEntry(content: Content, s: RunState, ev: GameEvent): void {
+  const scene = ev.scenes.find((x) => x.id === s.position.sceneId);
+  if (!scene?.effects?.length || !onProtagonistTrack(content, s)) return;
+  applyEffects(s, scene.effects, content.config, contextOf(content, s), origin(s));
 }
 
 function endEvent(content: Content, s: RunState, ev: GameEvent): void {
@@ -234,6 +246,7 @@ function moveTo(content: Content, s: RunState, next: string, override?: ChanceOv
   if (next !== 'END') {
     pos.sceneId = next;
     if (pos.tracks) pos.tracks[pos.viewpoint] = next;
+    applySceneEntry(content, s, ev);
     return;
   }
   if (!ev.viewpointSwitch) {

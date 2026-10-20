@@ -35,7 +35,7 @@ npm run validate
 | `config.yaml` | サイト名、「すぐに閉じる」の移動先、変動幅（S/M/L）、相談窓口のタグ名 |
 | `characters.yaml` | 4人の人物（プロフィール、生育条件、初期値） |
 | `conditions.yaml` | 社会条件（性教育、緊急避妊薬の入手、育休、パートナーシップ制度） |
-| `stats.yaml` | 統計 S01〜S27。**この表にない数値は、本文にも確率にも使わない** |
+| `stats.yaml` | 統計 S01〜S28。**この表にない数値は、本文にも確率にも使わない** |
 | `resources.yaml` | 相談窓口 |
 | `chapters/<年齢>.yaml` | 章ごとのイベントとシーン |
 
@@ -63,6 +63,13 @@ choices:
     setFlags: { keiToldTeacher: true }
     next: tell                 # 次のシーンID。イベントの終わりは END
 
+# シーンに入ったときの効果（付録A-15）。選択と関係なく起きる変化。choice は使えない
+- id: m-start
+  effects:
+    - { param: psychSafety, sign: -1, size: L, source: others, statRef: S07, note: "交際相手からの束縛" }
+  text: "……"
+  next: m-plans
+
 # 選択肢のない分岐（付録A-1）
 - id: start
   text: "……"
@@ -72,7 +79,8 @@ choices:
   next: notTaught              # どの条件にも当てはまらないとき
 ```
 
-- `param`：body（からだ）／safety（安全）／options（選択肢の幅）／connection（つながり）／autonomy（自己決定）
-- `source`：choice（選択）／upbringing（生育条件）／society（社会条件）／chance（偶然）
+- `param`：body（からだ）／safety（安全）／psychSafety（心理的安全）／options（選択肢の幅）／connection（つながり）／autonomy（自己決定）
+- `source`：choice（選択）／upbringing（生育条件）／society（社会条件）／others（他者の行為）／chance（偶然）
+  - 暴力を受けたことによる変化は、必ず `others` にする（被害者の `choice` にしない）。友人や先生などの支援による回復も `others`。
 - `size`：S／M／L（数値は `config.yaml`）
 - 条件式（`when`・`requires`）で使えるもの：`flags.名前`、`cond.社会条件ID`、`up.生育条件`、`char`、`==`、`!=`、`&&`、`||`、`!`、括弧

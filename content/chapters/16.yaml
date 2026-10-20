@@ -48,7 +48,7 @@ events:
     characters: [yu]
     kind: fixed
     domains: [ワクチンで防げる疾患]
-    statCard: [S13]
+    statCard: [S13, S28]
     status: draft
     scenes:
       - id: start
@@ -59,7 +59,6 @@ events:
             canonical: true
             effects:
               - { param: autonomy, sign: 1, size: M, source: choice, note: "自分で調べて決めた" }
-            setFlags: { yuHpv: researched }
             next: research
           - id: parent
             label: "親に任せる"
@@ -70,10 +69,32 @@ events:
             setFlags: { yuHpv: declined }
             next: decline
       - id: research
-        text: "自治体のページや、学校で配られた資料を読み比べる。わからないところは、医療機関で聞いてみることにした。決めるのは自分だと思うと、少し背すじが伸びる。"
+        text: "厚生労働省や自治体の資料を読み比べる。HPVは、性的接触のある女性の半数以上が、一生に一度は感染するウイルスだという。ワクチンで感染を防ぐと、子宮頸がんの原因の50〜70%を防げるらしい。"
+        next: decide
+      - id: decide
+        text: "わからないところは、医療機関で聞いてみた。あとは、自分で決める。"
+        choices:
+          - id: receive
+            label: "受ける"
+            canonical: true
+            effects:
+              - { param: body, sign: 1, size: S, source: choice, statRef: S28, note: "HPVワクチンを受けた" }
+            setFlags: { yuHpv: vaccinated }
+            next: received
+          - id: notNow
+            label: "今は受けない"
+            setFlags: { yuHpv: notNow }
+            next: notNow
+      - id: received
+        text: "接種を受けた。決めるまでに調べたことは、これからも自分の役に立ちそうだ。"
+        next: END
+      - id: notNow
+        text: "今は受けないことにした。決めた理由は、自分の中にある。気になったときは、医療機関で相談できる。"
         next: END
       - id: parent
-        text: "「お母さんが決めて」と言うと、母はうなずいた。案内の紙は、冷蔵庫に貼られた。"
+        text: "「お母さんが決めて」と言うと、母はうなずいた。母は医療機関で相談して、受けることに決めた。"
+        effects:
+          - { param: body, sign: 1, size: S, source: others, statRef: S28, note: "母が接種を決めた" }
         next: END
       - id: decline
         text: "今は受けないことにした。案内の紙はファイルにしまう。気になったときは、医療機関で相談できる。"
@@ -121,6 +142,8 @@ events:
             next: keepOn
       - id: nurse
         speaker: "{養護教諭|ようごきょうゆ}"
+        effects:
+          - { param: psychSafety, sign: 1, size: S, source: others, note: "養護教諭が受け止めた" }
         text: "「話してくれてありがとう。一度、婦人科で相談してみようか」。責める言葉はひとつもなく、近くの医療機関の探し方を一緒に調べてくれた。"
         next: END
       - id: clinic
@@ -160,6 +183,8 @@ events:
             setFlags: { keiToldTeacher: false }
             next: silent
       - id: tell
+        effects:
+          - { param: options, sign: 1, size: S, source: others, note: "担任が支援を調べた" }
         text: "話し終えると、担任は「話してくれて助かった」と言った。スクールカウンセラーや、地域の支援につなぐ方法を、一緒に調べることになった。"
         next: END
       - id: silent
@@ -177,6 +202,9 @@ events:
     status: draft
     scenes:
       - id: start
+        effects:
+          - { param: psychSafety, sign: -1, size: M, source: others, statRef: S04, note: "家で怒鳴り声が続く" }
+          - { param: safety, sign: -1, size: S, source: upbringing, statRef: S04, when: "up.witnessedDV == true", note: "家庭内の支配を見て育つ" }
         text: "夕食のあと、居間から父の大きな声が聞こえる。母の返事は聞こえない。ハルトはイヤホンをつけ、音量を上げる。"
         next: think
       - id: think
@@ -187,17 +215,16 @@ events:
             effects:
               - { param: connection, sign: 1, size: M, source: choice, note: "家のことを人に話した" }
               - { param: safety, sign: 1, size: S, source: society, when: "flags.knowsHelplines == true", note: "授業で相談先を知った" }
-              - { param: safety, sign: -1, size: S, source: upbringing, statRef: S04, when: "up.witnessedDV == true", note: "家庭内の支配を見て育つ" }
             setFlags: { harutoToldHome: true }
             next: tell
           - id: ignore
             label: "見ないふりをする"
             canonical: true
-            effects:
-              - { param: safety, sign: -1, size: S, source: upbringing, statRef: S04, when: "up.witnessedDV == true", note: "家庭内の支配を見て育つ" }
             setFlags: { harutoToldHome: false }
             next: ignore
       - id: tell
+        effects:
+          - { param: psychSafety, sign: 1, size: S, source: others, note: "養護教諭が話を聞いた" }
         text: "次の日、保健室で「家がちょっとしんどい」とだけ言ってみた。{養護教諭|ようごきょうゆ}は急かさずに聞き、相談できる場所がいくつもあることを教えてくれた。"
         next: END
       - id: ignore

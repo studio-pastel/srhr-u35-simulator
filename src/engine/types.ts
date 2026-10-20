@@ -24,6 +24,7 @@ import type { CharacterId, ParamKey, Source, StatId } from './schema';
 export const PARAM_LABELS: Record<ParamKey, string> = {
   body: 'からだ',
   safety: '安全',
+  psychSafety: '心理的安全',
   options: '選択肢の幅',
   connection: 'つながり',
   autonomy: '自己決定',
@@ -33,6 +34,7 @@ export const SOURCE_LABELS: Record<Source, string> = {
   choice: '選択',
   upbringing: '生育条件',
   society: '社会条件',
+  others: '他者の行為',
   chance: '偶然',
 };
 
@@ -102,7 +104,8 @@ export interface ChanceLogEntry {
 export type ReplayChange = 'protagonist' | { condition: string; from: string; to: string };
 
 export interface RunState {
-  version: 1;
+  /** 2：心理的安全・他者の行為を追加（付録A-13・A-14）。古い保存データは読み込まない */
+  version: 2;
   runId: string;
   seed: string;
   protagonist: CharacterId;

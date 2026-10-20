@@ -4,7 +4,9 @@ import { invariantHolds, playThrough, rawContent, realContent } from '../helpers
 import { fixtureChapter19 } from '../fixtures/chance-chapter';
 import { validateContent } from '../../src/engine/validate';
 import {
+  advanceReview,
   advanceScene,
+  advanceStatCards,
   beginChapter,
   chapterResourceTags,
   choose,
@@ -208,6 +210,63 @@ describe('視点切替と P7（§6.7）', () => {
   });
 });
 
+/** 1ステップ進める（選択肢は最初のもの） */
+function playStep(s: RunState): RunState {
+  switch (s.position.step) {
+    case 'chapterTop':
+      return beginChapter(real, s, false);
+    case 'scene': {
+      const sc = currentScene(real, s)!;
+      return sc.choices?.length ? choose(real, s, sc.choices[0]!.id) : advanceScene(real, s);
+    }
+    case 'statCards':
+      return advanceStatCards(real, s);
+    case 'review':
+      return advanceReview(real, s);
+    default:
+      throw new Error(s.position.step);
+  }
+}
+
+describe('シーンに入ったときの効果と「他者の行為」（付録A-14・A-15）', () => {
+  const harm = (s: RunState) => s.ledger.filter((e) => e.eventId === 'E17-MH-CONTROL' && e.source === 'others' && e.delta < 0);
+
+  it('ミナミがどの選択をしても、束縛による心理的安全の低下は他者の行為として1回だけ記録される', () => {
+    for (const pick of [0, 1, 2]) {
+      const s = playThrough(real, createRun(real, { protagonist: 'minami', seed: '0'.repeat(32) }), (n, x) => (x.position.eventId === 'E17-MH-CONTROL' ? pick : 0));
+      expect(harm(s)).toEqual([expect.objectContaining({ param: 'psychSafety', delta: -20, source: 'others' })]);
+      expect(s.ledger.some((e) => e.eventId === 'E17-MH-CONTROL' && e.source === 'choice' && e.delta < 0)).toBe(false);
+    }
+  });
+
+  it('視点を切り替えて戻っても、入ったときの効果を重ねて適用しない', () => {
+    // E17 の冒頭まで進める
+    let s = createRun(real, { protagonist: 'minami', seed: '0'.repeat(32) });
+    s = beginChapter(real, s, false);
+    while (s.position.age === 16) s = playStep(s);
+    s = beginChapter(real, s, false);
+    expect(s.position.sceneId).toBe('m-start');
+    expect(harm(s)).toHaveLength(1);
+    // ハルトの視点へ切り替え、最後まで読んで戻る → もう一度ミナミの視点の続きを読む
+    s = switchViewpoint(real, s, 'haruto');
+    while (s.position.viewpoint === 'haruto') s = playStep(s);
+    expect(s.position.sceneId).toBe('m-start');
+    expect(harm(s)).toHaveLength(1);
+    s = playThrough(real, s, () => 0);
+    expect(harm(s)).toHaveLength(1);
+  });
+
+  it('ハルトを主人公にした場合、ミナミの視点の効果はハルトに付かない', () => {
+    const s = playThrough(real, createRun(real, { protagonist: 'haruto', seed: '0'.repeat(32) }), () => 0);
+    expect(harm(s)).toEqual([]);
+  });
+
+  it('読まずに進んだ章でも、入ったときの効果は skipped 付きで記録される', () => {
+    const s = playThrough(real, createRun(real, { protagonist: 'minami', seed: '0'.repeat(32) }), () => 0, { skipChapter: (a) => a === 17 });
+    expect(harm(s)).toEqual([expect.objectContaining({ skipped: true })]);
+  });
+});
+
 describe('読まずに進む章（§6.2-3、付録A-4）', () => {
   it('canonical で自動進行し、効果は本来の要因のまま skipped 付きで記録する', () => {
     const s = playThrough(real, createRun(real, { protagonist: 'haruto', seed: '0'.repeat(32) }), () => 1, { skipChapter: (a) => a === 16 });
@@ -247,5 +306,16 @@ describe('主人公ごとの通しプレイ（フェーズ1：17歳の章末ま�
     const s = createRun(real, { protagonist: 'haruto', seed: '0'.repeat(32) });
     const after = beginChapter(real, s, false);
     expect(after.position.eventId).toBe('E16-ALL-SEXED');
+  });
+});
+
+describe('要因分解の表示用の集計', () => {
+  it('同じ要因の増えた分と減った分を相殺せずに分ける（加害と支援）', async () => {
+    const { breakdown } = await import('../../src/engine/effects');
+    const s = playThrough(real, createRun(real, { protagonist: 'minami', seed: '0'.repeat(32) }), (n, x) =>
+      x.position.eventId === 'E17-MH-CONTROL' ? 2 : 0,
+    );
+    const b = breakdown(s.ledger, (e) => e.age === 17);
+    expect(b.psychSafety.others).toEqual({ plus: 10, minus: -20 });
   });
 });
