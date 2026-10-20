@@ -81,6 +81,32 @@ test('「すぐに閉じる」で exitUrl に移動し、ブラウザの「戻�
   expect(page.url()).not.toContain('localhost:4173');
 });
 
+test('ブラウザの「戻る」でサイトを離れても、同じタブで戻れば続きから遊べる', async ({ page }) => {
+  // 別のサイトから来た状態をつくる
+  await page.goto('https://www.google.co.jp/search?q=before');
+  await page.goto('/');
+  await page.getByRole('button', { name: 'はじめる' }).click();
+  await page.getByRole('button', { name: 'ケイで始める' }).click();
+  await page.getByRole('button', { name: 'はじめる' }).click();
+  for (let i = 0; i < 3; i++) await page.locator('main button.btn:not(.small)').first().click();
+  const before = await page.locator('main').innerText();
+  const saved = await page.evaluate(() => sessionStorage.getItem('srhr.v1.run'));
+  expect(saved).not.toBeNull();
+
+  // 「戻る」：サイト内の移動は履歴に残らないので、前のサイトに戻る
+  await page.goBack();
+  expect(page.url()).toContain('google.co.jp');
+
+  // 「進む」で戻ると、同じ場面から続けられる
+  await page.goForward();
+  await expect(page.locator('main')).toContainText(before.split('\n').find((l) => l.length > 10)!);
+  expect(await page.evaluate(() => sessionStorage.getItem('srhr.v1.run'))).toBe(saved);
+
+  // URL を入れ直して開いても（同じタブなら）、「続きから遊ぶ」が出る
+  await page.goto('/');
+  await expect(page.getByRole('button', { name: '続きから遊ぶ' })).toBeVisible();
+});
+
 test('Esc キーでも「すぐに閉じる」が動き、進行状況が消える', async ({ page }) => {
   await start(page, 'ケイ');
   await page.getByRole('button', { name: 'はじめる' }).click();
