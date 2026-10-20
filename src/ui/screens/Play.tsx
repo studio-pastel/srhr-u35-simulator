@@ -1,4 +1,4 @@
-// プレイ中の画面：7.3 章トップ、7.4 シーン、7.5 確率カード、7.6 統計カード、7.7 章のふりかえり。
+// プレイ画面（付録B）：幕間、会話中心の場面、確率カード、暴力の場面のあとの支援カード、章のふりかえり。
 import { useEffect, useRef, useState } from 'preact/hooks';
 import { navigate, useApp } from '../app';
 import {
@@ -7,14 +7,13 @@ import {
   advanceScene,
   advanceStatCards,
   beginChapter,
-  chapterResourceTags,
-  chapterWarnings,
   choose,
   currentEvent,
   currentScene,
   getChapter,
   getCharacter,
   onProtagonistTrack,
+  skipEvent,
   sortedChapters,
   switchViewpoint,
   visibleChoices,
@@ -22,49 +21,60 @@ import {
 import { breakdown, displayValue, paramsFrom } from '../../engine/effects';
 import { PARAM_KEYS } from '../../engine/constants';
 import type { CharacterId } from '../../engine/schema';
-import { PARAM_LABELS, SOURCE_LABELS, type RunState } from '../../engine/types';
+import { PARAM_LABELS, SOURCE_LABELS, type LedgerEntry, type RunState } from '../../engine/types';
 import { Hud } from '../components/Hud';
 import { Modal } from '../components/Modal';
 import { FactorChart } from '../components/FactorChart';
 import { ProbabilityCard, ResourceList, StatCard } from '../components/Cards';
-import { RichText } from '../components/RichText';
-import { Avatar } from '../components/Avatar';
+import { RichText, plainText } from '../components/RichText';
+import { PixelStage } from '../components/PixelStage';
 import { OverallReview } from './OverallReview';
+import { linesOf, sceneSpec, stageOf } from '../stage';
 
 /** 画面が変わったら見出しにフォーカスを移す（§9） */
 function useFocusHeading(key: string) {
   const ref = useRef<HTMLHeadingElement>(null);
   useEffect(() => {
-    ref.current?.focus({ preventScroll: false });
+    ref.current?.focus({ preventScroll: true });
   }, [key]);
   return ref;
 }
 
-function ReadingTools() {
-  const { settings, setSettings } = useApp();
-  return (
-    <div class="toolbar" role="group" aria-label="表示の切り替え">
-      <span>文字</span>
-      <button type="button" class="toggle" aria-pressed={settings.fontSize === 'normal'} onClick={() => setSettings({ ...settings, fontSize: 'normal' })}>
-        標準
-      </button>
-      <button type="button" class="toggle" aria-pressed={settings.fontSize === 'large'} onClick={() => setSettings({ ...settings, fontSize: 'large' })}>
-        大
-      </button>
-      <span>ルビ</span>
-      <button type="button" class="toggle" aria-pressed={settings.ruby} onClick={() => setSettings({ ...settings, ruby: true })}>
-        あり
-      </button>
-      <button type="button" class="toggle" aria-pressed={!settings.ruby} onClick={() => setSettings({ ...settings, ruby: false })}>
-        なし
-      </button>
-    </div>
-  );
+/** 「◀ 戻る」のための履歴（付録B-16）。選択をまたいで戻れるのは1回だけ */
+interface HistEntry {
+  state: RunState;
+  viaChoice: boolean;
+  lineIndex: number;
 }
 
 export function Play() {
   const { run, content, setRun } = useApp();
-  const [interim, setInterim] = useState(false);
+  const [showParams, setShowParams] = useState(false);
+  const [lineIndex, setLineIndex] = useState(0);
+  const [hist, setHist] = useState<HistEntry[]>([]);
+  const [crossedChoice, setCrossedChoice] = useState(false);
+  const [skipped, setSkipped] = useState<string | null>(null);
+  const [toasts, setToasts] = useState<{ id: number; text: string }[]>([]);
+  const prevLedger = useRef<{ runId: string; n: number } | null>(null);
+
+  // パラメーターが変わったときだけ、小さな通知を出す（付録B-3）
+  useEffect(() => {
+    if (!run) return;
+    const prev = prevLedger.current;
+    prevLedger.current = { runId: run.runId, n: run.ledger.length };
+    if (!prev || prev.runId !== run.runId || run.ledger.length <= prev.n) return;
+    const fresh: LedgerEntry[] = run.ledger.slice(prev.n).filter((e) => !e.skipped);
+    if (fresh.length === 0) return;
+    const items = fresh.map((e, i) => ({
+      id: Date.now() + i,
+      text: `${PARAM_LABELS[e.param]} ${e.delta > 0 ? '+' : '−'}${Math.abs(e.delta)} ・ ${SOURCE_LABELS[e.source]}`,
+    }));
+    setToasts((t) => [...t, ...items]);
+    const ids = items.map((x) => x.id);
+    const timer = setTimeout(() => setToasts((t) => t.filter((x) => !ids.includes(x.id))), 2600);
+    return () => clearTimeout(timer);
+  }, [run?.ledger.length, run?.runId]);
+
   if (!run) {
     return (
       <>
@@ -75,16 +85,53 @@ export function Play() {
       </>
     );
   }
+
   const step = run.position.step;
-  const ev = currentEvent(content, run);
-  const quiet = step === 'scene' && Boolean(ev?.triggerWarning);
+
+  /** 状態を進める。戻るための履歴を積む（章をまたぐと消す） */
+  const go = (next: RunState, viaChoice: boolean) => {
+    const sameChapter = next.position.age === run.position.age && next.position.step !== 'review' && next.position.step !== 'chapterTop';
+    if (sameChapter) {
+      setHist((h) => [...h, { state: run, viaChoice, lineIndex }]);
+      if (viaChoice) setCrossedChoice(false);
+    } else {
+      setHist([]);
+      setCrossedChoice(false);
+    }
+    setLineIndex(0);
+    setSkipped(null);
+    setRun(next);
+  };
+
+  const canBackLine = step === 'scene' && lineIndex > 0;
+  const top = hist[hist.length - 1];
+  const canBackState = Boolean(top && (!top.viaChoice || !crossedChoice));
+  const back = () => {
+    if (canBackLine) {
+      setLineIndex(lineIndex - 1);
+      return;
+    }
+    if (!top || !canBackState) return;
+    setHist(hist.slice(0, -1));
+    if (top.viaChoice) setCrossedChoice(true);
+    setLineIndex(top.lineIndex);
+    setRun(top.state);
+  };
+
+  const skip = () => {
+    const ev = currentEvent(content, run);
+    setHist([]);
+    setCrossedChoice(false);
+    setLineIndex(0);
+    setRun(skipEvent(content, run));
+    setSkipped(ev?.summary ?? 'この場面をとばしました。');
+  };
 
   return (
     <>
-      {step !== 'finished' && <Hud params={run.params} onOpen={() => setInterim(true)} quiet={quiet} />}
-      {interim && (
-        <Modal title={`${run.position.age}歳の章の途中経過`} onClose={() => setInterim(false)}>
-          <ParamChanges run={run} age={run.position.age} />
+      {showParams && (
+        <Modal title="いまのパラメーター" onClose={() => setShowParams(false)}>
+          <Hud params={run.params} onOpen={() => undefined} quiet />
           <FactorChart
             data={breakdown(run.ledger, (e) => e.age === run.position.age)}
             title={`${run.position.age}歳の章の要因分解（途中経過）`}
@@ -92,78 +139,103 @@ export function Play() {
           />
         </Modal>
       )}
-      {step === 'chapterTop' && <ChapterTop run={run} />}
-      {step === 'scene' && <SceneView run={run} />}
-      {step === 'chance' && <ChanceView run={run} />}
-      {step === 'statCards' && <StatCardsView run={run} />}
-      {step === 'review' && <ChapterReview run={run} />}
+      {skipped && step !== 'statCards' && (
+        <p class="skipped-note" role="status">
+          とばした場面：{skipped}
+        </p>
+      )}
+      {step === 'chapterTop' && <Interlude run={run} onStart={() => go(beginChapter(content, run, false), false)} />}
+      {step === 'scene' && (
+        <SceneView
+          run={run}
+          lineIndex={lineIndex}
+          setLineIndex={setLineIndex}
+          go={go}
+          back={back}
+          canBack={canBackLine || canBackState}
+          skip={skip}
+          toasts={toasts}
+          openParams={() => setShowParams(true)}
+        />
+      )}
+      {step === 'chance' && <ChanceView run={run} go={go} back={back} canBack={canBackState} />}
+      {step === 'statCards' && <SupportCard run={run} skippedSummary={skipped} onNext={() => go(advanceStatCards(content, run), false)} />}
+      {step === 'review' && <ChapterReview run={run} onNext={() => go(advanceReview(content, run), false)} />}
       {step === 'finished' && <OverallReview run={run} onRestart={() => setRun(null)} />}
     </>
   );
 }
 
-// ── 7.3 章トップ ──
-function ChapterTop({ run }: { run: RunState }) {
-  const { content, setRun } = useApp();
+// ── 幕間（付録B-8）：時間が流れる。最初の章では「はじまり」 ──
+function Interlude({ run, onStart }: { run: RunState; onStart: () => void }) {
+  const { content, animate } = useApp();
   const ch = getChapter(content, run.position.age);
-  const me = getCharacter(content, run.protagonist);
-  const warnings = chapterWarnings(content, run, run.position.age);
-  const h = useFocusHeading(`top-${run.position.age}`);
+  const chapters = sortedChapters(content);
+  const idx = chapters.findIndex((c) => c.age === ch.age);
+  const prev = idx > 0 ? chapters[idx - 1] : undefined;
+  const firstEvent = ch.events.find((e) => e.characters.includes(run.protagonist) && e.id.includes(run.protagonist.toUpperCase()) && e.stage)
+    ?? ch.events.find((e) => e.characters.includes(run.protagonist) && e.stage);
+  const stage = firstEvent?.stage;
+  const spec = sceneSpec(content, run, stage ? { ...stage, cast: [{ id: run.protagonist }] } : undefined);
+  const h = useFocusHeading(`interlude-${ch.age}`);
   return (
-    <section class="fade-in">
-      <h1 tabIndex={-1} ref={h}>
+    <section class="interlude fade-in">
+      <p class="interlude-elapsed num">{prev ? `${ch.age - prev.age}年後` : 'はじまり'}</p>
+      <h1 tabIndex={-1} ref={h} class="interlude-title">
         <span class="num">{ch.age}歳</span>　{ch.season}
       </h1>
-      <div class="panel">
-        <p class="sub" style={{ margin: 0 }}>
-          {me.name}
-        </p>
-        <p style={{ margin: 0 }}>
-          <RichText text={ch.intro[run.protagonist] ?? ''} />
-        </p>
-      </div>
-      {warnings.length > 0 ? (
-        <div class="panel caution" role="region" aria-label="この章についての注意">
-          <h2 style={{ marginTop: 0 }}>この章を読む前に</h2>
-          {warnings.map((w) => (
-            <p key={w}>{w}</p>
-          ))}
-          <p class="sub">読まずに進んだ場合、この章の選択は自動で決まり、ふりかえりに「読まずに進んだ章」と表示されます。</p>
-          <button type="button" class="btn primary" onClick={() => setRun(beginChapter(content, run, false))}>
-            読む
-          </button>
-          <button type="button" class="btn" onClick={() => setRun(beginChapter(content, run, true))}>
-            この章を読まずに進む
-          </button>
-          <button type="button" class="btn" onClick={() => navigate('resources')}>
-            相談窓口を見る
-          </button>
-        </div>
-      ) : (
-        <button type="button" class="btn primary" onClick={() => setRun(beginChapter(content, run, false))}>
-          はじめる
-        </button>
-      )}
+      <PixelStage spec={spec} label={`${getCharacter(content, run.protagonist).name}、${ch.age}歳`} animate={animate} />
+      <p class="interlude-news">
+        <RichText text={ch.intro[run.protagonist] ?? ''} />
+      </p>
+      <button type="button" class="btn primary" onClick={onStart}>
+        はじめる
+      </button>
     </section>
   );
 }
 
-// ── 7.4 シーン ──
-function SceneView({ run }: { run: RunState }) {
-  const { content, setRun, avatars } = useApp();
+// ── 場面（付録B-2）：吹き出しを1つずつ出し、最後の吹き出しで選択肢を出す ──
+function SceneView(props: {
+  run: RunState;
+  lineIndex: number;
+  setLineIndex: (n: number) => void;
+  go: (s: RunState, viaChoice: boolean) => void;
+  back: () => void;
+  canBack: boolean;
+  skip: () => void;
+  toasts: { id: number; text: string }[];
+  openParams: () => void;
+}) {
+  const { run, lineIndex, setLineIndex, go } = props;
+  const { content, animate } = useApp();
   const ev = currentEvent(content, run)!;
   const scene = currentScene(content, run)!;
   const pos = run.position;
-  const h = useFocusHeading(`${pos.eventId}/${pos.sceneId}/${pos.viewpoint}`);
+  const lines = linesOf(content, run, scene);
+  const i = Math.min(lineIndex, lines.length - 1);
+  const line = lines[i]!;
+  const atLast = i >= lines.length - 1;
   const choices = visibleChoices(content, run, scene);
-  const vp = scene.viewpoint ?? run.protagonist;
-  const vpChar = getCharacter(content, vp);
+  const spec = sceneSpec(content, run, stageOf(ev, scene), line);
+  const h = useFocusHeading(`${pos.eventId}/${pos.sceneId}/${pos.viewpoint}`);
   const offTrack = !onProtagonistTrack(content, run);
   const me = getCharacter(content, run.protagonist);
-  const neutral = choices.some((c) => c.neutral);
+
+  const advance = () => {
+    if (!atLast) {
+      setLineIndex(i + 1);
+      return;
+    }
+    if (choices.length > 0) return;
+    go(advanceScene(content, run), false);
+  };
 
   return (
-    <section class={`panel fade-in${ev.triggerWarning ? ' caution' : ''}`} key={`${pos.eventId}/${pos.sceneId}/${pos.viewpoint}`}>
+    <section class="scene" key={`${pos.eventId}/${pos.sceneId}/${pos.viewpoint}`}>
+      <h2 class="sr-only" tabIndex={-1} ref={h}>
+        場面
+      </h2>
       {ev.viewpointSwitch && pos.tracks && (
         <>
           <div class="tabs" role="group" aria-label="視点の切り替え">
@@ -177,7 +249,7 @@ function SceneView({ run }: { run: RunState }) {
                   class="tab"
                   aria-pressed={selected}
                   disabled={done && !selected}
-                  onClick={() => !selected && setRun(switchViewpoint(content, run, id))}
+                  onClick={() => !selected && go(switchViewpoint(content, run, id), false)}
                 >
                   {getCharacter(content, id).name}の視点{done ? '（読んだ）' : ''}
                 </button>
@@ -187,48 +259,51 @@ function SceneView({ run }: { run: RunState }) {
           {offTrack && <p class="sub">この視点での選択では、{me.name}のパラメーターは動きません。</p>}
         </>
       )}
-      <h2 class="sr-only" tabIndex={-1} ref={h}>
-        {scene.speaker ? '会話' : '場面'}（{vpChar.name}）
-      </h2>
-      <div class="speaker">
-        {scene.speaker ? (
-          <span>
-            <RichText text={scene.speaker} />
-          </span>
-        ) : (
-          <>
-            <Avatar spec={avatars[vp]} size={32} />
-            <span>{vpChar.name}</span>
-          </>
-        )}
+      <div class="stage-wrap">
+        <PixelStage spec={spec} label={`${me.name}の場面`} animate={animate} />
+        <div class="toasts" aria-live="polite">
+          {props.toasts.map((t) => (
+            <p key={t.id} class="toast num">
+              {t.text}
+            </p>
+          ))}
+        </div>
       </div>
-      <p class="scene-text">
-        <RichText text={scene.text} />
-      </p>
-      <div style={{ marginTop: 16 }}>
-        {choices.length > 0 ? (
-          <div role="group" aria-label="選択肢">
-            {choices.map((c) => (
-              <button key={c.id} type="button" class="btn" onClick={() => setRun(choose(content, run, c.id))}>
-                <RichText text={c.label} />
-              </button>
-            ))}
-            {neutral && <p class="sub">どれを選んでも、正解・不正解はありません。</p>}
-          </div>
-        ) : (
-          <button type="button" class="btn primary" onClick={() => setRun(advanceScene(content, run))}>
-            {scene.chance ? 'どうなるかを見る' : '次へ'}
-          </button>
-        )}
+      <div class="scene-tools">
+        <button type="button" class="tool" onClick={props.back} disabled={!props.canBack} aria-label="ひとつ前に戻る">
+          ◀ 戻る
+        </button>
+        <button type="button" class="tool" onClick={props.openParams}>
+          パラメーター
+        </button>
+        <button type="button" class="tool" onClick={props.skip}>
+          この場面をとばす
+        </button>
       </div>
-      <ReadingTools />
+      <button type="button" class={`bubble kind-${line.kind}`} onClick={advance} aria-label={`${line.name ? line.name + '：' : ''}${plainText(line.text)}`}>
+        {line.name && <span class="bubble-name">{line.name}</span>}
+        <span class="bubble-text">
+          <RichText text={line.text} />
+        </span>
+        {!(atLast && choices.length > 0) && <span class="bubble-next">{atLast ? (scene.chance ? 'どうなるかを見る ▼' : '次へ ▼') : '▼'}</span>}
+      </button>
+      {atLast && choices.length > 0 && (
+        <div role="group" aria-label="選択肢" class="choices">
+          {choices.map((c) => (
+            <button key={c.id} type="button" class="btn choice" onClick={() => go(choose(content, run, c.id), true)}>
+              <RichText text={c.label} />
+            </button>
+          ))}
+          {choices.some((c) => c.neutral) && <p class="sub">どれを選んでも、正解・不正解はありません。</p>}
+        </div>
+      )}
     </section>
   );
 }
 
-// ── 7.5 確率カード ──
-function ChanceView({ run }: { run: RunState }) {
-  const { content, setRun, animate } = useApp();
+// ── 確率カード（§7.5） ──
+function ChanceView({ run, go, back, canBack }: { run: RunState; go: (s: RunState, v: boolean) => void; back: () => void; canBack: boolean }) {
+  const { content, animate } = useApp();
   const entry = run.chanceLog[run.chanceLog.length - 1]!;
   const h = useFocusHeading(`chance-${entry.nodeId}`);
   return (
@@ -238,55 +313,47 @@ function ChanceView({ run }: { run: RunState }) {
       </h1>
       <ProbabilityCard entry={entry} content={content} animate={animate} />
       {entry.offTrack && <p class="sub">この結果は、主人公のパラメーターを動かしません。</p>}
-      <button type="button" class="btn primary" onClick={() => setRun(advanceChance(content, run))}>
+      <div class="scene-tools">
+        <button type="button" class="tool" onClick={back} disabled={!canBack}>
+          ◀ 戻る
+        </button>
+      </div>
+      <button type="button" class="btn primary" onClick={() => go(advanceChance(content, run), false)}>
         次へ
       </button>
     </section>
   );
 }
 
-// ── 7.6 統計カード（＋相談窓口） ──
-function StatCardsView({ run }: { run: RunState }) {
-  const { content, setRun } = useApp();
+// ── 暴力の場面のあとの支援カード（付録B-20） ──
+function SupportCard({ run, skippedSummary, onNext }: { run: RunState; skippedSummary: string | null; onNext: () => void }) {
+  const { content } = useApp();
   const ev = currentEvent(content, run)!;
-  const h = useFocusHeading(`stats-${ev.id}`);
-  const stats = (ev.statCard ?? []).map((id) => content.stats.find((s) => s.id === id)!).filter(Boolean);
+  const h = useFocusHeading(`support-${ev.id}`);
+  const picked = ev.support?.length
+    ? ev.support.flatMap((id) => content.resources.filter((r) => r.id === id))
+    : content.resources.filter((r) => r.tags.some((t) => (ev.resources ?? []).includes(t))).slice(0, 2);
   return (
     <section class="fade-in">
-      <h1 tabIndex={-1} ref={h}>
-        データで見る
-      </h1>
-      {stats.map((s) => (
-        <StatCard key={s.id} stat={s} />
-      ))}
-      <SupportResources tags={ev.resources ?? []} />
-      <button type="button" class="btn primary" onClick={() => setRun(advanceStatCards(content, run))}>
-        次へ
+      {skippedSummary && <p class="skipped-note">とばした場面：{skippedSummary}</p>}
+      <div class="panel support-card">
+        <h1 tabIndex={-1} ref={h} style={{ marginTop: 0, fontSize: 20 }}>
+          話せる場所があります
+        </h1>
+        <p>ひとりで抱えなくて大丈夫です。気になることがあったら、話を聞いてくれる窓口があります。</p>
+        <ResourceList items={picked} />
+        <p style={{ margin: 0 }}>
+          <a href="#/support">ほかの相談先を見る ›</a>
+        </p>
+      </div>
+      <button type="button" class="btn primary" onClick={onNext}>
+        物語にもどる
       </button>
     </section>
   );
 }
 
-/** 相談窓口への案内（前向きな言葉で。付録A-11） */
-function SupportResources({ tags, lead }: { tags: string[]; lead?: string }) {
-  const { content } = useApp();
-  const items = content.resources.filter((r) => r.tags.some((t) => tags.includes(t)));
-  if (items.length === 0) return null;
-  return (
-    <section aria-labelledby="support-title">
-      <h2 id="support-title">話を聞いてくれるところ</h2>
-      {lead && <p>{lead}</p>}
-      <p>ひとりで抱えなくて大丈夫です。気になることがあったら、話を聞いてくれる窓口があります。</p>
-      <p class="sub">{tags.map((t) => content.config.resourceTags[t]).join('、')}</p>
-      <ResourceList items={items} />
-      <p class="sub">
-        ほかの窓口は<a href="#/resources">相談窓口</a>のページにあります。
-      </p>
-    </section>
-  );
-}
-
-// ── 7.7 章のふりかえり ──
+// ── 章のふりかえり（§7.7、付録B-4：統計カードは必ずここで出す） ──
 function ParamChanges({ run, age }: { run: RunState; age: number }) {
   const { content } = useApp();
   const initial = getCharacter(content, run.protagonist).initial;
@@ -325,11 +392,15 @@ function ParamChanges({ run, age }: { run: RunState; age: number }) {
   );
 }
 
-function ChapterReview({ run }: { run: RunState }) {
-  const { content, setRun } = useApp();
+function ChapterReview({ run, onNext }: { run: RunState; onNext: () => void }) {
+  const { content } = useApp();
   const age = run.position.age;
   const h = useFocusHeading(`review-${age}`);
-  const skipped = run.skippedChapters.includes(age);
+  const chapter = getChapter(content, age);
+  const played = chapter.events.filter((e) => run.completedEvents.includes(e.id));
+  const skippedHere = played.filter((e) => run.skippedEvents.includes(e.id));
+  const statIds = [...new Set(played.flatMap((e) => e.statCard ?? []))];
+  const stats = statIds.flatMap((id) => content.stats.filter((s) => s.id === id));
   const entries = run.ledger.filter((e) => e.age === age);
   const isLast = sortedChapters(content).at(-1)?.age === age;
   return (
@@ -337,23 +408,15 @@ function ChapterReview({ run }: { run: RunState }) {
       <h1 tabIndex={-1} ref={h}>
         <span class="num">{age}歳</span>のふりかえり
       </h1>
-      {skipped && (
-        <p class="panel caution" style={{ margin: '8px 0' }}>
-          読まずに進んだ章：この章の選択は自動で決まりました。読むかどうかは、自分で決めてかまいません。
-        </p>
-      )}
+      {skippedHere.length > 0 && <p class="skipped-note">とばした場面：{skippedHere.map((e) => e.summary ?? e.domains.join('・')).join('／')}</p>}
       <div class="panel">
         <h2 style={{ marginTop: 0 }}>パラメーターの変化</h2>
         <ParamChanges run={run} age={age} />
       </div>
       <div class="panel">
-        <h2 style={{ marginTop: 0 }}>変化の理由（要因分解）</h2>
+        <h2 style={{ marginTop: 0 }}>変化の理由</h2>
         <p class="sub">変化を、選択・生育条件・社会条件・他者の行為・偶然の5つに分けて示します。中心線より右が増えた分、左が減った分です。</p>
-        <FactorChart
-          data={breakdown(run.ledger, (e) => e.age === age)}
-          title={`${age}歳の章の要因分解`}
-          hasActor={run.chanceLog.some((c) => c.age === age && c.actorLabel)}
-        />
+        <FactorChart data={breakdown(run.ledger, (e) => e.age === age)} title={`${age}歳の章の要因分解`} hasActor={run.chanceLog.some((c) => c.age === age && c.actorLabel)} />
         {entries.length > 0 && (
           <details>
             <summary>ひとつずつ見る（{entries.length}件）</summary>
@@ -361,16 +424,22 @@ function ChapterReview({ run }: { run: RunState }) {
               {entries.map((e, i) => (
                 <li key={i} class="num">
                   {PARAM_LABELS[e.param]} {e.delta > 0 ? `+${e.delta}` : e.delta}：{e.note}（{SOURCE_LABELS[e.source]}
-                  {e.statRef ? `、${e.statRef}` : ''}）{e.skipped ? '［自動］' : ''}
+                  {e.statRef ? `、${e.statRef}` : ''}）{e.skipped ? '［とばした場面］' : ''}
                 </li>
               ))}
             </ul>
           </details>
         )}
-        {entries.length === 0 && <p class="sub">この章では、パラメーターは変化しませんでした。</p>}
       </div>
-      {skipped && <SupportResources tags={chapterResourceTags(content, run, age)} />}
-      <button type="button" class="btn primary" onClick={() => setRun(advanceReview(content, run))}>
+      {stats.length > 0 && (
+        <>
+          <h2>この章に関係するデータ</h2>
+          {stats.map((s) => (
+            <StatCard key={s.id} stat={s} />
+          ))}
+        </>
+      )}
+      <button type="button" class="btn primary" onClick={onNext}>
         {isLast ? '次へ' : '次の章へ'}
       </button>
     </section>

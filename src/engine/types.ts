@@ -57,8 +57,10 @@ export interface Position {
   tracksDone?: Partial<Record<CharacterId, boolean>>;
   /** 確率カードの後に進むシーン */
   pendingNext?: string;
-  /** 「この章を読まずに進む」で自動進行している */
+  /** 「この章を読まずに進む」または「この場面をとばす」で自動進行している */
   skipping?: boolean;
+  /** 「この場面をとばす」で自動進行している（付録B-17） */
+  skippingEvent?: boolean;
 }
 
 export interface LedgerEntry {
@@ -104,8 +106,8 @@ export interface ChanceLogEntry {
 export type ReplayChange = 'protagonist' | { condition: string; from: string; to: string };
 
 export interface RunState {
-  /** 3：選択の記録（choices）を追加。古い保存データは読み込まない */
-  version: 3;
+  /** 4：とばしたイベント（skippedEvents）を追加。古い保存データは読み込まない */
+  version: 4;
   runId: string;
   seed: string;
   protagonist: CharacterId;
@@ -122,6 +124,8 @@ export interface RunState {
   /** 標準ルートの計算用：この選択を canonical より優先する（付録A-19） */
   pinnedChoices?: Record<string, string>;
   skippedChapters: number[];
+  /** 「この場面をとばす」を使ったイベント（付録B-17） */
+  skippedEvents: string[];
   avatarSalts: Record<CharacterId, number>;
   replayOf?: { runId: string; changed: ReplayChange; sameSeed: boolean };
 }

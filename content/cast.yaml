@@ -1,0 +1,66 @@
+# 登場人物の見た目（SPEC.md 付録B-1・B-5）。色と髪型は暫定値。パステルが選んで決める。
+# 髪型や服装で、性別のステレオタイプに寄せない（監修で確認する）。
+# 主人公の年齢は周回の年齢を使う。脇役は age の年齢で描く。
+# hairStyle：short／mid／bob／long／tied（結んだ髪）
+# clothes：[〜19歳, 20〜30歳, 31歳〜] の服の色
+
+# ── 主人公 ──
+- id: minami
+  name: ミナミ
+  look: { skin: "#f2c9a8", hair: "#3a2a22", hairStyle: bob, clothes: ["#4f86c6", "#5b6170", "#8a6d5a"], pants: "#2f3b52" }
+- id: haruto
+  name: ハルト
+  look: { skin: "#e8b896", hair: "#1f1f24", hairStyle: short, clothes: ["#6b8e4e", "#3e4a5c", "#5a6b48"], pants: "#3b3b3b" }
+- id: yu
+  name: ユウ
+  look: { skin: "#f0c5a0", hair: "#6a4632", hairStyle: mid, clothes: ["#d9a23b", "#4c7a8a", "#b0704a"], pants: "#4a4a5a" }
+- id: kei
+  name: ケイ
+  look: { skin: "#d9a27f", hair: "#2a2320", hairStyle: short, clothes: ["#c0563a", "#4a5a6a", "#7a6a4a"], pants: "#34404f" }
+
+# ── 脇役（16歳）。名前は仮（付録B-5。REPORT.md で確認を受ける） ──
+- id: riko
+  name: リコ
+  role: ミナミの友だち
+  age: 16
+  look: { skin: "#eec3a0", hair: "#2b2622", hairStyle: tied, clothes: ["#7a9e3b", "#7a9e3b", "#7a9e3b"], pants: "#3a3f4a" }
+- id: sato
+  name: 佐藤先生
+  role: 保健の先生
+  age: 45
+  look: { skin: "#e9bf9c", hair: "#4a3a30", hairStyle: short, clothes: ["#8d6e63", "#8d6e63", "#8d6e63"], pants: "#4a4038" }
+- id: mori
+  name: 森先生
+  role: 養護教諭
+  age: 38
+  look: { skin: "#f0c8a6", hair: "#3a2c26", hairStyle: tied, clothes: ["#e8eef0", "#e8eef0", "#e8eef0"], pants: "#5b6170" }
+- id: tamura
+  name: 田村先生
+  role: ケイの担任
+  age: 52
+  look: { skin: "#e2b28e", hair: "#8a8a8a", hairStyle: bob, clothes: ["#3e4a5c", "#3e4a5c", "#3e4a5c"], pants: "#2f3542" }
+- id: yuMother
+  name: ユウの母
+  role: ユウの母
+  age: 46
+  look: { skin: "#efc4a0", hair: "#4a3226", hairStyle: short, clothes: ["#9c6644", "#9c6644", "#9c6644"], pants: "#4a4a5a" }
+- id: sora
+  name: ソラ
+  role: ケイの弟
+  age: 5
+  look: { skin: "#dca782", hair: "#2a2320", hairStyle: short, clothes: ["#e0a526", "#e0a526", "#e0a526"], pants: "#3d5a80" }
+- id: mio
+  name: ミオ
+  role: ケイの妹
+  age: 9
+  look: { skin: "#dca782", hair: "#2a2320", hairStyle: long, clothes: ["#2a9d8f", "#2a9d8f", "#2a9d8f"], pants: "#34404f" }
+- id: kanako
+  name: カナコ
+  role: ケイの母
+  age: 42
+  look: { skin: "#dba580", hair: "#2a2320", hairStyle: tied, clothes: ["#5e8c61", "#5e8c61", "#5e8c61"], pants: "#3a3f4a" }
+- id: harutoFather
+  name: ハルトの父
+  role: ハルトの父（声だけ。画面には描かない）
+  age: 48
+  look: { skin: "#e3b38f", hair: "#1f1f24", hairStyle: short, clothes: ["#3b3b3b", "#3b3b3b", "#3b3b3b"], pants: "#2b2b2b" }

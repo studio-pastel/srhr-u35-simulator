@@ -1,10 +1,15 @@
-# 16歳の章（SPEC.md §10.3）。Claude Code の下書き。すべて status: draft。
+# 16歳の章（SPEC.md §10.3）。会話中心の形式（付録B-2）の試作。Claude Code の下書き。すべて status: draft。
 #
-# 文字数の上限（src/engine/limits.ts、SPEC.md 付録A-7）
-#   シーン本文 text ……… 200字以内（超えると警告）
-#   選択肢 label ………… 30字以内（超えると警告）
-#   効果 note …………… 20字以内（超えるとエラー。ビルドが止まる）
-#   数え方：ルビ {漢字|かんじ} は親文字だけを数える。改行は数えない。
+# 文字数の上限（src/engine/limits.ts）
+#   吹き出し lines[].text …… 40字以内（超えると警告）
+#   選択肢 label ………………… 30字以内（超えると警告）
+#   効果 note ………………………… 20字以内（超えるとエラー。ビルドが止まる）
+#   とばしたときの要約 summary … 40字以内（超えると警告）
+#   数え方：ルビ {漢字|かんじ} は親文字だけを数える。
+#
+# lines[].who … 登場人物の ID（content/cast.yaml）。self は「いま遊んでいる主人公」、narration は地の文
+# lines[].kind … say（セリフ。省略時）／inner（心の声）／message（メッセージ）／narration（地の文）
+# stage … 舞台。place（場所）、time（day／dusk／night）、cast（画面に描く人物。左から順）
 #
 # 書き方のきまり：SPEC.md §11。暴力の行為を描写しない。選択を評価する言い方をしない。
 age: 16
@@ -12,7 +17,7 @@ title: "16歳"
 season: "高校1年・秋"
 status: draft
 intro:
-  minami: "高校1年の秋。友人と始めたダイエットが、クラスで少し話題になっている。"
+  minami: "高校1年の秋。リコと始めたダイエットが、クラスで少し話題になっている。"
   haruto: "高校1年の秋。家にいるときは、なるべく自分の部屋で過ごしている。"
   yu: "高校1年の秋。HPVワクチンの案内が、家のテーブルに置いたままになっている。"
   kei: "高校1年の秋。放課後は、弟と妹の迎えに走る毎日だ。"
@@ -24,23 +29,33 @@ events:
     domains: [包括的性教育]
     applyConditionFlags: [sexEducation]
     statCard: [S06, S09]
+    stage: { place: classroom, time: day, cast: [{ id: self, x: 30 }, { id: sato, x: 66 }] }
+    summary: "保健の授業を受けた。"
     status: draft
     scenes:
       - id: start
-        text: "3時間目は保健の授業。教室の空気が、いつもより少しだけ落ち着かない。"
+        lines:
+          - { who: narration, text: "3時間目は、保健の授業。" }
+          - { who: self, kind: inner, text: "（なんだか、教室がそわそわしてる）" }
         branches:
           - when: "cond.sexEducation == 'taught'"
             next: taught
         next: notTaught
       - id: taught
-        speaker: "保健の先生"
-        text: "「今日は、避妊の方法、性的同意、デートDV、困ったときの相談窓口について話します。どれも、自分と相手を大切にするための知識です」"
-        next: taught2
-      - id: taught2
-        text: "{腟外射精|ちつがいしゃせい}は確実な避妊法ではないこと。同意は、いつでも取り消せること。相手の行動を縛ることも、暴力になりうること。配られたカードには、相談窓口の番号が並んでいる。"
+        lines:
+          - { who: sato, text: "今日は、避妊、性的同意、デートDV、相談窓口の話をします。" }
+          - { who: sato, text: "どれも、自分と相手を大切にするための知識です。" }
+          - { who: sato, text: "{腟外射精|ちつがいしゃせい}は、確実な避妊法ではありません。" }
+          - { who: sato, text: "同意は、いつでも取り消せます。" }
+          - { who: sato, text: "相手の行動を縛ることも、暴力になりえます。" }
+          - { who: narration, text: "配られたカードには、相談窓口の番号が並んでいた。" }
+          - { who: self, kind: inner, text: "（……このカード、とっておこうかな）" }
         next: END
       - id: notTaught
-        text: "授業は、教科書の数ページを読んで終わった。避妊や同意、デートDVの話は出なかった。わからないことは、わからないままになった。"
+        lines:
+          - { who: sato, text: "では、ここは各自で読んでおいてください。" }
+          - { who: narration, text: "避妊や同意の話は出ないまま、授業が終わった。" }
+          - { who: self, kind: inner, text: "（聞いてみたいこと、あったんだけどな）", face: anxious }
         next: END
 
   - id: E16-YU-HPV
@@ -49,55 +64,76 @@ events:
     kind: fixed
     domains: [ワクチンで防げる疾患]
     statCard: [S13, S28]
+    stage: { place: living, time: day, cast: [{ id: yu, x: 30 }, { id: yuMother, x: 64 }] }
+    summary: "HPVワクチンを受けるかどうかを考えた。"
     status: draft
     scenes:
       - id: start
-        text: "HPVワクチンの定期接種は、今年度が最後だと案内に書いてある。母は「どうしようかね」と言ったまま、決めかねている。"
+        lines:
+          - { who: narration, text: "テーブルの上に、HPVワクチンの案内が置いてある。" }
+          - { who: yuMother, text: "定期接種、今年度で最後なんだって。" }
+          - { who: yuMother, text: "どうしようかね。" }
+          - { who: yu, kind: inner, text: "（お母さんも、決めかねてるみたい）" }
         choices:
           - id: research
-            label: "自分で調べて決める"
+            label: "「自分で調べてから決めたい」"
             canonical: true
             effects:
               - { param: autonomy, sign: 1, size: M, source: choice, note: "自分で調べて決めた" }
             next: research
           - id: parent
-            label: "親に任せる"
+            label: "「お母さんが決めて」"
             setFlags: { yuHpv: leftToParent }
             next: parent
           - id: decline
-            label: "受けない"
+            label: "「今は受けない」"
             setFlags: { yuHpv: declined }
             next: decline
       - id: research
-        text: "厚生労働省や自治体の資料を読み比べる。HPVは、性的接触のある女性の半数以上が、一生に一度は感染するウイルスだという。ワクチンで感染を防ぐと、子宮頸がんの原因の50〜70%を防げるらしい。"
+        stage: { place: bedroom, time: night, cast: [{ id: yu, x: 34, pose: phone }] }
+        lines:
+          - { who: narration, text: "その夜、厚生労働省や自治体の資料を読み比べた。" }
+          - { who: yu, kind: inner, text: "（性的接触のある女性の半数以上が、一生に一度は感染する……）" }
+          - { who: yu, kind: inner, text: "（ワクチンで、子宮頸がんの原因の50〜70%を防げる、か）" }
         next: decide
       - id: decide
-        text: "わからないところは、医療機関で聞いてみた。あとは、自分で決める。"
+        stage: { place: clinic, time: day, cast: [{ id: yu, x: 34 }] }
+        lines:
+          - { who: narration, text: "わからないところは、医療機関で聞いてみた。" }
+          - { who: yu, kind: inner, text: "（あとは、自分で決める）" }
         choices:
           - id: receive
-            label: "受ける"
+            label: "「受けます」"
             canonical: true
             effects:
               - { param: body, sign: 1, size: S, source: choice, statRef: S28, note: "HPVワクチンを受けた" }
             setFlags: { yuHpv: vaccinated }
             next: received
           - id: notNow
-            label: "今は受けない"
+            label: "「今は、受けないでおきます」"
             setFlags: { yuHpv: notNow }
             next: notNow
       - id: received
-        text: "接種を受けた。決めるまでに調べたことは、これからも自分の役に立ちそうだ。"
+        lines:
+          - { who: yuMother, text: "自分で調べて、決めたんだね。" }
+          - { who: yu, kind: inner, text: "（調べたことは、きっとこれからも役に立つ）", face: smile }
         next: END
       - id: notNow
-        text: "今は受けないことにした。決めた理由は、自分の中にある。気になったときは、医療機関で相談できる。"
+        lines:
+          - { who: yu, kind: inner, text: "（今は受けないことにした。理由は、自分の中にある）" }
+          - { who: narration, text: "気になったときは、医療機関で相談できる。" }
         next: END
       - id: parent
-        text: "「お母さんが決めて」と言うと、母はうなずいた。母は医療機関で相談して、受けることに決めた。"
         effects:
           - { param: body, sign: 1, size: S, source: others, statRef: S28, note: "母が接種を決めた" }
+        lines:
+          - { who: yuMother, text: "わかった。お医者さんに相談してみるね。" }
+          - { who: narration, text: "母は医療機関で相談して、受けることに決めた。" }
         next: END
       - id: decline
-        text: "今は受けないことにした。案内の紙はファイルにしまう。気になったときは、医療機関で相談できる。"
+        lines:
+          - { who: yu, kind: inner, text: "（今は、受けない）" }
+          - { who: narration, text: "案内の紙は、ファイルにしまった。気になったときは、医療機関で相談できる。" }
         next: END
 
   - id: E16-MINAMI-DIET
@@ -106,22 +142,40 @@ events:
     kind: fixed
     domains: [栄養, 月経]
     statCard: [S14]
+    stage: { place: classroom, time: day, cast: [{ id: minami, x: 30 }, { id: riko, x: 64 }] }
+    summary: "ダイエットで月経が止まり、どうするかを考えた。"
     status: draft
     scenes:
+      - id: lunch
+        lines:
+          - { who: narration, text: "昼休み。" }
+          - { who: riko, text: "ミナミ、今日もお昼サラダだけ？" }
+          - { who: minami, text: "うん。もうちょっと頑張りたくて。" }
+          - { who: riko, text: "そっか……。無理しないでね。" }
+        next: start
       - id: start
-        text: "友人と始めたダイエットは、もう二か月になる。体重は減ったけれど、先月から月経が来ていない。"
+        stage: { place: bedroom, time: night, cast: [{ id: minami, x: 34 }] }
+        lines:
+          - { who: narration, text: "その夜、自分の部屋。" }
+          - { who: minami, kind: inner, text: "（ダイエットを始めて、もう二か月）" }
+          - { who: minami, kind: inner, text: "（体重は減った。でも……先月から、月経が来てない）", face: anxious }
         branches:
           - when: "up.talkAboutSex == false"
             next: noTalk
         next: choose
       - id: noTalk
-        text: "母に言おうか迷う。でも、家で月経の話をしたことは一度もない。どう切り出せばいいのか、わからない。"
+        stage: { place: bedroom, time: night, cast: [{ id: minami, x: 34, face: anxious }] }
+        lines:
+          - { who: narration, text: "台所から、母の声が聞こえる。" }
+          - { who: minami, kind: inner, text: "（お母さんに言う？……家で、こういう話をしたことない）" }
         next: choose
       - id: choose
-        text: "このまま様子を見るか、誰かに相談するか。"
+        stage: { place: bedroom, time: night, cast: [{ id: minami, x: 34, face: anxious }] }
+        lines:
+          - { who: minami, kind: inner, text: "（どうしよう）" }
         choices:
           - id: nurse
-            label: "保健室で相談する"
+            label: "（明日、保健室で相談してみよう）"
             canonical: true
             effects:
               - { param: body, sign: 1, size: M, source: choice, note: "保健室で相談した" }
@@ -129,13 +183,13 @@ events:
               - { param: connection, sign: 1, size: S, source: society, when: "flags.knowsHelplines == true", note: "授業で相談先を知った" }
             next: nurse
           - id: clinic
-            label: "婦人科を受診する"
+            label: "（婦人科を、自分で予約してみよう）"
             effects:
               - { param: body, sign: 1, size: M, source: choice, note: "婦人科を受診した" }
               - { param: autonomy, sign: 1, size: S, source: choice, note: "自分で予約した" }
             next: clinic
           - id: keepOn
-            label: "食事をさらに減らす"
+            label: "（もう少しだけ、食事を減らそう）"
             # 付録A-21：ダイエット全般ではなく「極端な食事制限」だけを、30歳の CH-LBW の補正の条件にする
             setFlags: { minamiExtremeDiet: true }
             effects:
@@ -143,16 +197,30 @@ events:
               - { param: body, sign: -1, size: S, source: upbringing, when: "up.talkAboutSex == false", note: "家で相談しにくい" }
             next: keepOn
       - id: nurse
-        speaker: "{養護教諭|ようごきょうゆ}"
+        stage: { place: nurse, time: day, cast: [{ id: minami, x: 30 }, { id: mori, x: 64 }] }
         effects:
           - { param: psychSafety, sign: 1, size: S, source: others, note: "養護教諭が受け止めた" }
-        text: "「話してくれてありがとう。一度、婦人科で相談してみようか」。責める言葉はひとつもなく、近くの医療機関の探し方を一緒に調べてくれた。"
+        lines:
+          - { who: minami, text: "あの……先月から、月経が来なくて。" }
+          - { who: mori, text: "話してくれて、ありがとう。" }
+          - { who: mori, text: "一度、婦人科で相談してみようか。探し方、一緒に調べよう。" }
+          - { who: minami, kind: inner, text: "（責められなかった）", face: relieved }
         next: END
       - id: clinic
-        text: "一人で予約の電話をかけるのは、思ったより勇気がいった。医師は食事のことを丁寧に聞き、これからのことを一緒に考えてくれた。"
+        stage: { place: clinic, time: day, cast: [{ id: minami, x: 34 }] }
+        lines:
+          - { who: narration, text: "数日後、婦人科の待合室。" }
+          - { who: minami, kind: inner, text: "（一人で予約の電話をするの、思ったより勇気がいった）" }
+          - { who: narration, text: "医師は食事のことを丁寧に聞き、これからのことを一緒に考えてくれた。" }
+          - { who: minami, kind: inner, text: "（来てよかった）", face: relieved }
         next: END
       - id: keepOn
-        text: "食事の量を、前よりもっと減らした。数字が減るのを見ると、少し安心する。月経のことは、まだ誰にも話していない。気になったときは、保健室や医療機関で相談できる。"
+        stage: { place: bedroom, time: night, cast: [{ id: minami, x: 34 }] }
+        lines:
+          - { who: narration, text: "食事の量を、前よりもっと減らした。" }
+          - { who: minami, kind: inner, text: "（数字が減ると、少しだけ安心する）" }
+          - { who: minami, kind: inner, text: "（月経のことは、まだ誰にも言ってない）", face: anxious }
+          - { who: narration, text: "気になったときは、保健室や医療機関で相談できる。" }
         next: END
 
   - id: E16-KEI-CARE
@@ -161,17 +229,26 @@ events:
     kind: fixed
     domains: [家族, 社会経済]
     statCard: [S22, S23]
+    stage: { place: living, time: dusk, cast: [{ id: kei, x: 26 }, { id: mio, x: 52 }, { id: sora, x: 72 }] }
+    summary: "家族の世話で早退が続き、担任に声をかけられた。"
     status: draft
     scenes:
       - id: start
-        text: "母は夜まで仕事だ。弟の保育園の迎えと、妹の夕食は、ケイの役目になっている。今週は2回、6時間目を早退した。"
+        lines:
+          - { who: narration, text: "夕方。保育園の迎えのあと、夕食の支度。" }
+          - { who: sora, text: "おなかすいたー。" }
+          - { who: mio, text: "お兄ちゃん、算数の宿題わかんない。" }
+          - { who: kei, text: "ちょっと待って、先にごはん作るから。" }
+          - { who: kei, kind: inner, text: "（母さんが帰るのは、夜の十時すぎ）" }
         next: teacher
       - id: teacher
-        speaker: "担任"
-        text: "「最近、早退が多いな。何かあった？」"
+        stage: { place: hallway, time: dusk, cast: [{ id: kei, x: 30 }, { id: tamura, x: 64 }] }
+        lines:
+          - { who: narration, text: "次の日の放課後、廊下で担任に呼び止められた。" }
+          - { who: tamura, text: "ケイ、最近早退が多いな。何かあったか？" }
         choices:
           - id: tell
-            label: "担任に事情を話す"
+            label: "「実は、家のことで……」"
             canonical: true
             effects:
               - { param: connection, sign: 1, size: M, source: choice, note: "担任に事情を話した" }
@@ -179,7 +256,7 @@ events:
             setFlags: { keiToldTeacher: true }
             next: tell
           - id: silent
-            label: "黙っている"
+            label: "「……大丈夫です」"
             effects:
               - { param: connection, sign: -1, size: S, source: upbringing, statRef: S23, when: "up.familyCare == true", note: "世話で放課後が埋まる" }
             setFlags: { keiToldTeacher: false }
@@ -187,10 +264,15 @@ events:
       - id: tell
         effects:
           - { param: options, sign: 1, size: S, source: others, note: "担任が支援を調べた" }
-        text: "話し終えると、担任は「話してくれて助かった」と言った。スクールカウンセラーや、地域の支援につなぐ方法を、一緒に調べることになった。"
+        lines:
+          - { who: tamura, text: "そうか。話してくれて、助かった。" }
+          - { who: tamura, text: "スクールカウンセラーや地域の支援につなぐ方法、一緒に調べよう。" }
+          - { who: kei, kind: inner, text: "（一人で抱えなくても、いいのかな）", face: relieved }
         next: END
       - id: silent
-        text: "「大丈夫です」と言うと、担任はそれ以上聞かなかった。家のことを話すのは、まだ少しこわい。"
+        lines:
+          - { who: tamura, text: "……そうか。何かあったら、いつでも言えよ。" }
+          - { who: kei, kind: inner, text: "（家のことを話すのは、まだこわい）", face: anxious }
         next: END
 
   - id: E16-HARUTO-HOME
@@ -198,37 +280,54 @@ events:
     characters: [haruto]
     kind: fixed
     domains: [対人暴力]
-    triggerWarning: "この章には、家庭の中で親が親を怒鳴る場面があります。暴力の行為そのものは描きません。"
     statCard: [S04]
     resources: [violence]
+    # 子どもが家庭の中の暴力に出会ったときの窓口（付録B-20）
+    support: [kodomo-sos, childline]
+    stage: { place: bedroom, time: night, cast: [{ id: haruto, x: 34, face: sad }] }
+    summary: "家で、父が母を怒鳴る夜がまた来た。"
     status: draft
     scenes:
       - id: start
         effects:
           - { param: psychSafety, sign: -1, size: M, source: others, statRef: S04, note: "家で怒鳴り声が続く" }
           - { param: safety, sign: -1, size: S, source: upbringing, statRef: S04, when: "up.witnessedDV == true", note: "家庭内の支配を見て育つ" }
-        text: "夕食のあと、居間から父の大きな声が聞こえる。母の返事は聞こえない。ハルトはイヤホンをつけ、音量を上げる。"
+        lines:
+          - { who: narration, text: "夕食のあと。居間から、父の大きな声が聞こえる。" }
+          - { who: narration, text: "母の返事は、聞こえない。" }
+          - { who: haruto, kind: inner, text: "（また始まった）" }
+          - { who: narration, text: "ハルトはイヤホンをつけて、音量を上げた。" }
         next: think
       - id: think
-        text: "小さいころから、こういう夜は何度もあった。どこの家でも同じなのかもしれない。そう思うようにしてきた。"
+        lines:
+          - { who: haruto, kind: inner, text: "（小さいころから、こういう夜は何度もあった）" }
+          - { who: haruto, kind: inner, text: "（どこの家でも、同じなのかもしれない）" }
         choices:
           - id: tell
-            label: "誰かに話してみる"
+            label: "（明日、誰かに話してみよう）"
             effects:
               - { param: connection, sign: 1, size: M, source: choice, note: "家のことを人に話した" }
               - { param: safety, sign: 1, size: S, source: society, when: "flags.knowsHelplines == true", note: "授業で相談先を知った" }
             setFlags: { harutoToldHome: true }
             next: tell
           - id: ignore
-            label: "見ないふりをする"
+            label: "（見なかったことにしよう）"
             canonical: true
             setFlags: { harutoToldHome: false }
             next: ignore
       - id: tell
+        stage: { place: nurse, time: day, cast: [{ id: haruto, x: 30, face: sad }, { id: mori, x: 64 }] }
         effects:
           - { param: psychSafety, sign: 1, size: S, source: others, note: "養護教諭が話を聞いた" }
-        text: "次の日、保健室で「家がちょっとしんどい」とだけ言ってみた。{養護教諭|ようごきょうゆ}は急かさずに聞き、相談できる場所がいくつもあることを教えてくれた。"
+        lines:
+          - { who: haruto, text: "……家が、ちょっとしんどくて。" }
+          - { who: mori, text: "話してくれて、ありがとう。急がなくていいよ。" }
+          - { who: mori, text: "相談できる場所は、いくつもあるからね。" }
+          - { who: haruto, kind: inner, text: "（言葉にしたら、少しだけ息がしやすい）", face: relieved }
         next: END
       - id: ignore
-        text: "音量をもう一段上げる。明日になれば、いつもの朝が来る。それでも、胸のどこかが重いままだ。"
+        lines:
+          - { who: narration, text: "音量を、もう一段上げる。" }
+          - { who: haruto, kind: inner, text: "（明日になれば、いつもの朝が来る）" }
+          - { who: haruto, kind: inner, text: "（それでも、胸のどこかが重い）" }
         next: END

@@ -59,7 +59,7 @@ export function createRun(content: Content, opts: NewRunOptions): RunState {
   if (!first) throw new ProgressionError('章がひとつもありません');
   const salts = Object.fromEntries(CHARACTER_IDS.map((id) => [id, opts.avatarSalts?.[id] ?? 0])) as Record<CharacterId, number>;
   const state: RunState = {
-    version: 3,
+    version: 4,
     runId: opts.runId ?? newSeed().slice(0, 12),
     seed: opts.seed ?? newSeed(),
     protagonist: opts.protagonist,
@@ -72,6 +72,7 @@ export function createRun(content: Content, opts: NewRunOptions): RunState {
     completedEvents: [],
     choices: {},
     skippedChapters: [],
+    skippedEvents: [],
     avatarSalts: salts,
   };
   if (opts.replayOf) state.replayOf = opts.replayOf;
@@ -198,9 +199,13 @@ function endEvent(content: Content, s: RunState, ev: GameEvent): void {
   delete s.position.tracks;
   delete s.position.tracksDone;
   s.position.viewpoint = s.protagonist;
-  if (!s.position.skipping && ((ev.statCard?.length ?? 0) > 0 || (ev.resources?.length ?? 0) > 0)) {
-    s.position.step = 'statCards';
-    return;
+  // 暴力の場面のあとは、とばした場合も含めて、必ず支援のカードを出す（付録B-20）。
+  // 統計カードは章のふりかえりでまとめて出す（付録B-4）。読まずに進んだ章（旧形式）では出さない
+  if (!s.position.skipping || s.position.skippingEvent) {
+    if ((ev.resources ?? []).includes('violence')) {
+      s.position.step = 'statCards';
+      return;
+    }
   }
   enterNextEvent(content, s, s.position.eventIndex + 1);
 }
@@ -404,6 +409,29 @@ export function advanceReview(content: Content, state: RunState): RunState {
   } else {
     s.position = { ...s.position, step: 'finished' };
   }
+  return s;
+}
+
+/**
+ * 「この場面をとばす」（付録B-17）。いまのイベントの残りを canonical の選択で進める。
+ * 効果は本来の要因のまま skipped 付きで記録し、とばしたイベントを skippedEvents に残す。
+ * 暴力の場面なら、支援のカード（statCards）で止まる。
+ */
+export function skipEvent(content: Content, state: RunState): RunState {
+  const pos = state.position;
+  if (pos.step !== 'scene' && pos.step !== 'chance') throw new ProgressionError('場面の途中ではありません');
+  const s = clone(state);
+  const evId = s.position.eventId;
+  if (!s.skippedEvents.includes(evId)) s.skippedEvents.push(evId);
+  s.position.skipping = true;
+  s.position.skippingEvent = true;
+  let guard = 0;
+  while (s.position.eventId === evId && (s.position.step === 'scene' || s.position.step === 'chance')) {
+    if (++guard > 2000) throw new ProgressionError('とばす処理が終わりません');
+    autoStep(content, s);
+  }
+  delete s.position.skipping;
+  delete s.position.skippingEvent;
   return s;
 }
 

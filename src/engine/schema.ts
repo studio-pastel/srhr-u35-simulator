@@ -61,6 +61,28 @@ export const chanceNodeSchema = z.strictObject({
   actorLabel: z.string().optional(),
 });
 
+export const FACES = ['normal', 'smile', 'anxious', 'sad', 'relieved'] as const;
+export const PLACES = ['classroom', 'nurse', 'hallway', 'bedroom', 'living', 'campus', 'station', 'office', 'clinic', 'home2'] as const;
+export const TIMES = ['day', 'dusk', 'night'] as const;
+export const LINE_KINDS = ['say', 'inner', 'message', 'narration'] as const;
+
+/** 会話の1行（付録B-2）。who は登場人物のID（cast.yaml）か narration */
+export const lineSchema = z.strictObject({
+  who: z.string().min(1),
+  text: z.string().min(1),
+  kind: z.enum(LINE_KINDS).optional(),
+  face: z.enum(FACES).optional(),
+});
+
+/** 場面の舞台（付録B-1）。cast は画面に描く人物（左から順） */
+export const stageSchema = z.strictObject({
+  place: z.enum(PLACES),
+  time: z.enum(TIMES).default('day'),
+  cast: z
+    .array(z.strictObject({ id: z.string(), x: z.number().optional(), face: z.enum(FACES).optional(), pose: z.enum(['stand', 'phone']).optional() }))
+    .default([]),
+});
+
 /** 選択肢のない分岐（付録A-1）。上から順に評価し、最初に当てはまった next に進む */
 const branchSchema = z.strictObject({ when: z.string(), next: z.string().min(1) });
 
@@ -68,7 +90,12 @@ export const sceneSchema = z.strictObject({
   id,
   viewpoint: characterId.optional(),
   speaker: z.string().optional(),
-  text: z.string().min(1),
+  /** 旧形式の地の文。新形式では lines を使う（どちらか一方は必須。検証で確認） */
+  text: z.string().min(1).optional(),
+  /** 会話の吹き出し（付録B-2） */
+  lines: z.array(lineSchema).optional(),
+  /** この場面の舞台。省略時はイベントの stage */
+  stage: stageSchema.optional(),
   choices: z.array(choiceSchema).optional(),
   chance: chanceNodeSchema.optional(),
   branches: z.array(branchSchema).optional(),
@@ -90,10 +117,16 @@ export const eventSchema = z.strictObject({
     .strictObject({ from: characterId, to: characterId, entry: z.partialRecord(characterId, z.string()) })
     .optional(),
   statCard: z.array(statIdSchema).optional(),
-  /** イベント後に出す相談窓口のタグ（§10.6、付録A-8） */
+  /** イベント後に出す相談窓口のタグ（§10.6、付録A-8）。violence があると、場面のあとに支援カードを出す（付録B-20） */
   resources: z.array(z.string()).optional(),
+  /** 支援カードに出す窓口の ID（2つほど）。省略時は resources のタグに当たる最初の2つ */
+  support: z.array(z.string()).optional(),
   /** イベント開始時に、社会条件の選択肢の setFlags を反映する（付録A-5） */
   applyConditionFlags: z.array(z.string()).optional(),
+  /** イベントの舞台（付録B-1） */
+  stage: stageSchema.optional(),
+  /** 「この場面をとばす」を使ったときに出す、起きたことの1行（付録B-17） */
+  summary: z.string().optional(),
   scenes: z.array(sceneSchema).min(1),
   status: z.enum(['draft', 'reviewed']),
 });
@@ -115,6 +148,23 @@ const paramRecord = z.strictObject({
   options: z.number(),
   connection: z.number(),
   autonomy: z.number(),
+});
+
+const hex = z.string().regex(/^#[0-9a-fA-F]{6}$/);
+/** 登場人物の見た目（付録B-1・B-5）。主人公4人と脇役。色や髪型はパステルが選ぶ */
+export const castSchema = z.strictObject({
+  id: z.string().regex(/^[a-z][a-zA-Z0-9]*$/),
+  name: z.string().min(1),
+  role: z.string().optional(),
+  /** 脇役の年齢（見た目の計算に使う）。主人公は周回の年齢を使う */
+  age: z.number().optional(),
+  look: z.strictObject({
+    skin: hex,
+    hair: hex,
+    hairStyle: z.enum(['short', 'mid', 'bob', 'long', 'tied']),
+    clothes: z.tuple([hex, hex, hex]),
+    pants: hex,
+  }),
 });
 
 export const characterSchema = z.strictObject({
@@ -166,6 +216,8 @@ export const statSchema = z.strictObject({
   jpData: z.boolean(),
 });
 
+export const RESOURCE_CATEGORIES = ['body', 'pregnancy', 'testing', 'identity', 'relationship', 'harm', 'mind', 'family'] as const;
+
 export const resourceSchema = z.strictObject({
   id,
   name: z.string().min(1),
@@ -177,6 +229,14 @@ export const resourceSchema = z.strictObject({
   target: z.string().min(1),
   checkedAt: z.strictObject({ title: z.string(), url: z.url() }).nullable(),
   tags: z.array(z.string()),
+  /** 「話せる場所」のカテゴリ（付録B-19）。複数に載せてよい */
+  categories: z.array(z.enum(RESOURCE_CATEGORIES)).min(1),
+  /** 対象が限られる場合のラベル（例：「対象：女性」「18歳まで」） */
+  audience: z.string().optional(),
+  /** 地域ごとの窓口（例：「東京都」） */
+  region: z.string().optional(),
+  /** 公式ページで確認済みか（付録B-21） */
+  verified: z.boolean(),
 });
 
 export const configSchema = z.strictObject({
@@ -194,6 +254,7 @@ export const contentSchema = z.strictObject({
   conditions: z.array(conditionSchema),
   stats: z.array(statSchema),
   resources: z.array(resourceSchema),
+  cast: z.array(castSchema),
   chapters: z.array(chapterSchema),
 });
 
@@ -216,3 +277,7 @@ export type Stat = z.infer<typeof statSchema>;
 export type Resource = z.infer<typeof resourceSchema>;
 export type Config = z.infer<typeof configSchema>;
 export type Content = z.infer<typeof contentSchema>;
+export type Line = z.infer<typeof lineSchema>;
+export type Stage = z.infer<typeof stageSchema>;
+export type CastMember = z.infer<typeof castSchema>;
+export type ResourceCategory = (typeof RESOURCE_CATEGORIES)[number];

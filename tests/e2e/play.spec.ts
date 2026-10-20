@@ -26,7 +26,7 @@ async function start(page: Page, name: string) {
 }
 
 /**
- * 最初の選択肢（トリガー注意では「読む」）を押し続けて、全体のふりかえりまで進める。
+ * 最初の選択肢と吹き出しを押し続けて、全体のふりかえりまで進める。
  * 数百回のクリックになるため、ループはページの中で回す（押すのは画面の実際のボタン）。
  */
 async function playToEnd(page: Page): Promise<string[]> {
@@ -39,8 +39,11 @@ async function playToEnd(page: Page): Promise<string[]> {
       if (h1.includes('16歳から35歳まで')) return { ok: true, reviews };
       const m = h1.match(/(\d+)歳のふりかえり/);
       if (m && reviews.at(-1) !== m[1]) reviews.push(m[1]!);
-      const buttons = [...main.querySelectorAll<HTMLButtonElement>('button.btn:not(.small):not([disabled])')];
-      const b = buttons.find((x) => x.textContent?.trim() === '読む') ?? buttons[0];
+      // 選択肢 → 吹き出し → そのほかのボタン（はじめる・次へ・物語にもどる など）の順に押す
+      const b =
+        main.querySelector<HTMLButtonElement>('.choices button.btn') ??
+        main.querySelector<HTMLButtonElement>('button.bubble') ??
+        main.querySelector<HTMLButtonElement>('button.btn:not(.small):not([disabled])');
       if (!b) return { ok: false, reviews, stuck: main.innerText.slice(0, 300) };
       b.click();
       await wait();
@@ -73,7 +76,7 @@ test('「すぐに閉じる」で exitUrl に移動し、ブラウザの「戻�
   await page.getByRole('button', { name: 'はじめる' }).click();
   await page.getByRole('button', { name: 'ユウで始める' }).click();
   await page.getByRole('button', { name: 'はじめる' }).click();
-  await page.getByRole('link', { name: '相談窓口' }).click();
+  await page.getByRole('link', { name: /私も相談したいことがある/ }).click();
   await page.getByRole('link', { name: '物語にもどる' }).click();
   await page.getByRole('button', { name: 'すぐに閉じる' }).click();
   await page.waitForURL(EXIT_URL);
@@ -88,8 +91,7 @@ test('ブラウザの「戻る」でサイトを離れても、同じタブで�
   await page.getByRole('button', { name: 'はじめる' }).click();
   await page.getByRole('button', { name: 'ケイで始める' }).click();
   await page.getByRole('button', { name: 'はじめる' }).click();
-  for (let i = 0; i < 3; i++) await page.locator('main button.btn:not(.small)').first().click();
-  const before = await page.locator('main').innerText();
+  for (let i = 0; i < 3; i++) await page.locator('main button.bubble').first().click();
   const saved = await page.evaluate(() => sessionStorage.getItem('srhr.v1.run'));
   expect(saved).not.toBeNull();
 
@@ -97,9 +99,9 @@ test('ブラウザの「戻る」でサイトを離れても、同じタブで�
   await page.goBack();
   expect(page.url()).toContain('google.co.jp');
 
-  // 「進む」で戻ると、同じ場面から続けられる
+  // 「進む」で戻ると、同じ場面から続けられる（場面の中の吹き出しは、その場面の最初から表示する）
   await page.goForward();
-  await expect(page.locator('main')).toContainText(before.split('\n').find((l) => l.length > 10)!);
+  await expect(page.locator('main button.bubble')).toBeVisible();
   expect(await page.evaluate(() => sessionStorage.getItem('srhr.v1.run'))).toBe(saved);
 
   // URL を入れ直して開いても（同じタブなら）、「続きから遊ぶ」が出る
@@ -130,7 +132,7 @@ test('キーボードだけで1章を終えられる', async ({ page }) => {
     await page.keyboard.press('Tab');
     const isAction = await page.evaluate(() => {
       const el = document.activeElement as HTMLElement | null;
-      return Boolean(el?.matches('main button.btn:not(.small)'));
+      return Boolean(el?.matches('main button.btn:not(.small), main button.bubble'));
     });
     if (isAction) await page.keyboard.press('Enter');
   }
@@ -162,7 +164,7 @@ test('2周目の「同じ偶然で、条件だけ変える」で、比較画面�
 
 test('幅360pxで横スクロールが出ない', async ({ page }) => {
   await page.setViewportSize({ width: 360, height: 740 });
-  for (const path of ['/', '/#/select', '/#/resources', '/#/sources', '/#/settings', '/#/about']) {
+  for (const path of ['/', '/#/select', '/#/support', '/#/sources', '/#/settings', '/#/about']) {
     await page.goto(path);
     const [sw, iw] = await page.evaluate(() => [document.documentElement.scrollWidth, innerWidth]);
     expect(sw, path).toBeLessThanOrEqual(iw);

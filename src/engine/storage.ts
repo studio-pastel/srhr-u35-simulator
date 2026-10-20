@@ -99,7 +99,7 @@ export function loadRun(): RunState | null {
   if (!raw) return null;
   try {
     const v = JSON.parse(raw) as RunState;
-    return v && v.version === 3 ? v : null;
+    return v && v.version === 4 ? v : null;
   } catch {
     return null;
   }
@@ -117,7 +117,7 @@ export function loadHistory(): RunState[] {
   if (!raw) return [];
   try {
     const v = JSON.parse(raw) as RunState[];
-    return Array.isArray(v) ? v.filter((r) => r && r.version === 3) : [];
+    return Array.isArray(v) ? v.filter((r) => r && r.version === 4) : [];
   } catch {
     return [];
   }

@@ -1,59 +1,282 @@
-# 相談窓口（SPEC.md §10.6）。公開直前に、各窓口の公式ページで番号と受付時間を再確認する。
-# url: null … 公式ページのURLは未確定（T11 ほか）。リンクなしで名称だけ表示する。
-# tags … イベントの後に出す窓口の絞り込み（violence／ec／health）。フッターからは全窓口を出す。
+# 相談先（SPEC.md §10.6、付録B-18〜B-21）。候補の調査：docs/support-candidates.md
+# 公開直前に、各窓口の公式ページで番号・受付時間・URL を再確認する。
+#
+# categories … 「話せる場所」のカテゴリ（付録B-19）
+#   body：からだのこと／pregnancy：妊娠かもしれない／testing：検査を受けたい／identity：好きになる人や、自分の性のこと
+#   relationship：付き合っている人や、家族との関係／harm：嫌なことをされた・されそうになった
+#   mind：こころがしんどい・話を聞いてほしい／family：妊娠・不妊・これからの家族
+# tags … 場面のあとの支援カードで使う（violence：暴力の場面のあと。付録B-20）
+# verified … 公式ページで確認済みなら true（付録B-21）。false のものは公開前に確認する
+# url: null … 公式の URL が未確認。名称と連絡方法だけを表示する
+
+# ── からだのこと ──
+- id: sexhealth-center
+  name: "性と健康の相談センター"
+  contact: "都道府県・指定都市・中核市の窓口（電話・来所・メール・SNS など）。性や妊娠、不妊、からだの悩みを、男女を問わず相談できる"
+  url: "https://www.mhlw.go.jp/stf/seisakunitsuite/bunya/kodomo/kodomo_kosodate/boshi-hoken/boshi-hoken14/index.html"
+  target: "からだ・妊娠・不妊・性の悩み全般"
+  checkedAt: { title: "厚生労働省 性と健康の相談センター事業の概要", url: "https://www.mhlw.go.jp/stf/seisakunitsuite/bunya/kodomo/kodomo_kosodate/boshi-hoken/boshi-hoken14/index.html" }
+  tags: [ec, health]
+  categories: [body, pregnancy, family]
+  verified: true
+- id: navii
+  name: "医療情報ネット（ナビイ）"
+  contact: "全国の病院・クリニックを探せる国のサイト。「じっくり探す」→「診療科目」で産婦人科・婦人科を探せる"
+  url: "https://www.iryou.teikyouseido.mhlw.go.jp/"
+  target: "産婦人科・婦人科を探したい"
+  checkedAt: { title: "厚生労働省 上手な医療のかかり方（ナビイの案内）", url: "https://kakarikata.mhlw.go.jp/kakaritsuke/nabii.html" }
+  tags: [health]
+  categories: [body]
+  verified: true
+- id: youth-clinic
+  name: "ユースクリニック（探し方）"
+  contact: "10代〜20代が、からだや性の悩みを気軽に相談できる場所。全国の一覧はないので、住んでいる地域の名前と「ユースクリニック」で検索する"
+  url: null
+  target: "10代〜20代のからだと性の悩み"
+  checkedAt: null
+  tags: [health]
+  categories: [body]
+  verified: true
+- id: tokyo-wakasapo
+  name: "とうきょう若者ヘルスサポート（わかさぽ）"
+  contact: "0120-372-463（平日15〜20時、土日祝9〜14時）。都内の医療機関でのユースクリニック（25歳未満）にもつなぐ"
+  tel: "0120372463"
+  url: "https://www.fukushi.metro.tokyo.lg.jp/kodomo/sodan/wakasapo"
+  target: "からだや性、こころの悩み"
+  audience: "都内在住・在学・在勤の中学生以上の10代"
+  region: "東京都"
+  checkedAt: { title: "東京都 報道発表（2026年6月）", url: "https://www.metro.tokyo.lg.jp/information/press/2026/06/2026061208" }
+  tags: []
+  categories: [body]
+  verified: true
+- id: okayama-youth
+  name: "3丁目ユース相談室"
+  contact: "10代〜20代が、からだやこころの悩みを無料で相談できる"
+  url: "https://www.city.okayama.jp/kurashi/0000048902.html"
+  target: "からだやこころの悩み"
+  audience: "10代〜20代"
+  region: "岡山市"
+  checkedAt: { title: "岡山市", url: "https://www.city.okayama.jp/kurashi/0000048902.html" }
+  tags: []
+  categories: [body]
+  verified: false
+
+- id: kamakura-youth
+  name: "鎌倉市の若者のための相談窓口"
+  contact: "市役所で、保健師・助産師が月3回、性や人間関係など思春期の悩みを聞く。医療や福祉にもつなぐ"
+  url: null   # 鎌倉市の公式ページを確認する
+  target: "思春期の性や人間関係の悩み"
+  region: "鎌倉市"
+  checkedAt: { title: "神奈川新聞", url: "https://www.kanaloco.jp/news/government/article-1310888.html" }
+  tags: []
+  categories: [body]
+  verified: false
+
+# ── 妊娠かもしれない ──
+- id: ninshin-site
+  name: "思いがけない妊娠の相談窓口サイト（こども家庭庁）"
+  contact: "全国の「にんしんSOS」などの窓口を、夜間受付などの条件で探せる。無料・匿名で相談できる窓口が中心"
+  url: null   # 報道では https://ninshin-soudan.go.jp/ 。公式発表で確認する
+  target: "思いがけない妊娠"
+  checkedAt: { title: "秋田魁新報（2026年4月）", url: "https://www.sakigake.jp/news/article/20260407CO0006/" }
+  tags: [ec, health]
+  categories: [pregnancy]
+  verified: false
+- id: ec-pharmacy
+  name: "緊急避妊薬の販売が可能な薬局の一覧（厚生労働省）"
+  contact: "処方箋なしで緊急避妊薬を買える薬局。行く前に、在庫や薬剤師がいるかを電話で確かめると安心"
+  url: "https://www.mhlw.go.jp/stf/kinnkyuuhininnyaku_00005.html"
+  target: "避妊の失敗・避妊なしの性交"
+  checkedAt: { title: "愛知県（厚生労働省の一覧の案内）", url: "https://www.pref.aichi.jp/soshiki/iyaku/kinkyuhininyaku.html" }
+  tags: [ec]
+  categories: [pregnancy]
+  verified: true
+
+# ── 検査を受けたい ──
+- id: hiv-map
+  name: "HIV検査・相談マップ（厚生労働省）"
+  contact: "全国の保健所などで、HIV・性感染症の検査を匿名・無料で受けられる場所を探せる（検査の種類や予約は会場ごと）"
+  url: "https://www.mhlw.go.jp/hivkensa/"
+  target: "性感染症・HIV の検査"
+  checkedAt: { title: "茨城県 厚生労働省事務連絡（令和8年4月1日）", url: "https://www.pref.ibaraki.jp/hokenfukushi/eiken/kikaku/tuuchi/documents/zimurennraku_hivstiwebsaito.pdf" }
+  tags: [health]
+  categories: [testing]
+  verified: false   # 移管後のページの中身を確認する
+
+# ── 好きになる人や、自分の性のこと ──
+- id: yorisoi
+  name: "よりそいホットライン"
+  contact: "0120-279-338（24時間・無料・匿名）。性のあり方についての専門の回線がある"
+  tel: "0120279338"
+  url: "https://www.since2011.net/yorisoi/"
+  target: "どんな悩みでも。性のあり方の専門回線あり"
+  checkedAt: { title: "厚生労働省 まもろうよ こころ（電話相談）", url: "https://www.mhlw.go.jp/mamorouyokokoro/soudan/tel" }
+  tags: []
+  categories: [identity, mind]
+  verified: true
+- id: nijiz
+  name: "にじーず"
+  contact: "LGBT（そうかもしれない人を含む）の子ども・若者の居場所。全国各地とオンラインで開いている"
+  url: null   # 公式 URL を確認する
+  target: "性のあり方について話せる仲間"
+  audience: "10代〜23歳"
+  checkedAt: { title: "静岡市", url: "https://www.city.shizuoka.lg.jp/003_000001_00046.html" }
+  tags: []
+  categories: [identity]
+  verified: false
+
+# ── 付き合っている人や、家族との関係 ──
 - id: dv-plus
   name: "DV相談＋（プラス）"
   contact: "0120-279-889。電話・メールは24時間、SNSは12〜22時（10言語）"
   tel: "0120279889"
   url: null
   target: "配偶者・恋人からの暴力"
-  checkedAt:
-    title: "警察庁 犯罪被害者白書"
-    url: "https://www.npa.go.jp/hanzaihigai/whitepaper/2024/zenbun/part3_siryo/siryo-9.html"
+  checkedAt: { title: "警察庁 犯罪被害者白書", url: "https://www.npa.go.jp/hanzaihigai/whitepaper/2024/zenbun/part3_siryo/siryo-9.html" }
   tags: [violence]
+  categories: [relationship, harm]
+  verified: true
 - id: dv-navi
   name: "DV相談ナビ"
   contact: "#8008（最寄りの配偶者暴力相談支援センターにつながる）"
   tel: "#8008"
   url: null
   target: "配偶者・恋人からの暴力"
-  checkedAt:
-    title: "警察庁 犯罪被害者白書"
-    url: "https://www.npa.go.jp/hanzaihigai/whitepaper/2024/zenbun/part3_siryo/siryo-9.html"
+  checkedAt: { title: "警察庁 犯罪被害者白書", url: "https://www.npa.go.jp/hanzaihigai/whitepaper/2024/zenbun/part3_siryo/siryo-9.html" }
   tags: [violence]
+  categories: [relationship]
+  verified: true
+- id: women-8778
+  name: "女性相談支援センター（#8778 はなそうなやみ）"
+  contact: "#8778。最寄りの女性相談支援センターにつながる。通話料は相談者の負担。一部の回線ではつながらない"
+  tel: "#8778"
+  url: "https://www.mhlw.go.jp/stf/newpage_40452.html"
+  target: "困難を抱える女性の相談"
+  audience: "対象：女性"
+  checkedAt: { title: "厚生労働省", url: "https://www.mhlw.go.jp/stf/newpage_40452.html" }
+  tags: []
+  categories: [relationship, harm, family]
+  verified: true
+- id: kodomo-sos
+  name: "24時間子供SOSダイヤル（文部科学省）"
+  contact: "0120-0-78310（24時間）。住んでいる地域の教育委員会の相談機関につながる"
+  tel: "0120078310"
+  url: "https://www.mhlw.go.jp/mamorouyokokoro/soudan/tel"
+  target: "子どもの悩み全般"
+  audience: "子ども"
+  checkedAt: { title: "厚生労働省 まもろうよ こころ（電話相談）", url: "https://www.mhlw.go.jp/mamorouyokokoro/soudan/tel" }
+  tags: []
+  categories: [relationship, mind]
+  verified: true
+- id: youngcarer
+  name: "ヤングケアラーの相談（探し方）"
+  contact: "家族の世話をしている子ども・若者の相談。全国共通の窓口はないので、住んでいる都道府県・市区町村の名前と「ヤングケアラー 相談」で検索する"
+  url: null
+  target: "家族の世話をしている"
+  checkedAt: null
+  tags: []
+  categories: [relationship, family]
+  verified: true
+- id: anata-no-mikata
+  name: "あなたのミカタ（女性支援ポータル）"
+  contact: "妊娠・出産、性的な被害、DV、こころの不調などの相談先をまとめたサイト（厚生労働省の補助事業）"
+  url: "https://anata-no-mikata.mhlw.go.jp/"
+  target: "困難を抱える女性"
+  audience: "対象：女性"
+  checkedAt: { title: "あなたのミカタ 相談先リスト", url: "https://anata-no-mikata.mhlw.go.jp/window" }
+  tags: []
+  categories: [relationship, harm, pregnancy]
+  verified: true
+
+# ── 嫌なことをされた・されそうになった ──
 - id: one-stop
   name: "性犯罪・性暴力被害者のためのワンストップ支援センター"
   contact: "#8891"
   tel: "#8891"
   url: null
   target: "性暴力の被害"
-  checkedAt:
-    title: "警察庁 犯罪被害者白書"
-    url: "https://www.npa.go.jp/hanzaihigai/whitepaper/2024/zenbun/part3_siryo/siryo-9.html"
+  checkedAt: { title: "警察庁 犯罪被害者白書", url: "https://www.npa.go.jp/hanzaihigai/whitepaper/2024/zenbun/part3_siryo/siryo-9.html" }
   tags: [violence]
+  categories: [harm]
+  verified: true
+- id: curetime
+  name: "Cure Time（キュアタイム）"
+  contact: "性暴力について、チャットで匿名で相談できる（内閣府）。年齢・性別を問わない。受付時間は公式ページで確認"
+  url: "https://curetime.jp/"
+  target: "性暴力の被害"
+  checkedAt: { title: "滋賀県（2026年2月）", url: "https://www.pref.shiga.lg.jp/cd00/420.html" }
+  tags: [violence]
+  categories: [harm]
+  verified: false
 - id: police-8103
   name: "性犯罪被害相談電話"
   contact: "#8103"
   tel: "#8103"
   url: null
   target: "性犯罪の被害（警察）"
-  checkedAt:
-    title: "政府広報オンライン"
-    url: "https://www.gov-online.go.jp/kurashinosodan/list/ct_higaisoudan.html"
+  checkedAt: { title: "政府広報オンライン", url: "https://www.gov-online.go.jp/kurashinosodan/list/ct_higaisoudan.html" }
   tags: [violence]
-- id: ec-pharmacy
-  name: "緊急避妊薬の販売薬局"
-  contact: "厚生労働省の販売可能薬局一覧（URLは準備中）"
-  url: null   # T11
-  target: "避妊の失敗・避妊なしの性交"
-  checkedAt:
-    title: "鹿児島県"
-    url: "https://www.pref.kagoshima.jp/ae10/kinkyuuhininyaku.html"
-  tags: [ec]
-- id: health-center
-  name: "性と健康の相談センター"
-  contact: "都道府県・市の窓口一覧（URLは準備中）"
-  url: null   # T11
-  target: "からだ・妊娠・不妊・性の悩み全般"
-  checkedAt: null   # 確認元TBD
-  tags: [ec, health]
+  categories: [harm]
+  verified: true
+- id: police-9110
+  name: "警察相談専用電話"
+  contact: "#9110（つきまといなど、警察への相談）"
+  tel: "#9110"
+  url: null
+  target: "つきまとい・ストーカー"
+  checkedAt: { title: "あなたのミカタ 相談先リスト", url: "https://anata-no-mikata.mhlw.go.jp/window" }
+  tags: [violence]
+  categories: [harm, relationship]
+  verified: false
+
+# ── こころがしんどい・話を聞いてほしい ──
+- id: ibasho
+  name: "あなたのいばしょ"
+  contact: "チャット（24時間365日・無料・匿名）。年齢・性別を問わない"
+  url: "https://talkme.jp/"
+  target: "どんな悩みでも"
+  checkedAt: { title: "熊本市", url: "https://www.city.kumamoto.jp/kiji00352838/index.html" }
+  tags: []
+  categories: [mind]
+  verified: false
+- id: inochi-sos
+  name: "#いのちSOS"
+  contact: "0120-061-338（24時間）"
+  tel: "0120061338"
+  url: "https://www.mhlw.go.jp/mamorouyokokoro/soudan/tel"
+  target: "死にたいほどつらいとき"
+  checkedAt: { title: "厚生労働省 まもろうよ こころ（電話相談）", url: "https://www.mhlw.go.jp/mamorouyokokoro/soudan/tel" }
+  tags: []
+  categories: [mind]
+  verified: true
+- id: childline
+  name: "チャイルドライン"
+  contact: "0120-99-7777（毎日16〜21時、12/29〜1/3を除く）。チャットもある"
+  tel: "0120997777"
+  url: "https://childline.or.jp/"
+  target: "子どもの悩み全般"
+  audience: "18歳まで"
+  checkedAt: { title: "厚生労働省 まもろうよ こころ（電話相談）", url: "https://www.mhlw.go.jp/mamorouyokokoro/soudan/tel" }
+  tags: []
+  categories: [mind]
+  verified: false
+- id: mamorouyo
+  name: "まもろうよ こころ（厚生労働省）"
+  contact: "電話・SNS の相談窓口の一覧"
+  url: "https://www.mhlw.go.jp/mamorouyokokoro/"
+  target: "相談先を探したい"
+  checkedAt: { title: "厚生労働省", url: "https://www.mhlw.go.jp/mamorouyokokoro/soudan/tel" }
+  tags: []
+  categories: [mind]
+  verified: true
+
+# ── 妊娠・不妊・これからの家族 ──
+- id: foster-adoption
+  name: "里親・特別養子縁組の相談"
+  contact: "住んでいる都道府県・政令市の児童相談所などで相談できる"
+  url: null
+  target: "里親・特別養子縁組"
+  checkedAt: null
+  tags: []
+  categories: [family]
+  verified: false

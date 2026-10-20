@@ -13,7 +13,7 @@ import { modalStack } from './components/Modal';
 import { Intro } from './screens/Intro';
 import { Select } from './screens/Select';
 import { Play } from './screens/Play';
-import { ResourcesScreen } from './screens/Resources';
+import { SupportScreen } from './screens/Support';
 import { SourcesScreen } from './screens/Sources';
 import { SettingsScreen } from './screens/Settings';
 import { DevPreview } from './screens/DevPreview';
@@ -21,14 +21,16 @@ import { AboutScreen } from './screens/About';
 import { ReplayScreen } from './screens/Replay';
 import { CompareScreen } from './screens/Compare';
 
-export type Route = 'intro' | 'select' | 'play' | 'resources' | 'sources' | 'settings' | 'about' | 'replay' | 'compare' | 'dev';
+export type Route = 'intro' | 'select' | 'play' | 'support' | 'sources' | 'settings' | 'about' | 'replay' | 'compare' | 'dev';
 
 const ROUTES: Record<string, Route> = {
   '': 'intro',
   '/': 'intro',
   '/select': 'select',
   '/play': 'play',
-  '/resources': 'resources',
+  '/support': 'support',
+  // 旧い「相談窓口」のページは「話せる場所」に統合した（付録B-19）
+  '/resources': 'support',
   '/sources': 'sources',
   '/settings': 'settings',
   '/about': 'about',
@@ -201,7 +203,7 @@ export function App() {
           {route === 'intro' && <Intro />}
           {route === 'select' && <Select />}
           {route === 'play' && <Play />}
-          {route === 'resources' && <ResourcesScreen />}
+          {route === 'support' && <SupportScreen />}
           {route === 'sources' && <SourcesScreen />}
           {route === 'settings' && <SettingsScreen />}
           {route === 'about' && <AboutScreen />}
@@ -209,9 +211,14 @@ export function App() {
           {route === 'compare' && <CompareScreen />}
           {route === 'dev' && import.meta.env.DEV && <DevPreview />}
         </main>
+        {route !== 'support' && (
+          <a class="support-entry" href="#/support">
+            <span>私も相談したいことがある</span>
+            <span aria-hidden="true">›</span>
+          </a>
+        )}
         <footer class="footer">
           <nav aria-label="サイト内のリンク">
-            <a href="#/resources">相談窓口</a>
             <a href="#/sources">出典</a>
             <a href="#/settings">設定</a>
             <a href="#/about">このサイトについて</a>

@@ -15,7 +15,7 @@ function readYaml(file: string): unknown {
 
 /** 読み込んだファイルの一覧（Vite の再読み込みに使う） */
 export function contentFiles(dir = CONTENT_DIR): string[] {
-  const top = ['config.yaml', 'characters.yaml', 'conditions.yaml', 'stats.yaml', 'resources.yaml'].map((f) => join(dir, f));
+  const top = ['config.yaml', 'characters.yaml', 'conditions.yaml', 'stats.yaml', 'resources.yaml', 'cast.yaml'].map((f) => join(dir, f));
   const chDir = join(dir, 'chapters');
   const chapters = existsSync(chDir)
     ? readdirSync(chDir)
@@ -34,6 +34,7 @@ export function loadRawContent(dir = CONTENT_DIR): Record<string, unknown> {
     conditions: readYaml(join(dir, 'conditions.yaml')),
     stats: readYaml(join(dir, 'stats.yaml')),
     resources: readYaml(join(dir, 'resources.yaml')),
+    cast: readYaml(join(dir, 'cast.yaml')),
     chapters: contentFiles(dir)
       .filter((f) => f.startsWith(chDir))
       .map(readYaml),

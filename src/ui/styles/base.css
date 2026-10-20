@@ -501,3 +501,225 @@ ul.plain {
     transition: none !important;
   }
 }
+
+/* ── 体験の再設計（付録B） ── */
+
+/* ドット絵の場面（付録B-1） */
+.pixel-stage {
+  display: block;
+  width: 100%;
+  aspect-ratio: 96 / 64;
+  image-rendering: pixelated;
+  border-radius: var(--radius);
+  background: var(--track);
+}
+
+.stage-wrap {
+  position: relative;
+  margin-top: 8px;
+}
+
+/* パラメーターの変化の通知（付録B-3） */
+.toasts {
+  position: absolute;
+  left: 8px;
+  top: 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  pointer-events: none;
+}
+
+.toast {
+  margin: 0;
+  font-size: 12px;
+  line-height: 1.4;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  padding: 3px 8px;
+  animation: fade 200ms ease;
+}
+
+.scene-tools {
+  display: flex;
+  gap: 6px;
+  margin: 8px 0;
+}
+
+.tool {
+  border: 1px solid var(--line);
+  background: var(--surface);
+  border-radius: 999px;
+  padding: 4px 12px;
+  min-height: 32px;
+  font-size: 13px;
+  color: var(--text-sub);
+  cursor: pointer;
+}
+
+.tool:last-child {
+  margin-left: auto;
+}
+
+.tool[disabled] {
+  opacity: 0.4;
+  cursor: default;
+}
+
+/* 吹き出し（付録B-2）。押すと次へ進む */
+.bubble {
+  display: block;
+  width: 100%;
+  min-height: 96px;
+  text-align: left;
+  border: 2px solid var(--line);
+  background: var(--surface);
+  border-radius: var(--radius);
+  padding: 10px 14px;
+  cursor: pointer;
+  font-size: var(--fs-body);
+  line-height: 1.7;
+}
+
+.bubble-name {
+  display: block;
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--text-sub);
+}
+
+.bubble-text {
+  display: block;
+}
+
+.bubble-next {
+  display: block;
+  text-align: right;
+  font-size: 12px;
+  color: var(--text-sub);
+}
+
+.bubble.kind-inner .bubble-text {
+  color: var(--text-sub);
+}
+
+.bubble.kind-narration {
+  border-style: dashed;
+}
+
+.bubble.kind-message {
+  border-color: var(--accent);
+}
+
+.choices {
+  margin-top: 4px;
+}
+
+.btn.choice {
+  min-height: 52px;
+}
+
+/* 幕間（付録B-8） */
+.interlude {
+  text-align: center;
+}
+
+.interlude-elapsed {
+  margin: 24px 0 0;
+  font-size: 15px;
+  color: var(--text-sub);
+}
+
+.interlude-title {
+  margin: 4px 0 12px;
+}
+
+.interlude-news {
+  margin: 12px 0;
+}
+
+.skipped-note {
+  font-size: 14px;
+  background: var(--caution-bg);
+  border-radius: var(--radius);
+  padding: 8px 12px;
+  margin: 8px 0;
+}
+
+.support-card {
+  border-width: 2px;
+}
+
+/* 「私も相談したいことがある」：ゲームの画面とは分けた入口（付録B-19） */
+.support-entry {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 8px;
+  margin: 24px 0 0;
+  padding: 14px 16px;
+  min-height: 52px;
+  border-radius: var(--radius);
+  background: var(--caution-bg);
+  color: var(--text);
+  text-decoration: none;
+  font-size: 15px;
+}
+
+/* 「話せる場所」のアコーディオン */
+.support-cat {
+  border-top: 1px solid var(--line);
+}
+
+.support-cat:last-of-type {
+  border-bottom: 1px solid var(--line);
+}
+
+.support-cat summary {
+  list-style: none;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  min-height: 52px;
+  padding: 8px 4px;
+  font-size: 16px;
+  color: var(--text);
+}
+
+.support-cat summary::-webkit-details-marker {
+  display: none;
+}
+
+.support-cat summary::after {
+  content: '＋';
+  color: var(--text-sub);
+}
+
+.support-cat[open] summary::after {
+  content: '－';
+}
+
+.support-item {
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  padding: 10px 12px;
+  margin: 0 0 8px;
+}
+
+.support-item p {
+  margin: 0;
+}
+
+.support-name {
+  font-weight: 700;
+}
+
+.support-contact {
+  font-size: 14px;
+}
+
+.support-labels {
+  margin-top: 4px !important;
+}

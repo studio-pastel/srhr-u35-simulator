@@ -149,6 +149,12 @@ export function validateContent(raw: unknown, opts: ValidateOptions): ValidateRe
     rubyCheck(where, text, errors);
   };
 
+  // ── 登場人物（付録B-1・B-5） ──
+  dupCheck(content.cast.map((c) => c.id), '登場人物ID', errors);
+  // self は「いま遊んでいる主人公」（全員が出るイベントで使う）
+  const castIds = new Set([...content.cast.map((c) => c.id), 'self']);
+  for (const id of CHARACTER_IDS) if (!castIds.has(id)) errors.push(`cast.yaml に主人公 ${id} の見た目がありません`);
+
   // ── 章とイベント ──
   for (const ch of content.chapters) {
     const where = `${ch.age}歳の章`;
@@ -160,12 +166,13 @@ export function validateContent(raw: unknown, opts: ValidateOptions): ValidateRe
       if (ev.status === 'draft') drafts.push({ id: ev.id, age: ev.age, title: ev.domains.join('・') });
       expr(`${ew}.requires`, ev.requires);
       ev.statCard?.forEach((s) => statRef(`${ew}.statCard`, s, 'card'));
+      for (const rid of ev.support ?? []) if (!content.resources.some((r) => r.id === rid)) errors.push(`${ew}.support：存在しない相談先 ${rid}`);
       for (const tag of ev.resources ?? [])
         if (!(tag in content.config.resourceTags)) errors.push(`${ew}：相談窓口のタグ ${tag} が config.resourceTags にありません`);
       for (const cid of ev.applyConditionFlags ?? []) if (!conds.has(cid)) errors.push(`${ew}：存在しない社会条件 ${cid}`);
       for (const c of ev.characters)
         if (!ch.intro[c]) errors.push(`${where}：${c} が出るイベントがあるのに intro.${c} がありません`);
-      checkEvent(ev, { errors, warnings, expr, statRef, textCheck });
+      checkEvent(ev, { errors, warnings, expr, statRef, textCheck, castIds });
     }
   }
 
@@ -186,12 +193,17 @@ interface Checkers {
   expr: (where: string, src: string | undefined) => void;
   statRef: (where: string, id: string | undefined, usage: 'probability' | 'card' | 'other') => void;
   textCheck: (where: string, text: string) => void;
+  /** 会話の行・舞台に出せる人物のID（cast.yaml）。narration は地の文 */
+  castIds: Set<string>;
 }
 
 function checkEvent(ev: GameEvent, k: Checkers): void {
   const { errors, warnings } = k;
   const sceneIds = new Set(ev.scenes.map((s) => s.id));
   dupCheck(ev.scenes.map((s) => s.id), `${ev.id} のシーンID`, errors);
+  for (const c of ev.stage?.cast ?? []) if (!k.castIds.has(c.id)) errors.push(`${ev.id}.stage：登場人物 ${c.id} が cast.yaml にありません`);
+  if (ev.summary && countChars(ev.summary) > TEXT_LIMITS.summary)
+    warnings.push(`${ev.id}.summary：${countChars(ev.summary)}字です（上限 ${TEXT_LIMITS.summary}字）`);
   if (sceneIds.has('END')) errors.push(`${ev.id}：シーンIDに END は使えません`);
   const sceneById = new Map(ev.scenes.map((s) => [s.id, s]));
 
@@ -234,7 +246,16 @@ function checkEvent(ev: GameEvent, k: Checkers): void {
   for (const sc of ev.scenes) {
     const w = `${ev.id}/${sc.id}`;
     if (vs && !sc.viewpoint) errors.push(`${w}：視点切替イベントのシーンには viewpoint が必要です`);
-    k.textCheck(w, sc.text);
+    if (!sc.text && !sc.lines?.length) errors.push(`${w}：text か lines のどちらかが必要です`);
+    if (sc.text) k.textCheck(w, sc.text);
+    sc.lines?.forEach((l, i) => {
+      const lw = `${w}.lines[${i}]`;
+      if (l.who !== 'narration' && !k.castIds.has(l.who)) errors.push(`${lw}：登場人物 ${l.who} が cast.yaml にありません`);
+      const n = countChars(l.text);
+      if (n > TEXT_LIMITS.line) warnings.push(`${lw}：吹き出しが ${n}字です（上限 ${TEXT_LIMITS.line}字）`);
+      rubyCheck(lw, l.text, errors);
+    });
+    for (const c of sc.stage?.cast ?? []) if (!k.castIds.has(c.id)) errors.push(`${w}.stage：登場人物 ${c.id} が cast.yaml にありません`);
     if (sc.effects) {
       effectCheck(w, sc.effects);
       sc.effects.forEach((e, i) => {
