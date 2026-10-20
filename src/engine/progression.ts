@@ -59,7 +59,7 @@ export function createRun(content: Content, opts: NewRunOptions): RunState {
   if (!first) throw new ProgressionError('章がひとつもありません');
   const salts = Object.fromEntries(CHARACTER_IDS.map((id) => [id, opts.avatarSalts?.[id] ?? 0])) as Record<CharacterId, number>;
   const state: RunState = {
-    version: 2,
+    version: 3,
     runId: opts.runId ?? newSeed().slice(0, 12),
     seed: opts.seed ?? newSeed(),
     protagonist: opts.protagonist,
@@ -70,6 +70,7 @@ export function createRun(content: Content, opts: NewRunOptions): RunState {
     chanceLog: [],
     position: { age: first.age, eventId: '', sceneId: '', viewpoint: opts.protagonist, step: 'chapterTop', eventIndex: 0 },
     completedEvents: [],
+    choices: {},
     skippedChapters: [],
     avatarSalts: salts,
   };
@@ -117,10 +118,14 @@ export function visibleChoices(content: Content, state: RunState, scene: Scene):
   return (scene.choices ?? []).filter((c) => check(c.requires, ctx));
 }
 
+export const choiceKey = (eventId: string, sceneId: string) => `${eventId}/${sceneId}`;
+
 /** 標準ルートの選択：表示される canonical の最初の1つ。なければ表示される最初の1つ */
 export function canonicalChoice(content: Content, state: RunState, scene: Scene): Choice {
   const vis = visibleChoices(content, state, scene);
-  const c = vis.find((x) => x.canonical) ?? vis[0];
+  // 標準ルートの計算（§6.8）では、プレイヤーが同じ場面で選んだ選択を優先する（付録A-19）
+  const pinned = state.pinnedChoices?.[choiceKey(state.position.eventId, scene.id)];
+  const c = (pinned && vis.find((x) => x.id === pinned)) || vis.find((x) => x.canonical) || vis[0];
   if (!c) throw new ProgressionError(`表示できる選択肢がありません：${state.position.eventId}/${scene.id}`);
   return c;
 }
@@ -224,6 +229,7 @@ function finishOtherTracks(content: Content, s: RunState, ev: GameEvent, overrid
 function stepOffTrack(content: Content, s: RunState, scene: Scene, override?: ChanceOverride): string {
   if (scene.choices?.length) {
     const c = canonicalChoice(content, s, scene);
+    s.choices[choiceKey(s.position.eventId, scene.id)] = c.id;
     if (c.setFlags) Object.assign(s.flags, c.setFlags);
     return c.next;
   }
@@ -336,6 +342,7 @@ export function autoStep(content: Content, s: RunState, override?: ChanceOverrid
 function applyChoice(content: Content, s: RunState, choice: Choice, override?: ChanceOverride): void {
   const ctx = contextOf(content, s);
   if (onProtagonistTrack(content, s)) applyEffects(s, choice.effects, content.config, ctx, origin(s));
+  s.choices[choiceKey(s.position.eventId, s.position.sceneId)] = choice.id;
   if (choice.setFlags) Object.assign(s.flags, choice.setFlags);
   moveTo(content, s, choice.next, override);
 }

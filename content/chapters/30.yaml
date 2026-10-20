@@ -1,0 +1,239 @@
+# 30歳の章（SPEC.md §10.3）。Claude Code の下書き。すべて status: draft。
+#
+# 文字数の上限（src/engine/limits.ts、SPEC.md 付録A-7）
+#   シーン本文 text ……… 200字以内（超えると警告）
+#   選択肢 label ………… 30字以内（超えると警告）
+#   効果 note …………… 20字以内（超えるとエラー。ビルドが止まる）
+#
+# P1：出産をプラスの結末として扱わない。出産そのものではパラメーターを動かさない（付録A-21）。
+# §10.4：低出生体重を母親の責任として描かない。
+age: 30
+title: "30歳"
+season: "秋"
+status: draft
+intro:
+  minami: "30歳の秋。仕事にも、少し余裕が出てきた。"
+  haruto: "30歳の秋。子どもが生まれた。"
+  yu: "30歳の秋。アオイとの暮らしは、6年目になった。"
+  kei: "30歳の秋。家族の形は、10代のころに思っていたものと少し違う。"
+events:
+  - id: E30-HARUTO-LEAVE
+    age: 30
+    characters: [haruto]
+    kind: fixed
+    domains: [両立, ジェンダー規範]
+    statCard: [S21, S20]
+    status: draft
+    scenes:
+      - id: start
+        text: "子どもが生まれた。会社には育児休業の制度がある。取るかどうかを、決めなければならない。"
+        branches:
+          - when: "cond.parentalLeave == 'hard'"
+            next: hard
+        next: choose
+      - id: hard
+        text: "職場では、男性で育児休業を取った人はまだいない。上司の顔が浮かぶ。"
+        next: choose
+      - id: choose
+        text: "ハルトは、パートナーと話し合う。"
+        choices:
+          - id: take
+            label: "育児休業を取る"
+            canonical: true
+            effects:
+              - { param: connection, sign: 1, size: M, source: choice, note: "育児休業を取った" }
+              - { param: options, sign: -1, size: S, source: society, statRef: S21, when: "cond.parentalLeave == 'hard'", note: "取りにくい職場" }
+            next: took
+          - id: skip
+            label: "取らない"
+            effects:
+              - { param: connection, sign: -1, size: S, source: choice, note: "育児の時間が少ない" }
+            next: skipped
+      - id: took
+        text: "育児休業を取った。夜中の授乳も、おむつ替えも、二人で交代する。"
+        next: END
+      - id: skipped
+        text: "育児休業は取らなかった。帰宅すると、子どもはもう眠っている。"
+        next: END
+
+  - id: E30-MINAMI-BRANCH
+    age: 30
+    characters: [minami]
+    kind: chance
+    domains: [栄養, 妊娠]
+    statCard: [S14, S15, S30]
+    resources: [health]
+    status: draft
+    scenes:
+      - id: start
+        text: "30歳になった。"
+        branches:
+          - when: "flags.minamiPath == 'now'"
+            next: now
+        next: career
+      # ── now ルート：妊娠・出産 ──
+      - id: now
+        text: "妊娠がわかった。体調の変化に戸惑いながら、健診に通う。"
+        branches:
+          - when: "flags.minamiExtremeDiet == true"
+            next: thin
+        next: birth
+      - id: thin
+        text: "16歳のころからの極端な食事制限のあと、妊娠前も、やせた状態が続いていた。からだのことを相談できる場は、これまで多くはなかった。"
+        next: birth
+      - id: birth
+        text: "出産の日が来た。"
+        chance:
+          id: CH-LBW
+          label: "出生体重が2,500g未満になる確率"
+          base: { value: 0.098, statRef: S15 }
+          modifiers:
+            # 付録A-21：基本の確率9.8%（S15）のオッズに、オッズ比1.61（S30）を掛けて換算した値（解釈）
+            - { when: "flags.minamiExtremeDiet == true", op: set, value: 0.149, source: choice, statRef: S30, note: "妊娠前の極端なやせ" }
+          outcomes:
+            happens: { setFlags: { minamiLbw: true }, next: lbw }
+            notHappens: { setFlags: { minamiLbw: false }, next: born }
+      - id: lbw
+        text: "生まれた子どもの体重は、2,500gに届かなかった。医療スタッフに見守られながら、少しずつ育っていく。出生体重は、母親一人の責任で決まるものではない。"
+        next: END
+      - id: born
+        text: "子どもが生まれた。慣れない毎日が始まる。"
+        next: END
+      # ── noChildren・later ルート：仕事の転機 ──
+      - id: career
+        text: "仕事で、新しい部署への異動を打診された。"
+        choices:
+          - id: move
+            label: "異動を受ける"
+            neutral: true
+            canonical: true
+            effects:
+              - { param: options, sign: 1, size: M, source: choice, note: "新しい仕事に挑んだ" }
+            next: moved
+          - id: stay
+            label: "今の部署に残る"
+            neutral: true
+            effects:
+              - { param: autonomy, sign: 1, size: S, source: choice, note: "働き方を自分で選んだ" }
+            next: stayed
+      - id: moved
+        text: "新しい部署で、一から仕事を覚える。忙しいけれど、毎日が新しい。"
+        next: END
+      - id: stayed
+        text: "今の部署に残ることにした。慣れた仕事を、もっと深めていきたい。"
+        next: END
+
+  - id: E30-YU-PARTNERSHIP
+    age: 30
+    characters: [yu]
+    kind: fixed
+    domains: [人権, 制度]
+    statCard: [S29]
+    status: draft
+    scenes:
+      - id: start
+        text: "アオイと、これからの住まいと暮らしについて話した。パートナーシップ制度のことも、話題にのぼる。"
+        branches:
+          - when: "flags.partnershipLocal == true"
+            next: available
+        next: unavailable
+      - id: available
+        text: "住んでいる自治体には、パートナーシップ制度がある。"
+        choices:
+          - id: use
+            label: "制度を利用する"
+            neutral: true
+            canonical: true
+            effects:
+              - { param: connection, sign: 1, size: S, source: choice, note: "制度を利用した" }
+            next: used
+          - id: notUse
+            label: "利用しない"
+            neutral: true
+            next: notUsed
+      - id: used
+        text: "二人で役所に行き、宣誓をした。帰り道、アオイが少し笑った。"
+        next: END
+      - id: notUsed
+        text: "今は利用しないことにした。二人の関係は、制度がなくても変わらない。"
+        next: END
+      - id: unavailable
+        effects:
+          - { param: options, sign: -1, size: S, source: society, statRef: S29, note: "住む自治体に制度がない" }
+        text: "住んでいる自治体には、パートナーシップ制度がない。"
+        choices:
+          - id: considerMove
+            label: "制度のある自治体への引っ越しを考える"
+            neutral: true
+            effects:
+              - { param: autonomy, sign: 1, size: S, source: choice, note: "暮らす場所を考えた" }
+            next: considered
+          - id: stay
+            label: "このまま暮らす"
+            neutral: true
+            canonical: true
+            next: stayed
+      - id: considered
+        text: "制度のある自治体を、二人で調べ始めた。どこで暮らすかも、二人で決めていく。"
+        next: END
+      - id: stayed
+        text: "このまま、今の町で暮らすことにした。ここには、二人の生活がある。"
+        next: END
+
+  - id: E30-KEI-WORK
+    age: 30
+    characters: [kei]
+    # 付録A-18：確率ノード CH-PARTNER-WORK は24歳に移したため、この章は確率を使わない
+    kind: fixed
+    domains: [両立]
+    statCard: [S21]
+    status: draft
+    scenes:
+      - id: start
+        text: "30歳になった。"
+        branches:
+          - when: "flags.keiFather == true"
+            next: father
+        next: single
+      - id: father
+        text: "サキと、家事と育児の分け方について話し合う。"
+        choices:
+          - id: share
+            label: "家事・育児を分担する"
+            canonical: true
+            effects:
+              - { param: connection, sign: 1, size: M, source: choice, note: "家事と育児を分担した" }
+            next: shared
+          - id: leave
+            label: "相手に任せる"
+            effects:
+              - { param: connection, sign: -1, size: S, source: choice, note: "家事を相手に任せた" }
+            next: left
+      - id: shared
+        text: "夕食と寝かしつけは、ケイの担当になった。子どもとの会話が増えた。"
+        next: END
+      - id: left
+        text: "家のことは、サキに任せることが多くなった。"
+        next: END
+      - id: single
+        text: "一人の時間が増えた。暮らし方を、自分で選べるようになってきた。"
+        choices:
+          - id: community
+            label: "地域の活動に参加する"
+            neutral: true
+            canonical: true
+            effects:
+              - { param: connection, sign: 1, size: S, source: choice, note: "地域の活動に参加した" }
+            next: community
+          - id: myTime
+            label: "一人の時間を大切にする"
+            neutral: true
+            effects:
+              - { param: autonomy, sign: 1, size: S, source: choice, note: "自分の時間を選んだ" }
+            next: myTime
+      - id: community
+        text: "地域の子ども食堂を手伝い始めた。昔の自分のような子どもたちと話す。"
+        next: END
+      - id: myTime
+        text: "休みの日は、一人で出かける。誰かのためではない時間が、少しずつ増えていく。"
+        next: END

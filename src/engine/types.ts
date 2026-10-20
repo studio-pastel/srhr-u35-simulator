@@ -104,8 +104,8 @@ export interface ChanceLogEntry {
 export type ReplayChange = 'protagonist' | { condition: string; from: string; to: string };
 
 export interface RunState {
-  /** 2：心理的安全・他者の行為を追加（付録A-13・A-14）。古い保存データは読み込まない */
-  version: 2;
+  /** 3：選択の記録（choices）を追加。古い保存データは読み込まない */
+  version: 3;
   runId: string;
   seed: string;
   protagonist: CharacterId;
@@ -117,6 +117,10 @@ export interface RunState {
   chanceLog: ChanceLogEntry[];
   position: Position;
   completedEvents: string[];
+  /** 選んだ選択肢（`イベントID/シーンID` → 選択肢ID）。主人公以外の視点や自動選択も含む */
+  choices: Record<string, string>;
+  /** 標準ルートの計算用：この選択を canonical より優先する（付録A-19） */
+  pinnedChoices?: Record<string, string>;
   skippedChapters: number[];
   avatarSalts: Record<CharacterId, number>;
   replayOf?: { runId: string; changed: ReplayChange; sameSeed: boolean };

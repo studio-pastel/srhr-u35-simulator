@@ -24,7 +24,7 @@ export interface ValidateOptions {
   production: boolean;
   /** ALLOW_UNVERIFIED=1（プレビュー用） */
   allowUnverified: boolean;
-  /** 16歳から35歳までの全章がそろっていることを求める（フェーズ2で true にする。付録A-6） */
+  /** 16歳から35歳までの全章がそろっていることを求める（付録A-6。フェーズ2から true） */
   requireAllChapters?: boolean;
 }
 
@@ -394,9 +394,32 @@ function runAllOutcomes(a: Action, s: RunState): RunState[] {
   return out;
 }
 
-/** 進行に関係する部分だけで状態を同一視する（パラメーターは進行に影響しない） */
-function flowKey(s: RunState): string {
-  return JSON.stringify([s.position, s.flags]);
+/**
+ * 進行を左右するフラグ：イベントの発生条件・選択肢の表示条件・分岐の条件で読まれるもの。
+ * 効果の when や確率の補正で読まれるフラグは、進む先を変えない（確率の結果は両方試す）。
+ */
+function flowFlags(content: Content): Set<string> {
+  const out = new Set<string>();
+  const add = (src?: string) => {
+    if (!src) return;
+    for (const r of collectRefs(parseFlagExpr(src))) if (r.ns === 'flags') out.add(r.name);
+  };
+  for (const ch of content.chapters)
+    for (const ev of ch.events) {
+      add(ev.requires);
+      for (const sc of ev.scenes) {
+        sc.branches?.forEach((b) => add(b.when));
+        sc.choices?.forEach((c) => add(c.requires));
+      }
+    }
+  return out;
+}
+
+/** 進行に関係する部分だけで状態を同一視する（パラメーターや、進行に影響しないフラグは除く） */
+function flowKey(s: RunState, relevant: Set<string>): string {
+  const f: Record<string, unknown> = {};
+  for (const k of Object.keys(s.flags).sort()) if (relevant.has(k)) f[k] = s.flags[k];
+  return JSON.stringify([s.position, f]);
 }
 
 /**
@@ -404,6 +427,7 @@ function flowKey(s: RunState): string {
  * 最初の章から最後の章のふりかえりまで到達できることを確かめる。
  */
 export function reachability(content: Content, errors: string[], limit = 500_000): void {
+  const relevant = flowFlags(content);
   for (const ch of content.characters) {
     for (const conditions of conditionCombinations(content)) {
       const start = createRun(content, { protagonist: ch.id, seed: '0'.repeat(32) });
@@ -414,7 +438,7 @@ export function reachability(content: Content, errors: string[], limit = 500_000
       let finished = false;
       while (stack.length) {
         const { s, path } = stack.pop()!;
-        const key = flowKey(s);
+        const key = flowKey(s, relevant);
         if (visited.has(key)) continue;
         visited.add(key);
         if (visited.size > limit) {
@@ -428,7 +452,14 @@ export function reachability(content: Content, errors: string[], limit = 500_000
         try {
           const acts = actionsFor(content, s);
           if (acts.length === 0) throw new Error('進めなくなる状態があります');
-          for (const a of acts) for (const next of runAllOutcomes(a, s)) stack.push({ s: next, path: [...path, a.label] });
+          for (const a of acts)
+            for (const next of runAllOutcomes(a, s)) {
+              // 進行に関係しない記録は捨てて、次の複製を軽くする
+              next.ledger = [];
+              next.chanceLog = [];
+              next.choices = {};
+              stack.push({ s: next, path: [...path, a.label] });
+            }
         } catch (err) {
           errors.push(`${label}：${(err as Error).message}／経路：${path.slice(-4).join(' > ')}`);
           return;

@@ -18,6 +18,14 @@
   --f-others: #6b5b95; /* 他者の行為（付録A-14。暫定。T2） */
   --f-chance: #e0a526;
 
+  /* 6パラメーターの折れ線（線種・端のラベルと併用する） */
+  --p-body: #3d5a80;
+  --p-safety: #9c6644;
+  --p-psychSafety: #6b5b95;
+  --p-options: #2a9d8f;
+  --p-connection: #c0563a;
+  --p-autonomy: #7a6a1f;
+
   --font: system-ui, -apple-system, 'Hiragino Sans', 'Noto Sans JP', 'Yu Gothic UI', sans-serif;
   --fs-body: 16px;
   --fs-choice: 17px;
@@ -45,5 +53,11 @@
     --caution-bg: #2a2720;
     --line: #3a3d45;
     --track: #33363e;
+    --p-body: #8fb0d9;
+    --p-safety: #d4a373;
+    --p-psychSafety: #b3a6d9;
+    --p-options: #5cc8b9;
+    --p-connection: #f08a6c;
+    --p-autonomy: #e0c35a;
   }
 }

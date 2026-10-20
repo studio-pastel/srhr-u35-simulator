@@ -135,7 +135,9 @@ events:
               - { param: autonomy, sign: 1, size: S, source: choice, note: "自分で予約した" }
             next: clinic
           - id: keepOn
-            label: "ダイエットを続ける"
+            label: "食事をさらに減らす"
+            # 付録A-21：ダイエット全般ではなく「極端な食事制限」だけを、30歳の CH-LBW の補正の条件にする
+            setFlags: { minamiExtremeDiet: true }
             effects:
               - { param: body, sign: -1, size: M, source: choice, note: "食事を減らし続けた" }
               - { param: body, sign: -1, size: S, source: upbringing, when: "up.talkAboutSex == false", note: "家で相談しにくい" }
@@ -150,7 +152,7 @@ events:
         text: "一人で予約の電話をかけるのは、思ったより勇気がいった。医師は食事のことを丁寧に聞き、これからのことを一緒に考えてくれた。"
         next: END
       - id: keepOn
-        text: "数字が減るのを見ると、少し安心する。月経のことは、まだ誰にも話していない。気になったときは、保健室や医療機関で相談できる。"
+        text: "食事の量を、前よりもっと減らした。数字が減るのを見ると、少し安心する。月経のことは、まだ誰にも話していない。気になったときは、保健室や医療機関で相談できる。"
         next: END
 
   - id: E16-KEI-CARE

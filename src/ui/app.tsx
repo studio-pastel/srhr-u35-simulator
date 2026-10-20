@@ -17,8 +17,11 @@ import { ResourcesScreen } from './screens/Resources';
 import { SourcesScreen } from './screens/Sources';
 import { SettingsScreen } from './screens/Settings';
 import { DevPreview } from './screens/DevPreview';
+import { AboutScreen } from './screens/About';
+import { ReplayScreen } from './screens/Replay';
+import { CompareScreen } from './screens/Compare';
 
-export type Route = 'intro' | 'select' | 'play' | 'resources' | 'sources' | 'settings' | 'dev';
+export type Route = 'intro' | 'select' | 'play' | 'resources' | 'sources' | 'settings' | 'about' | 'replay' | 'compare' | 'dev';
 
 const ROUTES: Record<string, Route> = {
   '': 'intro',
@@ -28,6 +31,9 @@ const ROUTES: Record<string, Route> = {
   '/resources': 'resources',
   '/sources': 'sources',
   '/settings': 'settings',
+  '/about': 'about',
+  '/replay': 'replay',
+  '/compare': 'compare',
   '/dev': 'dev',
 };
 
@@ -176,6 +182,9 @@ export function App() {
           {route === 'resources' && <ResourcesScreen />}
           {route === 'sources' && <SourcesScreen />}
           {route === 'settings' && <SettingsScreen />}
+          {route === 'about' && <AboutScreen />}
+          {route === 'replay' && <ReplayScreen />}
+          {route === 'compare' && <CompareScreen />}
           {route === 'dev' && import.meta.env.DEV && <DevPreview />}
         </main>
         <footer class="footer">
@@ -183,6 +192,7 @@ export function App() {
             <a href="#/resources">相談窓口</a>
             <a href="#/sources">出典</a>
             <a href="#/settings">設定</a>
+            <a href="#/about">このサイトについて</a>
             <a href="#/">はじめに</a>
           </nav>
           <p style={{ margin: 0 }}>© 2026 {content.config.publisher}</p>

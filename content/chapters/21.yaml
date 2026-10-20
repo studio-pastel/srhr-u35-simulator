@@ -1,0 +1,225 @@
+# 21歳の章（SPEC.md §10.3）。Claude Code の下書き。すべて status: draft。
+#
+# 文字数の上限（src/engine/limits.ts、SPEC.md 付録A-7）
+#   シーン本文 text ……… 200字以内（超えると警告）
+#   選択肢 label ………… 30字以内（超えると警告）
+#   効果 note …………… 20字以内（超えるとエラー。ビルドが止まる）
+#
+# P7：つきまといが止まるかどうかを、ミナミの選択で変えない。
+# T9：加害者向けの相談先は、特定の窓口名を出さない。
+age: 21
+title: "21歳"
+season: "冬"
+status: draft
+intro:
+  minami: "大学3年の冬。ハルトとは、少し前に別れた。"
+  haruto: "大学3年の冬。ミナミとは、少し前に別れた。"
+  yu: "大学3年の冬。自治体から、いろいろな案内が届くようになった。"
+  kei: "働き始めて3年目の冬。サキとの付き合いは続いている。"
+events:
+  - id: E21-KS-PREGNANCY
+    age: 21
+    characters: [kei]
+    kind: chance
+    domains: [予期せぬ妊娠, 人工妊娠中絶]
+    requires: "flags.pregnant == true"
+    triggerWarning: "この章には、妊娠と人工妊娠中絶について話し合う場面があります。"
+    statCard: [S27, S10]
+    resources: [health]
+    status: draft
+    scenes:
+      - id: start
+        text: "妊娠がわかってから、サキとは何度も話した。続けるか、人工妊娠中絶を選ぶか。決めるのはサキだと、ケイは分かっている。"
+        next: choose
+      - id: choose
+        text: "ケイにできることは、何だろう。"
+        choices:
+          - id: listen
+            label: "意見を押しつけずに話を聞く"
+            canonical: true
+            effects:
+              - { param: connection, sign: 1, size: M, source: choice, note: "サキの話を聞いた" }
+            next: decide
+          - id: share
+            label: "費用と通院を分担する"
+            effects:
+              - { param: connection, sign: 1, size: M, source: choice, note: "費用と通院を分担した" }
+              - { param: options, sign: -1, size: S, source: upbringing, statRef: S22, when: "up.economy == 'hardship'", note: "家計に余裕がない" }
+            next: decide
+          - id: distance
+            label: "距離を置く"
+            effects:
+              - { param: connection, sign: -1, size: M, source: choice, note: "サキと距離を置いた" }
+            next: decide
+      - id: decide
+        text: "サキは、考えて、自分で決めた。"
+        chance:
+          id: CH-SAKI-DECISION
+          label: "サキが人工妊娠中絶を選ぶ確率"
+          actorLabel: "サキの決定"
+          base: { value: 0.441, statRef: S27 }
+          outcomes:
+            happens: { setFlags: { keiFather: false }, next: abortion }
+            notHappens: { setFlags: { keiFather: true }, next: birth }
+      - id: abortion
+        text: "サキは、人工妊娠中絶を選んだ。それは、サキが考えて決めたことだ。ケイは、その決定を大切にしたいと思う。"
+        next: END
+      - id: birth
+        text: "サキは、出産を選んだ。それは、サキが考えて決めたことだ。ケイは、これからの暮らしを考え始める。"
+        next: END
+
+  - id: E21-KEI-STI
+    age: 21
+    characters: [kei]
+    kind: fixed
+    domains: [STI]
+    requires: "flags.pregnant != true"
+    statCard: [S12]
+    resources: [health]
+    status: draft
+    scenes:
+      - id: start
+        text: "保健所で梅毒の検査を受けられると、ネットの記事で知った。報告の数が増えているという。"
+        choices:
+          - id: test
+            label: "保健所で検査を受ける"
+            canonical: true
+            effects:
+              - { param: body, sign: 1, size: M, source: choice, note: "検査を受けた" }
+            next: tested
+          - id: skip
+            label: "今は受けない"
+            next: notTested
+      # 検査の結果は陰性で固定（感染確率の統計が未収集のため確率化しない。§10.3）
+      - id: tested
+        text: "検査の結果は、陰性だった。気になることがあれば、また検査を受けられる。"
+        next: END
+      - id: notTested
+        text: "今は受けないことにした。気になったときは、保健所や医療機関で相談できる。"
+        next: END
+
+  - id: E21-MINAMI-STALKING
+    age: 21
+    characters: [minami]
+    kind: branch
+    domains: [対人暴力]
+    requires: "flags.harutoRoute == 'continued'"
+    triggerWarning: "この章には、別れた交際相手からのつきまといに触れる場面があります。暴力の行為そのものは描きません。"
+    statCard: [S03]
+    resources: [violence]
+    status: draft
+    scenes:
+      - id: start
+        effects:
+          - { param: psychSafety, sign: -1, size: L, source: others, statRef: S03, note: "元交際相手のつきまとい" }
+          - { param: safety, sign: -1, size: M, source: others, statRef: S03, note: "待ち伏せされる不安" }
+        text: "別れてから、ハルトからのメッセージが止まらない。駅で待っていたこともあった。帰り道、何度も後ろを振り返ってしまう。"
+        next: choose
+      - id: choose
+        text: "ミナミは、考える。"
+        choices:
+          - id: report
+            label: "警察や相談窓口に連絡する"
+            canonical: true
+            effects:
+              - { param: connection, sign: 1, size: S, source: choice, note: "警察や窓口に連絡した" }
+            setFlags: { minamiResponse21: reported }
+            next: reported
+          - id: notYet
+            label: "今は、誰にも言わない"
+            setFlags: { minamiResponse21: notYet }
+            next: notYet
+      - id: reported
+        effects:
+          - { param: safety, sign: 1, size: M, source: others, note: "警察が対応を始めた" }
+          - { param: psychSafety, sign: 1, size: M, source: others, note: "相談員が支えてくれた" }
+        text: "警察と相談窓口は、ミナミの話を記録して、安全のための方法を一緒に考えてくれた。"
+        next: end
+      - id: notYet
+        text: "今は、誰にも言わないことにした。どうするかを決めるのは、ミナミだ。"
+        next: end
+      - id: end
+        text: "つきまといがいつ止まるかは、ミナミの行動では決まらない。止めることができるのは、つきまとう側だけだ。"
+        next: END
+
+  - id: E21-HARUTO-REFLECT
+    age: 21
+    characters: [haruto]
+    kind: branch
+    domains: [対人暴力, メンタルヘルス]
+    statCard: [S01]
+    status: draft
+    scenes:
+      - id: start
+        text: "ミナミと別れてから、しばらくがたった。"
+        branches:
+          - when: "flags.harutoRoute == 'stopped'"
+            next: s1
+        next: c1
+      # ── 止まった場合 ──
+      - id: s1
+        text: "あの日から、自分の言動を振り返り続けている。一人で考えるだけでは、また同じことをしてしまいそうで、こわい。"
+        choices:
+          - id: consult
+            label: "誰かに相談する"
+            canonical: true
+            effects:
+              - { param: autonomy, sign: 1, size: M, source: choice, note: "自分の行動を相談した" }
+              - { param: connection, sign: 1, size: S, source: choice, note: "一人で抱えなかった" }
+            next: consulted
+          - id: notConsult
+            label: "相談しない"
+            next: sAlone
+      - id: sAlone
+        text: "一人で抱えたまま、日々が過ぎていく。"
+        next: END
+      # ── 続いた場合 ──
+      - id: c1
+        text: "別れた後も、ミナミへの連絡をやめられなかった。新しく知り合った人にも、同じことを言いかけて、口をつぐむ。"
+        choices:
+          - id: consult
+            label: "誰かに相談する"
+            effects:
+              - { param: autonomy, sign: 1, size: M, source: choice, note: "自分の行動を相談した" }
+              - { param: connection, sign: 1, size: S, source: choice, note: "一人で抱えなかった" }
+            next: consulted
+          - id: notConsult
+            label: "相談しない"
+            canonical: true
+            next: cAlone
+      - id: cAlone
+        text: "「自分は悪くない」と思うことで、考えるのをやめた。"
+        next: END
+      - id: consulted
+        effects:
+          - { param: psychSafety, sign: 1, size: S, source: others, note: "話を聞いてもらえた" }
+        text: "大学の相談室で、すべてを話した。人を支配するような行動は学んで身についたもので、学び直すこともできると言われた。"
+        next: END
+
+  - id: E21-YU-SCREENING
+    age: 21
+    characters: [yu]
+    kind: fixed
+    domains: [がん予防]
+    statCard: []   # T7：子宮頸がん検診の受診率は未収集
+    resources: [health]
+    status: draft
+    scenes:
+      - id: start
+        text: "自治体から、子宮頸がん検診の案内が届いた。"
+        choices:
+          - id: go
+            label: "検診を受ける"
+            canonical: true
+            effects:
+              - { param: body, sign: 1, size: M, source: choice, note: "検診を受けた" }
+            next: went
+          - id: later
+            label: "後回しにする"
+            next: postponed
+      - id: went
+        text: "検診を受けた。わからないことは、その場で聞くことができた。"
+        next: END
+      - id: postponed
+        text: "案内はファイルにしまった。気になったときは、医療機関で相談できる。"
+        next: END

@@ -51,15 +51,19 @@
   affects: [haruto, kei]
 - id: partnership
   label: "自治体のパートナーシップ制度"
+  description: "既定では、24歳でユウが住む場所によって決まる（付録A-17）。2周目では「制度あり／制度なし」に固定して比べられる"
   options:
+    - id: byResidence
+      label: "住む場所しだい（制度のある自治体を選ぶか、人口カバー率92.5%にもとづく偶然で決まる）"
+      statRefs: [S29]
+      verified: false
     - id: available
-      label: "制度がある"
-      statRefs: []
+      label: "どこに住んでも制度がある"
+      statRefs: [S29]
       verified: false
     - id: notAvailable
-      label: "制度がない"
-      statRefs: []
+      label: "どこにも制度がない"
+      statRefs: [S29]
       verified: false
-  # T4：既定値はTBD。根拠統計も未収集
-  defaultOption: null
+  defaultOption: byResidence
   affects: [yu]

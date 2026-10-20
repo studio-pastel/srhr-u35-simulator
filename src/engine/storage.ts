@@ -6,6 +6,9 @@ const PREFIX = 'srhr.v1.';
 const KEY_RUN = `${PREFIX}run`;
 const KEY_SETTINGS = `${PREFIX}settings`;
 const KEY_PERSIST = `${PREFIX}persist`;
+const KEY_HISTORY = `${PREFIX}history`;
+/** 保存しておく、終えた周回の数（比較に使う） */
+const HISTORY_MAX = 6;
 
 export interface Settings {
   fontSize: 'normal' | 'large';
@@ -63,20 +66,25 @@ function active(): Storage | null {
 export function setPersistent(on: boolean): boolean {
   const run = read(active(), KEY_RUN);
   const settings = read(active(), KEY_SETTINGS);
+  const history = read(active(), KEY_HISTORY);
   const local = store('local');
   const session = store('session');
   if (on) {
     if (!write(local, KEY_PERSIST, '1')) return false;
     if (run) write(local, KEY_RUN, run);
     if (settings) write(local, KEY_SETTINGS, settings);
+    if (history) write(local, KEY_HISTORY, history);
     remove(session, KEY_RUN);
     remove(session, KEY_SETTINGS);
+    remove(session, KEY_HISTORY);
   } else {
     if (run) write(session, KEY_RUN, run);
     if (settings) write(session, KEY_SETTINGS, settings);
+    if (history) write(session, KEY_HISTORY, history);
     remove(local, KEY_PERSIST);
     remove(local, KEY_RUN);
     remove(local, KEY_SETTINGS);
+    remove(local, KEY_HISTORY);
   }
   return true;
 }
@@ -91,9 +99,27 @@ export function loadRun(): RunState | null {
   if (!raw) return null;
   try {
     const v = JSON.parse(raw) as RunState;
-    return v && v.version === 2 ? v : null;
+    return v && v.version === 3 ? v : null;
   } catch {
     return null;
+  }
+}
+
+/** 終えた周回を保存する（§6.9：RunState と完了した周回の要約だけ）。同じ runId は上書きする */
+export function saveCompleted(run: RunState): void {
+  const list = loadHistory().filter((r) => r.runId !== run.runId);
+  list.push(run);
+  write(active(), KEY_HISTORY, JSON.stringify(list.slice(-HISTORY_MAX)));
+}
+
+export function loadHistory(): RunState[] {
+  const raw = read(active(), KEY_HISTORY);
+  if (!raw) return [];
+  try {
+    const v = JSON.parse(raw) as RunState[];
+    return Array.isArray(v) ? v.filter((r) => r && r.version === 3) : [];
+  } catch {
+    return [];
   }
 }
 
@@ -133,4 +159,5 @@ export function clearSession(): void {
   const s = store('session');
   remove(s, KEY_RUN);
   remove(s, KEY_SETTINGS);
+  remove(s, KEY_HISTORY);
 }

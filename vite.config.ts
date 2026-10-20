@@ -16,7 +16,7 @@ function contentPlugin(production: boolean): Plugin {
     load(id) {
       if (id !== RESOLVED) return undefined;
       for (const f of contentFiles()) this.addWatchFile(f);
-      const r = validateContent(loadRawContent(), { production, allowUnverified });
+      const r = validateContent(loadRawContent(), { production, allowUnverified, requireAllChapters: true });
       if (r.errors.length || !r.content) this.error(`コンテンツ検証に失敗しました：\n${r.errors.join('\n')}`);
       const unverified = [...new Set(r.unverifiedUses.map((u) => u.statId))];
       return `export default ${JSON.stringify(r.content)};\nexport const unverifiedStats = ${JSON.stringify(unverified)};\n`;
@@ -37,6 +37,8 @@ export default defineConfig(({ command }) => ({
   base: './',
   plugins: [contentPlugin(command === 'build')],
   esbuild: { jsx: 'automatic', jsxImportSource: 'preact' },
+  // 「このサイトについて」の更新日（§7.13）
+  define: { __BUILD_DATE__: JSON.stringify(new Date().toISOString().slice(0, 10)) },
   build: {
     target: 'es2022',
     // CSP（§13.2）の下で動くよう、インラインのスクリプト・データURIを出さない

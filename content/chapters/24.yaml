@@ -1,0 +1,187 @@
+# 24歳の章（SPEC.md §10.3）。Claude Code の下書き。すべて status: draft。
+#
+# 文字数の上限（src/engine/limits.ts、SPEC.md 付録A-7）
+#   シーン本文 text ……… 200字以内（超えると警告）
+#   選択肢 label ………… 30字以内（超えると警告）
+#   効果 note …………… 20字以内（超えるとエラー。ビルドが止まる）
+#
+# 付録A-17：ユウの住む自治体にパートナーシップ制度があるかを、ここで決める。
+# 付録A-18：ケイの父親ルートでは、サキの就業継続（CH-PARTNER-WORK）をここで判定する。
+age: 24
+title: "24歳"
+season: "春"
+status: draft
+intro:
+  minami: "会社員になって2年目の春。仕事は忙しく、帰りはいつも遅い。"
+  haruto: "会社員になって2年目の春。新しいパートナーと出会った。"
+  yu: "会社員になって2年目の春。アオイと一緒に暮らすことにした。"
+  kei: "働き始めて6年目の春。いまも、家族の生活を支えている。"
+events:
+  - id: E24-MINAMI-WORK
+    age: 24
+    characters: [minami]
+    kind: fixed
+    domains: [月経, 労働]
+    statCard: []   # T7：月経のつらさと労働の統計は未収集
+    resources: [health]
+    status: draft
+    scenes:
+      - id: start
+        effects:
+          - { param: body, sign: -1, size: S, source: society, note: "長時間労働が続く" }
+        text: "残業続きの毎日で、月経のつらさが前よりひどくなった。痛み止めを飲んで、会議に出る。"
+        choices:
+          - id: clinic
+            label: "受診して治療を相談する"
+            canonical: true
+            effects:
+              - { param: body, sign: 1, size: M, source: choice, note: "受診して相談した" }
+            next: clinic
+          - id: wait
+            label: "今は、このまま様子を見る"
+            next: wait
+      - id: clinic
+        text: "婦人科で、つらさを和らげる方法をいくつか教わった。職場にも、少しずつ相談してみるつもりだ。"
+        next: END
+      - id: wait
+        text: "今は様子を見ることにした。つらいときは、医療機関で相談できる。"
+        next: END
+
+  - id: E24-HARUTO-DISCLOSE
+    age: 24
+    characters: [haruto]
+    kind: fixed
+    domains: [関係性, 同意]
+    status: draft
+    scenes:
+      - id: start
+        text: "新しいパートナーとの関係は、穏やかに続いている。過去の自分のことを話すかどうか、ずっと迷っている。"
+        choices:
+          - id: tell
+            label: "過去のことを話す"
+            effects:
+              - { param: connection, sign: 1, size: M, source: choice, note: "過去を打ち明けた" }
+              - { param: autonomy, sign: 1, size: S, source: choice, note: "自分と向き合った" }
+            next: told
+          - id: notTell
+            label: "話さない"
+            canonical: true
+            next: notTold
+      - id: told
+        text: "パートナーは黙って最後まで聞いてから、「話してくれて、ありがとう」と言った。"
+        next: END
+      - id: notTold
+        text: "まだ話さないことにした。過去は、なくなったわけではない。"
+        next: END
+
+  - id: E24-YU-WORKPLACE
+    age: 24
+    characters: [yu]
+    kind: fixed
+    domains: [性の多様性, 労働]
+    statCard: [S24, S29]
+    status: draft
+    scenes:
+      - id: start
+        text: "アオイと暮らす部屋を探している。住む自治体によって、パートナーシップ制度があるかどうかが違う。"
+        choices:
+          - id: choose
+            label: "制度のある自治体を選んで住む"
+            requires: "cond.partnership != 'notAvailable'"
+            setFlags: { yuChoseResidence: true }
+            next: residence
+          - id: stay
+            label: "いまの地域で部屋を探す"
+            canonical: true
+            setFlags: { yuChoseResidence: false }
+            next: residence
+      - id: residence
+        text: "新しい部屋が決まった。"
+        chance:
+          id: CH-RESIDENCE
+          label: "住む自治体にパートナーシップ制度がある確率"
+          base: { value: 0.925, statRef: S29 }
+          modifiers:
+            - { when: "flags.yuChoseResidence == true", op: set, value: 1, source: choice, statRef: S29, note: "制度のある自治体を選んだ" }
+            - { when: "cond.partnership == 'available'", op: set, value: 1, source: society, statRef: S29, note: "どこにも制度がある" }
+            - { when: "cond.partnership == 'notAvailable'", op: set, value: 0, source: society, statRef: S29, note: "どこにも制度がない" }
+          outcomes:
+            happens: { setFlags: { partnershipLocal: true }, next: work }
+            notHappens: { setFlags: { partnershipLocal: false }, next: work }
+      - id: work
+        text: "職場では、まだ誰にもアオイのことを話していない。"
+        choices:
+          - id: out
+            label: "職場で話す"
+            neutral: true
+            effects:
+              - { param: connection, sign: 1, size: S, source: choice, note: "職場で話した" }
+            setFlags: { yuOutAtWork: true }
+            next: outDone
+          - id: notOut
+            label: "職場では話さない"
+            neutral: true
+            canonical: true
+            effects:
+              - { param: autonomy, sign: 1, size: S, source: choice, note: "話す範囲を自分で決めた" }
+            setFlags: { yuOutAtWork: false }
+            next: notOutDone
+      - id: outDone
+        effects:
+          - { param: psychSafety, sign: 1, size: S, source: others, note: "上司が受け止めた" }
+        text: "上司は少し考えてから、「教えてくれてありがとう。困ったことがあったら言って」と言った。"
+        next: END
+      - id: notOutDone
+        text: "職場で話すかどうかは、ユウが決めていい。家に帰れば、アオイがいる。"
+        next: END
+
+  - id: E24-KEI-WORK
+    age: 24
+    characters: [kei]
+    kind: fixed
+    domains: [社会経済]
+    statCard: [S22, S19, S20]
+    status: draft
+    scenes:
+      - id: start
+        effects:
+          - { param: options, sign: -1, size: S, source: upbringing, statRef: S22, when: "up.singleParent == true", note: "ひとり親家庭の家計" }
+        text: "非正規の仕事を続けながら、家族の生活を支えている。将来の見通しは、まだ立たない。"
+        branches:
+          - when: "flags.keiFather == true"
+            next: father
+        next: choose
+      # 付録A-18：S20 は「妻」のデータ。サキとケイの関係に当てはめるのは解釈（「このサイトについて」に明記）
+      - id: father
+        text: "サキとの子どもは、もうすぐ3歳になる。出産のあと、サキは仕事を続けるかどうかを考えていた。"
+        chance:
+          id: CH-PARTNER-WORK
+          label: "パートナーが第1子の出産のあとも仕事を続ける確率"
+          base: { value: 0.805, statRef: S20 }
+          outcomes:
+            happens: { setFlags: { sakiKeptWork: true }, next: kept }
+            notHappens: { setFlags: { sakiKeptWork: false }, next: left }
+      - id: kept
+        text: "サキは、仕事を続けた。二人の働き方を、毎月のように話し合っている。"
+        next: choose
+      - id: left
+        text: "サキは、出産をきっかけに仕事を辞めた。またいつか働きたいと話している。"
+        next: choose
+      - id: choose
+        text: "ケイは、これからの働き方を考える。"
+        choices:
+          - id: support
+            label: "資格取得の支援制度を探す"
+            canonical: true
+            effects:
+              - { param: options, sign: 1, size: M, source: choice, note: "支援制度を探した" }
+            next: searched
+          - id: keep
+            label: "今の働き方を続ける"
+            next: keptWork
+      - id: searched
+        text: "役所で、働きながら資格を取るための支援制度があると教わった。来月から、夜間の講座に通う。"
+        next: END
+      - id: keptWork
+        text: "今は、今の働き方を続けることにした。毎日の生活を回すことで、精一杯だ。"
+        next: END

@@ -29,6 +29,7 @@ import { FactorChart } from '../components/FactorChart';
 import { ProbabilityCard, ResourceList, StatCard } from '../components/Cards';
 import { RichText } from '../components/RichText';
 import { Avatar } from '../components/Avatar';
+import { OverallReview } from './OverallReview';
 
 /** 画面が変わったら見出しにフォーカスを移す（§9） */
 function useFocusHeading(key: string) {
@@ -96,7 +97,7 @@ export function Play() {
       {step === 'chance' && <ChanceView run={run} />}
       {step === 'statCards' && <StatCardsView run={run} />}
       {step === 'review' && <ChapterReview run={run} />}
-      {step === 'finished' && <Finished run={run} onRestart={() => setRun(null)} />}
+      {step === 'finished' && <OverallReview run={run} onRestart={() => setRun(null)} />}
     </>
   );
 }
@@ -372,35 +373,6 @@ function ChapterReview({ run }: { run: RunState }) {
       {skipped && <SupportResources tags={chapterResourceTags(content, run, age)} />}
       <button type="button" class="btn primary" onClick={() => setRun(advanceReview(content, run))}>
         {isLast ? '次へ' : '次の章へ'}
-      </button>
-    </section>
-  );
-}
-
-// ── フェーズ1の範囲の終わり ──
-function Finished({ run, onRestart }: { run: RunState; onRestart: () => void }) {
-  const { content } = useApp();
-  const h = useFocusHeading('finished');
-  const last = sortedChapters(content).at(-1)?.age;
-  return (
-    <section>
-      <h1 tabIndex={-1} ref={h}>
-        ここまでの章を読み終えました
-      </h1>
-      <div class="panel">
-        <p style={{ margin: 0 }}>
-          {getCharacter(content, run.protagonist).name}の{last}歳までの章は、ここまでです。この先の章は準備中です。
-        </p>
-      </div>
-      <button
-        type="button"
-        class="btn primary"
-        onClick={() => {
-          onRestart();
-          navigate('select');
-        }}
-      >
-        主人公を選びなおす
       </button>
     </section>
   );

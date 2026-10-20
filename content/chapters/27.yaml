@@ -1,0 +1,192 @@
+# 27歳の章（SPEC.md §10.3）。Claude Code の下書き。すべて status: draft。
+#
+# 文字数の上限（src/engine/limits.ts、SPEC.md 付録A-7）
+#   シーン本文 text ……… 200字以内（超えると警告）
+#   選択肢 label ………… 30字以内（超えると警告）
+#   効果 note …………… 20字以内（超えるとエラー。ビルドが止まる）
+#
+# T10：同性カップルが子どもを持つ際の制度は、具体名を書かない。
+age: 27
+title: "27歳"
+season: "夏"
+status: draft
+intro:
+  minami: "会社で、後輩を指導するようになった。パートナーと暮らして2年になる。"
+  haruto: "パートナーと暮らし始めて3年。二人で、子どもを持つことを話し始めた。"
+  yu: "アオイと暮らして3年。二人の生活は、すっかり日常になった。"
+  kei: "27歳の夏。働き方も暮らしも、少しずつ形になってきた。"
+events:
+  - id: E27-MINAMI-DECIDE
+    age: 27
+    characters: [minami]
+    kind: fixed
+    domains: [妊孕性, ライフコース]
+    statCard: [S17, S19]
+    status: draft
+    scenes:
+      - id: start
+        text: "職場の健康セミナーで、年齢と妊娠についての話を聞いた。生殖補助医療で出産に至る割合は、35歳ごろまでは約30%前後で、その後は下がっていくという。"
+        next: choose
+      - id: choose
+        text: "子どもを持つかどうか。ミナミは、自分の人生を考える。"
+        choices:
+          - id: noChildren
+            label: "子どもを持たないと決める"
+            neutral: true
+            effects:
+              - { param: autonomy, sign: 1, size: S, source: choice, note: "自分の人生を考えた" }
+            setFlags: { minamiPath: noChildren }
+            next: noChildren
+          - id: later
+            label: "いずれ考える"
+            neutral: true
+            canonical: true
+            effects:
+              - { param: autonomy, sign: 1, size: S, source: choice, note: "自分の人生を考えた" }
+            setFlags: { minamiPath: later }
+            next: later
+          - id: now
+            label: "パートナーと話し、子どもを持つことを考える"
+            neutral: true
+            effects:
+              - { param: autonomy, sign: 1, size: S, source: choice, note: "自分の人生を考えた" }
+            setFlags: { minamiPath: now }
+            next: now
+      - id: noChildren
+        text: "子どもを持たない人生を選ぶ。それも、ミナミが自分で決めた生き方だ。"
+        next: END
+      - id: later
+        text: "今は、まだ決めない。考える時間を持つことも、ひとつの選択だ。"
+        next: END
+      - id: now
+        text: "パートナーと話して、子どもを持つことを考え始めた。"
+        next: END
+
+  - id: E27-HARUTO-TEST
+    age: 27
+    characters: [haruto]
+    kind: fixed
+    domains: [不妊]
+    statCard: [S16]
+    resources: [health]
+    status: draft
+    scenes:
+      - id: start
+        text: "子どもを望んで1年。まだ妊娠していない。パートナーは、病院で検査を受けることにした。"
+        choices:
+          - id: together
+            label: "一緒に検査を受ける"
+            canonical: true
+            effects:
+              - { param: connection, sign: 1, size: M, source: choice, note: "一緒に検査を受けた" }
+              - { param: body, sign: 1, size: S, source: choice, note: "自分のからだを知った" }
+            next: together
+          - id: leave
+            label: "相手に任せる"
+            effects:
+              - { param: connection, sign: -1, size: S, source: choice, note: "検査を相手に任せた" }
+            next: leave
+      - id: together
+        text: "二人で病院に行き、二人で結果を聞いた。これからのことも、二人で決めていく。"
+        next: END
+      - id: leave
+        text: "検査は、パートナーが一人で受けた。結果を聞く日も、ハルトは仕事だった。"
+        next: END
+
+  - id: E27-YU-FAMILY
+    age: 27
+    characters: [yu]
+    kind: fixed
+    domains: [ライフコース, 人権]
+    statCard: [S24]
+    status: draft
+    scenes:
+      - id: start
+        effects:
+          - { param: options, sign: -1, size: S, source: society, note: "制度の壁がある" }
+        text: "アオイと、子どもを持つことについて話すようになった。調べるほど、同性カップルが子どもを持つまでの道のりの多さに気づく。"
+        choices:
+          - id: info
+            label: "情報を集める"
+            effects:
+              - { param: autonomy, sign: 1, size: S, source: choice, note: "自分たちで調べた" }
+            next: info
+          - id: support
+            label: "支援団体に相談する"
+            canonical: true
+            effects:
+              - { param: connection, sign: 1, size: M, source: choice, note: "支援団体に相談した" }
+            next: support
+          - id: pass
+            label: "今は見送る"
+            neutral: true
+            next: pass
+      - id: info
+        text: "二人で、同じような家族の体験談を読んだ。道のりはひとつではないと知った。"
+        next: END
+      - id: support
+        effects:
+          - { param: psychSafety, sign: 1, size: S, source: others, note: "支援団体が話を聞いた" }
+        text: "支援団体の人は、二人の話をゆっくり聞いてくれた。同じように考えている家族が、ほかにもいる。"
+        next: END
+      - id: pass
+        text: "今は見送ることにした。二人で話し合って決めたことだ。"
+        next: END
+
+  - id: E27-KEI-PATH
+    age: 27
+    characters: [kei]
+    kind: branch
+    domains: [ライフコース]
+    statCard: [S21, S19]
+    status: draft
+    scenes:
+      - id: start
+        text: "気づけば、20代も後半になった。"
+        branches:
+          - when: "flags.keiFather == true"
+            next: father
+        next: single
+      - id: father
+        text: "子どもは、小学校に入る年になった。仕事と育児の両立に、毎日追われている。"
+        choices:
+          - id: time
+            label: "育児の時間を増やす"
+            canonical: true
+            effects:
+              - { param: connection, sign: 1, size: M, source: choice, note: "育児の時間を増やした" }
+              - { param: options, sign: -1, size: S, source: society, statRef: S21, when: "cond.parentalLeave == 'hard'", note: "育児に理解の少ない職場" }
+            next: time
+          - id: work
+            label: "仕事を優先する"
+            effects:
+              - { param: connection, sign: -1, size: S, source: choice, note: "家族との時間が減った" }
+            next: work
+      - id: time
+        text: "職場に事情を話して、早く帰れる日を増やした。子どもと過ごす夕方が、少しずつ増えていく。"
+        next: END
+      - id: work
+        text: "今は仕事を優先することにした。子どもの寝顔を見て、一日が終わる。"
+        next: END
+      - id: single
+        text: "周りでは、結婚の話が増えてきた。ケイは、自分の暮らし方を考える。"
+        choices:
+          - id: noMarriage
+            label: "結婚しない暮らしを選ぶ"
+            neutral: true
+            effects:
+              - { param: autonomy, sign: 1, size: S, source: choice, note: "暮らし方を自分で選んだ" }
+            next: noMarriage
+          - id: later
+            label: "いずれ考える"
+            neutral: true
+            canonical: true
+            effects:
+              - { param: autonomy, sign: 1, size: S, source: choice, note: "暮らし方を自分で選んだ" }
+            next: laterS
+      - id: noMarriage
+        text: "結婚しない暮らしを選ぶ。それも、ケイが自分で決めた生き方だ。"
+        next: END
+      - id: laterS
+        text: "今は決めない。自分のペースで考えていけばいい。"
+        next: END
