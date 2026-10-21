@@ -52,8 +52,8 @@ events:
           - { who: minami, kind: inner, text: "（……それって、そういうこと？）", face: anxious }
           - { who: narration, text: "映画が終わって、ハルトが少し近くに座った。" }
           - { who: haruto, text: "……ミナミ、あのさ。" }
-          - { who: haruto, text: "嫌だったら、ほんとに言ってほしいんだけど。" }
-          - { who: haruto, text: "……したいって、思ってる。" }
+          - { who: haruto, text: "……したいなって、思ってて。" }
+          - { who: haruto, text: "でも、ミナミがどう思ってるか、聞きたい。" }
         branches:
           - when: "flags.knowsConsent == true"
             next: m-know
@@ -61,8 +61,8 @@ events:
       - id: m-know
         viewpoint: minami
         lines:
-          - { who: minami, kind: inner, text: "（授業で言ってた。同意は、いつでも取り消せる）" }
           - { who: minami, kind: inner, text: "（したいかどうかは、私が決めていい）" }
+          - { who: minami, kind: inner, text: "（いまそう思っても、あとで気持ちが変わってもいい）" }
         next: m-choose
       - id: m-unsure
         viewpoint: minami
@@ -129,9 +129,9 @@ events:
         lines:
           - { who: minami, text: "私も、したい。……でも、その前に。" }
           - { who: minami, text: "避妊のこと、ちゃんと話したい。" }
-          - { who: haruto, text: "うん。コンドーム、ある。使い方も調べた。" }
-          - { who: minami, text: "途中で嫌になったら、言うね。" }
-          - { who: haruto, text: "うん。いつでも言って。やめるから。" }
+          - { who: haruto, text: "うん。コンドーム、ある。……実は、使い方も調べた。" }
+          - { who: minami, text: "ふふ。……なんか、緊張するね。" }
+          - { who: haruto, text: "おれも。いやだなって思ったら、すぐ言ってね。" }
           - { who: narration, kind: fade, text: "――" }
           - { who: narration, text: "帰り道。夕焼けが、まだ少し残っていた。" }
           - { who: minami, kind: inner, text: "（ちょっと緊張したけど、ちゃんと話せてよかった）" }
@@ -144,9 +144,9 @@ events:
         lines:
           - { who: narration, text: "何も言えないまま、時間が過ぎる。" }
           - { who: haruto, text: "……迷ってる？" }
-          - { who: haruto, text: "「いいよ」って聞こえないうちは、しない。今日は、やめとこう。" }
-          - { who: minami, kind: inner, text: "（黙ってたら、「いい」ってことになると思ってた）" }
-          - { who: minami, kind: inner, text: "（言えなくてもいいんだ。次は、言ってみたい）", face: relieved }
+          - { who: haruto, text: "無理しなくていいよ。今日は、やめとこっか。" }
+          - { who: minami, kind: inner, text: "（……顔に出てたのかな。ちゃんと見てくれてた）" }
+          - { who: minami, kind: inner, text: "（次は、自分の言葉で言ってみたい）", face: relieved }
         next: END
 
       # ── ハルトの視点 ──
@@ -163,13 +163,13 @@ events:
       - id: h-know
         viewpoint: haruto
         lines:
-          - { who: haruto, kind: inner, text: "（授業で言ってた。黙っているのは「いい」じゃない）" }
+          - { who: haruto, kind: inner, text: "（自分の気持ちだけで、進めちゃいけない）" }
         next: h-ask
       - id: h-ask
         viewpoint: haruto
         lines:
-          - { who: haruto, text: "……ミナミ、あのさ。嫌だったら、ほんとに言ってほしいんだけど。" }
-          - { who: haruto, text: "……したいって、思ってる。" }
+          - { who: haruto, text: "……ミナミ、あのさ。したいなって、思ってて。" }
+          - { who: haruto, text: "でも、ミナミがどう思ってるか、聞きたい。" }
         # ミナミで遊んだときは、ミナミが選んだ答えに合わせて続きを見せる（ハルトの行動は標準ルートのまま）
         branches:
           - when: "flags.minamiFirst17 == 'talked'"
@@ -242,15 +242,15 @@ events:
         lines:
           - { who: minami, text: "私も。でも、避妊のこと、ちゃんと話したい。" }
           - { who: haruto, kind: inner, text: "（よかった。言ってくれて）", face: relieved }
-          - { who: haruto, kind: inner, text: "（途中でも「やめて」って言われたら、やめる）" }
+          - { who: haruto, kind: inner, text: "（緊張してるの、おれだけじゃなかった）" }
           - { who: narration, kind: fade, text: "――" }
         next: END
       - id: h-silent
         viewpoint: haruto
         lines:
           - { who: narration, text: "ミナミは、何も言わない。" }
-          - { who: haruto, kind: inner, text: "（黙ってるのは、「いい」じゃない）" }
-          - { who: haruto, text: "「いいよ」って聞こえないうちは、しない。今日は、やめとこう。" }
+          - { who: haruto, kind: inner, text: "（……表情が固い。迷ってるのかな）" }
+          - { who: haruto, text: "無理しなくていいよ。今日は、やめとこっか。" }
         next: END
 
   # ───────── ミナミとハルト：束縛（デートDV） ─────────
