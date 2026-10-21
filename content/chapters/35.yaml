@@ -1,9 +1,10 @@
-# 35歳の章（SPEC.md §10.3）。Claude Code の下書き。すべて status: draft。
+# 35歳の章（SPEC.md §10.3）。会話中心の形式（付録B-2）。Claude Code の下書き。すべて status: draft。
 #
-# 文字数の上限（src/engine/limits.ts、SPEC.md 付録A-7）
-#   シーン本文 text ……… 200字以内（超えると警告）
-#   選択肢 label ………… 30字以内（超えると警告）
-#   効果 note …………… 20字以内（超えるとエラー。ビルドが止まる）
+# 文字数の上限（src/engine/limits.ts）
+#   吹き出し lines[].text …… 40字以内（超えると警告）
+#   選択肢 label ………………… 30字以内（超えると警告）
+#   効果 note ………………………… 20字以内（超えるとエラー。ビルドが止まる）
+#   とばしたときの要約 summary … 40字以内（超えると警告）
 #
 # CH-ART-1〜6（§10.4）：保険適用の上限（40歳未満は通算6回、S18）まで1回ずつ「続ける／やめる」を選ぶ。
 # 付録A-22：治療を続けるたびに、からだ −S（選択）と選択肢の幅 −S（社会条件）。根拠は S31。結果には増減を付けない。
@@ -17,43 +18,54 @@ intro:
   yu: "35歳の春。アオイと暮らして、11年になる。"
   kei: "35歳の春。弟と妹も、それぞれの道を歩き始めた。"
 events:
+  # ───────── ミナミとソウ：不妊治療 ─────────
   - id: E35-MINAMI-ART
     age: 35
     characters: [minami]
     kind: chance
     domains: [不妊]
     requires: "flags.minamiPath == 'later'"
-    triggerWarning: "この章には、不妊治療について考える場面があります。"
     statCard: [S16, S17, S18, S31]
     resources: [health]
-    stage: { place: clinic, time: day, cast: [{ id: minami }, { id: sou }] }
+    stage: { place: clinic, time: day, cast: [{ id: minami, x: 30 }, { id: sou, x: 62 }] }
+    summary: "ソウと子どもを望み、不妊治療をするかどうか、続けるかどうかを考えた。"
     status: draft
     scenes:
       - id: start
-        text: "パートナーと、子どもを持つことを考え始めて1年。妊娠しないまま、時間が過ぎた。"
+        stage: { place: home2, time: night, cast: [{ id: minami, x: 30 }, { id: sou, x: 62 }] }
+        lines:
+          - { who: narration, text: "ソウと、子どもを持つことを考え始めて1年。" }
+          - { who: minami, kind: inner, text: "（妊娠しないまま、時間が過ぎた）", face: anxious }
+          - { who: sou, text: "一度、二人で病院に相談してみない？" }
         next: info
       - id: info
-        text: "生殖補助医療は、治療を始めるときに40歳未満なら、通算6回まで保険が使えるという。35歳ごろまでは、治療1回あたりで出産に至る割合が約30%前後だ。"
+        lines:
+          - { who: narration, text: "クリニックで、医師の説明を聞いた。" }
+          - { who: narration, text: "生殖補助医療は、治療開始時に40歳未満なら、通算6回まで保険が使える。" }
+          - { who: narration, text: "35歳ごろまでは、1回あたりで出産に至る割合は約30%前後だという。" }
+          - { who: minami, kind: inner, text: "（仕事との両立、からだの負担……どうしよう）" }
         choices:
           - id: treat
-            label: "治療を始める"
+            label: "「治療を、始めてみたい」"
             canonical: true
             effects:
               - { param: body, sign: -1, size: S, source: choice, statRef: S31, note: "通院と投薬の負担" }
               - { param: options, sign: -1, size: S, source: society, statRef: S31, note: "仕事との両立が難しい" }
             next: r1
           - id: noTreat
-            label: "治療はしない"
+            label: "「治療は、しないでおこう」"
             neutral: true
             setFlags: { minamiArtResult: noTreatment }
             next: noTreat
           - id: adopt
-            label: "養子・里親制度を調べる"
+            label: "「養子や里親のことも、調べたい」"
             neutral: true
             setFlags: { minamiArtResult: adoption }
             next: adopt
       - id: r1
-        text: "1回目の治療。注射や採卵のための通院が続く。体調や体力の負担が大きいと感じる人も多い。"
+        lines:
+          - { who: narration, text: "1回目の治療。注射や採卵のための通院が続く。" }
+          - { who: minami, kind: inner, text: "（会議の合間に、病院へ走る）", face: anxious }
         chance:
           id: CH-ART-1
           label: "この治療で出産に至る確率"
@@ -62,21 +74,25 @@ events:
             happens: { setFlags: { minamiArtResult: born }, next: born }
             notHappens: { next: afterR1 }
       - id: afterR1
-        text: "1回目の治療では、妊娠に至らなかった。続けるかどうかを、パートナーと話し合う。"
+        lines:
+          - { who: narration, text: "1回目の治療では、妊娠に至らなかった。" }
+          - { who: sou, text: "つらかったね。……次のこと、ゆっくり話そう" }
         choices:
           - id: continue
-            label: "治療を続ける"
+            label: "「もう一回、続けてみたい」"
             canonical: true
             effects:
               - { param: body, sign: -1, size: S, source: choice, statRef: S31, note: "通院と投薬の負担" }
               - { param: options, sign: -1, size: S, source: society, statRef: S31, note: "仕事との両立が難しい" }
             next: r2
           - id: stop
-            label: "ここでやめる"
+            label: "「ここで、やめにしたい」"
             setFlags: { minamiArtResult: stopped }
             next: stopped
       - id: r2
-        text: "2回目の治療。注射や採卵のための通院が続く。体調や体力の負担が大きいと感じる人も多い。"
+        lines:
+          - { who: narration, text: "2回目の治療。注射や採卵のための通院が続く。" }
+          - { who: minami, kind: inner, text: "（体がだるい。でも、仕事は休めない）", face: sad }
         chance:
           id: CH-ART-2
           label: "この治療で出産に至る確率"
@@ -85,21 +101,25 @@ events:
             happens: { setFlags: { minamiArtResult: born }, next: born }
             notHappens: { next: afterR2 }
       - id: afterR2
-        text: "2回目の治療では、妊娠に至らなかった。続けるかどうかを、パートナーと話し合う。"
+        lines:
+          - { who: narration, text: "2回目の治療では、妊娠に至らなかった。" }
+          - { who: sou, text: "ミナミのからだのこと、いちばんに考えたい" }
         choices:
           - id: continue
-            label: "治療を続ける"
+            label: "「もう一回、続けてみたい」"
             canonical: true
             effects:
               - { param: body, sign: -1, size: S, source: choice, statRef: S31, note: "通院と投薬の負担" }
               - { param: options, sign: -1, size: S, source: society, statRef: S31, note: "仕事との両立が難しい" }
             next: r3
           - id: stop
-            label: "ここでやめる"
+            label: "「ここで、やめにしたい」"
             setFlags: { minamiArtResult: stopped }
             next: stopped
       - id: r3
-        text: "3回目の治療。注射や採卵のための通院が続く。体調や体力の負担が大きいと感じる人も多い。"
+        lines:
+          - { who: narration, text: "3回目の治療。注射や採卵のための通院が続く。" }
+          - { who: minami, kind: inner, text: "（会議の合間に、病院へ走る）", face: anxious }
         chance:
           id: CH-ART-3
           label: "この治療で出産に至る確率"
@@ -108,21 +128,25 @@ events:
             happens: { setFlags: { minamiArtResult: born }, next: born }
             notHappens: { next: afterR3 }
       - id: afterR3
-        text: "3回目の治療では、妊娠に至らなかった。続けるかどうかを、パートナーと話し合う。"
+        lines:
+          - { who: narration, text: "3回目の治療では、妊娠に至らなかった。" }
+          - { who: sou, text: "ミナミのからだのこと、いちばんに考えたい" }
         choices:
           - id: continue
-            label: "治療を続ける"
+            label: "「もう一回、続けてみたい」"
             canonical: true
             effects:
               - { param: body, sign: -1, size: S, source: choice, statRef: S31, note: "通院と投薬の負担" }
               - { param: options, sign: -1, size: S, source: society, statRef: S31, note: "仕事との両立が難しい" }
             next: r4
           - id: stop
-            label: "ここでやめる"
+            label: "「ここで、やめにしたい」"
             setFlags: { minamiArtResult: stopped }
             next: stopped
       - id: r4
-        text: "4回目の治療。注射や採卵のための通院が続く。体調や体力の負担が大きいと感じる人も多い。"
+        lines:
+          - { who: narration, text: "4回目の治療。注射や採卵のための通院が続く。" }
+          - { who: minami, kind: inner, text: "（体がだるい。でも、仕事は休めない）", face: sad }
         chance:
           id: CH-ART-4
           label: "この治療で出産に至る確率"
@@ -131,21 +155,25 @@ events:
             happens: { setFlags: { minamiArtResult: born }, next: born }
             notHappens: { next: afterR4 }
       - id: afterR4
-        text: "4回目の治療では、妊娠に至らなかった。続けるかどうかを、パートナーと話し合う。"
+        lines:
+          - { who: narration, text: "4回目の治療では、妊娠に至らなかった。" }
+          - { who: sou, text: "ミナミのからだのこと、いちばんに考えたい" }
         choices:
           - id: continue
-            label: "治療を続ける"
+            label: "「もう一回、続けてみたい」"
             canonical: true
             effects:
               - { param: body, sign: -1, size: S, source: choice, statRef: S31, note: "通院と投薬の負担" }
               - { param: options, sign: -1, size: S, source: society, statRef: S31, note: "仕事との両立が難しい" }
             next: r5
           - id: stop
-            label: "ここでやめる"
+            label: "「ここで、やめにしたい」"
             setFlags: { minamiArtResult: stopped }
             next: stopped
       - id: r5
-        text: "5回目の治療。注射や採卵のための通院が続く。体調や体力の負担が大きいと感じる人も多い。"
+        lines:
+          - { who: narration, text: "5回目の治療。注射や採卵のための通院が続く。" }
+          - { who: minami, kind: inner, text: "（会議の合間に、病院へ走る）", face: anxious }
         chance:
           id: CH-ART-5
           label: "この治療で出産に至る確率"
@@ -154,21 +182,25 @@ events:
             happens: { setFlags: { minamiArtResult: born }, next: born }
             notHappens: { next: afterR5 }
       - id: afterR5
-        text: "5回目の治療では、妊娠に至らなかった。続けるかどうかを、パートナーと話し合う。"
+        lines:
+          - { who: narration, text: "5回目の治療では、妊娠に至らなかった。" }
+          - { who: sou, text: "ミナミのからだのこと、いちばんに考えたい" }
         choices:
           - id: continue
-            label: "治療を続ける"
+            label: "「もう一回、続けてみたい」"
             canonical: true
             effects:
               - { param: body, sign: -1, size: S, source: choice, statRef: S31, note: "通院と投薬の負担" }
               - { param: options, sign: -1, size: S, source: society, statRef: S31, note: "仕事との両立が難しい" }
             next: r6
           - id: stop
-            label: "ここでやめる"
+            label: "「ここで、やめにしたい」"
             setFlags: { minamiArtResult: stopped }
             next: stopped
       - id: r6
-        text: "6回目の治療。注射や採卵のための通院が続く。体調や体力の負担が大きいと感じる人も多い。"
+        lines:
+          - { who: narration, text: "6回目の治療。注射や採卵のための通院が続く。" }
+          - { who: minami, kind: inner, text: "（体がだるい。でも、仕事は休めない）", face: sad }
         chance:
           id: CH-ART-6
           label: "この治療で出産に至る確率"
@@ -177,38 +209,51 @@ events:
             happens: { setFlags: { minamiArtResult: born }, next: born }
             notHappens: { next: limit }
       - id: born
-        text: "妊娠し、子どもが生まれた。治療の日々は、ここで終わった。"
+        lines:
+          - { who: narration, text: "妊娠し、子どもが生まれた。治療の日々は、ここで終わった。" }
+          - { who: sou, text: "長かったね。……ありがとう。" }
         next: END
       - id: stopped
-        text: "治療をやめることにした。二人で話し合って、決めたことだ。"
+        lines:
+          - { who: minami, kind: inner, text: "（治療は、ここでやめる。二人で話し合って、決めたこと）" }
+          - { who: sou, text: "これからの二人の暮らしのこと、また考えよう。" }
         next: END
       - id: limit
-        text: "保険で受けられる6回の治療を終えた。これからどうするかを、パートナーと話し合う。"
+        lines:
+          - { who: narration, text: "保険で受けられる6回の治療を終えた。" }
+          - { who: minami, kind: inner, text: "（これからどうするか、ソウとゆっくり話そう）" }
         next: END
       - id: noTreat
-        text: "治療はしないことにした。二人の暮らしを、これからも大切にしていく。"
+        lines:
+          - { who: minami, text: "治療は、しないでおこう。" }
+          - { who: sou, text: "うん。二人の暮らしを、これからも大事にしよう。" }
         next: END
       - id: adopt
-        text: "養子縁組や里親制度について、自治体の窓口で話を聞くことにした。"
+        lines:
+          - { who: minami, text: "養子や里親のことも、調べたい。" }
+          - { who: narration, text: "自治体の窓口で、話を聞いてみることにした。" }
         next: END
 
+  # ───────── ハルト：親から受け継いだもの ─────────
   - id: E35-HARUTO-CYCLE
     age: 35
     characters: [haruto]
     kind: fixed
     domains: [対人暴力の連鎖]
     statCard: [S04]
-    stage: { place: living, time: dusk, cast: [{ id: haruto }, { id: haruChild }, { id: nao }] }
+    stage: { place: living, time: dusk, cast: [{ id: haruto, x: 26 }, { id: haruChild, x: 48 }, { id: nao, x: 72 }] }
+    summary: "子どもに声を荒げかけて、父のことを思い出した。"
     status: draft
     scenes:
       - id: start
-        text: "かんしゃくを起こした子どもを前に、思わず声が大きくなりかけて、止まる。父の声が、自分の中から聞こえた気がした。"
-        next: choose
-      - id: choose
-        text: "父から受け継いだものを、この子には渡さない。ハルトは、そう決めた。"
+        lines:
+          - { who: haruChild, text: "やだ！　まだあそぶの！", face: sad }
+          - { who: narration, text: "かんしゃくを起こした子どもを前に、思わず声が大きくなりかけて、止まる。" }
+          - { who: haruto, kind: inner, text: "（……いま、父さんの声が、自分の中から聞こえた）", face: anxious }
+          - { who: haruto, kind: inner, text: "（父さんから受け継いだものを、この子には渡さない）" }
         choices:
           - id: talk
-            label: "パートナーと話し合う"
+            label: "ナオに、話してみる"
             canonical: true
             effects:
               - { param: connection, sign: 1, size: M, source: choice, note: "パートナーと話し合った" }
@@ -220,20 +265,31 @@ events:
               - { param: connection, sign: 1, size: S, source: choice, note: "一人で抱えなかった" }
             next: sought
       - id: talked
-        text: "その夜、パートナーにすべてを話した。二人で、怒りが出そうなときの約束をつくった。"
+        lines:
+          - { who: haruto, text: "さっき、怒鳴りそうになった。父さんみたいに。" }
+          - { who: nao, text: "止まれたんだね。……怒りが出そうなときの約束、二人で決めよう。" }
+          - { who: haruto, kind: inner, text: "（一人で抱えなくていいんだ）", face: relieved }
         next: END
       - id: sought
-        text: "自治体の子育ての相談窓口に電話をかけた。同じように悩む親は、少なくないと知った。"
+        lines:
+          - { who: narration, text: "自治体の子育ての相談窓口に、電話をかけた。" }
+          - { who: counselor, text: "そう感じて止まれたこと、とても大事ですよ。" }
+          - { who: haruto, kind: inner, text: "（同じように悩む親は、少なくないんだ）", face: relieved }
         next: END
 
+  # ───────── 4人とも：ここまでの道のり ─────────
   - id: E35-ALL-REVIEW
     age: 35
     characters: [minami, haruto, yu, kei]
     kind: fixed
     domains: []
-    stage: { place: gate, time: dusk, cast: [{ id: self }] }
+    stage: { place: gate, time: dusk, cast: [{ id: self, x: 34 }] }
+    summary: "35歳。ここまでの道のりをふりかえる。"
     status: draft
     scenes:
       - id: end
-        text: "35歳。16歳のころには思いもしなかった場所に、いま立っている。ここまでの道のりを、ふりかえってみよう。"
+        lines:
+          - { who: narration, text: "35歳。久しぶりに、高校の前を通った。" }
+          - { who: self, kind: inner, text: "（16歳のころには思いもしなかった場所に、いま立っている）" }
+          - { who: self, kind: inner, text: "（ここまでの道のりを、ふりかえってみよう）", face: smile }
         next: END
