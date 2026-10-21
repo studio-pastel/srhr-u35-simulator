@@ -4,20 +4,21 @@
 # 家族（ユウの母、ケイの母・弟・妹）は peerOffset にして、35歳の章で年をとった姿を描く。
 # hairStyle：short／mid／bob／long／tied（結んだ髪）
 # clothes：[〜19歳, 20〜30歳, 31歳〜] の服の色
+# accessory：見分けやすくするための持ち物（glasses／cap／headphones／beanie。付録B-36）。accent はその色
 
 # ── 主人公 ──
 - id: minami
   name: ミナミ
-  look: { skin: "#f2c9a8", hair: "#3a2a22", hairStyle: bob, clothes: ["#4f86c6", "#5b6170", "#8a6d5a"], pants: "#2f3b52" }
+  look: { skin: "#f2c9a8", hair: "#3a2a22", hairStyle: bob, clothes: ["#4f86c6", "#5b6170", "#8a6d5a"], pants: "#2f3b52", accessory: glasses, accent: "#3a2f45" }
 - id: haruto
   name: ハルト
-  look: { skin: "#e8b896", hair: "#1f1f24", hairStyle: short, clothes: ["#6b8e4e", "#3e4a5c", "#5a6b48"], pants: "#3b3b3b" }
+  look: { skin: "#e8b896", hair: "#1f1f24", hairStyle: short, clothes: ["#6b8e4e", "#3e4a5c", "#5a6b48"], pants: "#3b3b3b", accessory: cap, accent: "#d9a23b" }
 - id: yu
   name: ユウ
-  look: { skin: "#f0c5a0", hair: "#6a4632", hairStyle: mid, clothes: ["#d9a23b", "#4c7a8a", "#b0704a"], pants: "#4a4a5a" }
+  look: { skin: "#f0c5a0", hair: "#6a4632", hairStyle: mid, clothes: ["#d9a23b", "#4c7a8a", "#b0704a"], pants: "#4a4a5a", accessory: headphones, accent: "#c0563a" }
 - id: kei
   name: ケイ
-  look: { skin: "#d9a27f", hair: "#2a2320", hairStyle: short, clothes: ["#c0563a", "#4a5a6a", "#7a6a4a"], pants: "#34404f" }
+  look: { skin: "#d9a27f", hair: "#2a2320", hairStyle: short, clothes: ["#c0563a", "#4a5a6a", "#7a6a4a"], pants: "#34404f", accessory: beanie, accent: "#2a7f86" }
 
 # ── 脇役（16歳）。名前は仮（付録B-5。REPORT.md で確認を受ける） ──
 - id: riko

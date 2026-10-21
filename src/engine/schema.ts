@@ -194,6 +194,10 @@ export const castSchema = z.strictObject({
     hairStyle: z.enum(['short', 'mid', 'bob', 'long', 'tied']),
     clothes: z.tuple([hex, hex, hex]),
     pants: hex,
+    /** 見分けやすくするための持ち物（付録B-36）。性別のステレオタイプに寄せない */
+    accessory: z.enum(['glasses', 'cap', 'headphones', 'beanie']).optional(),
+    /** 持ち物の色 */
+    accent: hex.optional(),
   }),
 });
 

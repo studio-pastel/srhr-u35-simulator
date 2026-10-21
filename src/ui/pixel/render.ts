@@ -9,6 +9,8 @@ export type Pose = 'stand' | 'phone';
 export type TimeOfDay = 'day' | 'dusk' | 'night';
 export type Place = 'classroom' | 'nurse' | 'hallway' | 'bedroom' | 'living' | 'campus' | 'station' | 'office' | 'clinic' | 'home2' | 'gate' | 'izakaya';
 export type HairStyle = 'short' | 'mid' | 'bob' | 'long' | 'tied';
+/** 見分けやすくするための持ち物（付録B-36） */
+export type Accessory = 'glasses' | 'cap' | 'headphones' | 'beanie';
 
 export interface Look {
   skin: string;
@@ -17,6 +19,8 @@ export interface Look {
   /** 年齢ごとの服の色：[〜19歳, 20〜30歳, 31歳〜] */
   clothes: [string, string, string];
   pants: string;
+  accessory?: Accessory;
+  accent?: string;
 }
 
 export interface Actor {
@@ -375,6 +379,54 @@ function person(g: Grid, a: Actor) {
   if (face !== 'sad' && face !== 'anxious') {
     put(g, xL - 1, ey + 3, '#eaa08a');
     put(g, xR + 2, ey + 3, '#eaa08a');
+  }
+  if (look.accessory) accessory(g, look.accessory, look.accent ?? '#3a3f4a', hx, hy, hr, xL, xR, ey);
+}
+
+/** 持ち物を描く（付録B-36）。頭の上・目のまわりなど、顔アイコンに切り出しても見える位置に置く */
+function accessory(g: Grid, kind: Accessory, c: string, hx: number, hy: number, hr: number, xL: number, xR: number, ey: number) {
+  const dark = shade(c, -0.45);
+  const light = shade(c, 0.35);
+  if (kind === 'glasses') {
+    // 目のまわりの四角い縁と、鼻の上のつなぎ
+    for (const ex of [xL, xR]) {
+      for (let x = ex - 1; x <= ex + 2; x++) {
+        put(g, x, ey - 1, c);
+        put(g, x, ey + 2, c);
+      }
+      put(g, ex - 1, ey, c);
+      put(g, ex - 1, ey + 1, c);
+      put(g, ex + 2, ey, c);
+      put(g, ex + 2, ey + 1, c);
+    }
+    for (let x = xL + 3; x < xR - 1; x++) put(g, x, ey, c);
+  } else if (kind === 'cap') {
+    // 頭の上半分をおおう帽子と、横に大きく出たつば
+    ell(g, hx, hy - 1, hr + 1.5, hr + 1.5, c, (_x, y) => y < hy - 2.5);
+    put(g, hx, hy - hr - 2, light);
+    for (let x = Math.floor(hx - hr - 1); x <= hx + hr + 5; x++) {
+      put(g, x, Math.floor(hy - 2.5), dark);
+      if (x > hx + hr - 1) put(g, x, Math.floor(hy - 1.5), dark);
+    }
+  } else if (kind === 'beanie') {
+    // 頭の形にそった丸いニット帽と、太い折り返し、小さなぼんぼり
+    ell(g, hx, hy - 1.5, hr + 1.5, hr + 1, c, (_x, y) => y < hy - 1.5);
+    for (let x = Math.floor(hx - hr - 1); x <= hx + hr + 1; x++) {
+      put(g, x, Math.floor(hy - 2.5), dark);
+      put(g, x, Math.floor(hy - 1.5), dark);
+      if (x % 2 === 0) put(g, x, Math.floor(hy - 2.5), shade(c, -0.25));
+    }
+    ell(g, hx, hy - hr - 2.5, 1.2, 1.2, light);
+  } else if (kind === 'headphones') {
+    // 頭の上を通る太いバンドと、耳をおおう大きなイヤーカップ
+    for (let x = Math.floor(hx - hr - 1); x <= hx + hr + 1; x++) {
+      const dx = (x - hx) / (hr + 1.5);
+      const y = Math.round(hy - 1 - (hr + 1.5) * Math.sqrt(Math.max(0, 1 - dx * dx)));
+      put(g, x, y - 1, dark);
+      put(g, x, y, dark);
+    }
+    rect(g, Math.floor(hx - hr - 2), Math.floor(hy - 2), 3, 6, c, true);
+    rect(g, Math.floor(hx + hr), Math.floor(hy - 2), 3, 6, c, true);
   }
 }
 
