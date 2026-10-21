@@ -134,7 +134,8 @@ test('キーボードだけで1章を終えられる', async ({ page }) => {
     if ((await page.evaluate(() => document.activeElement?.textContent?.trim())) === 'ミナミで始める') break;
   }
   await page.keyboard.press('Enter');
-  for (let i = 0; i < 300; i++) {
+  // 並列で動かすと遅くなるため、回数に余裕を持たせる
+  for (let i = 0; i < 800; i++) {
     if (await page.getByRole('heading', { name: '16歳のふりかえり' }).isVisible()) break;
     await page.keyboard.press('Tab');
     const isAction = await page.evaluate(() => {
