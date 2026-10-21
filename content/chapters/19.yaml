@@ -33,7 +33,7 @@ events:
       from: minami
       to: haruto
       entry: { minami: m-start, haruto: h-start }
-    statCard: [S35, S01, S04, S37]
+    statCard: [S07, S01, S04, S37]
     resources: [violence]
     stage: { place: campus, time: dusk, cast: [{ id: minami, x: 34, pose: phone }] }
     summary: "別々の大学に進んだハルトとの関係が、変わっていった。"
@@ -64,7 +64,9 @@ events:
           id: CH-HARUTO19
           label: "ハルトの暴力が、身体的・性的なものに進む確率"
           actorLabel: "ハルトの決定"
-          base: { value: 0.23, statRef: S35 }
+          # 付録B-35：S07 の「干渉・精神的暴力だけ」66.9〜77.0% の残り（23.0〜33.1%）のうち、低いほうの値。
+          # 19歳のミナミに合う群（大学生の女性）の値は、白書で確かめたら差し替える（残務 T19）
+          base: { value: 0.23, statRef: S07 }
           modifiers:
             # ハルトの生育条件は固定（characters.yaml：witnessedDV: true）。誰で遊んでも必ずかかる
             - { when: "true", op: odds, value: 1.92, source: upbringing, statRef: S36, note: "ハルトが親の暴力を見て育った" }

@@ -43,11 +43,16 @@ describe('実コンテンツ', () => {
     for (const c of raw.conditions) for (const o of c.options) o.verified = true;
     expect(validateContent(raw, { production: true, allowUnverified: false, requireAllChapters: true }).errors).toEqual([]);
   });
+  it('いまの本文は、本番ビルドを通る（暫定値の統計を参照していない）', () => {
+    expect(validateContent(rawContent(), { production: true, allowUnverified: false }).errors).toEqual([]);
+  });
   it('本番ビルドでは verified: false の統計カードで失敗し、ALLOW_UNVERIFIED=1 なら通る', () => {
-    const prod = validateContent(rawContent(), { production: true, allowUnverified: false });
+    const raw: any = rawContent();
+    raw.stats.find((s: any) => s.id === 'S07').verified = false;
+    const prod = validateContent(raw, { production: true, allowUnverified: false });
     expect(prod.errors.length).toBeGreaterThan(0);
     expect(prod.errors.every((e) => e.includes('verified: false'))).toBe(true);
-    expect(validateContent(rawContent(), { production: true, allowUnverified: true }).errors).toEqual([]);
+    expect(validateContent(raw, { production: true, allowUnverified: true }).errors).toEqual([]);
   });
 });
 
@@ -88,7 +93,7 @@ describe('ビルドを失敗させる条件（§12.1）', () => {
   });
 
   it('本番ビルドでは verified: false の統計を参照する確率ノードで失敗する', () => {
-    // S26 を暫定値に戻して確かめる（いまの本文で暫定値なのは S35 だけ）
+    // S26 を暫定値に戻して確かめる（いまの本文に暫定値の統計の参照はない）
     const r = validateWith((raw) => (raw.stats.find((s: any) => s.id === 'S26').verified = false), { production: true, allowUnverified: false });
     expect(r.errors.join('\n')).toMatch(/E19-KS-CONTRACEPTION\/ec\[CH-EC\]\.modifiers\[0\]：本番ビルドで verified: false の統計 S26/);
   });
