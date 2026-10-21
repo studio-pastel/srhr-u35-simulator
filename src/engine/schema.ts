@@ -45,7 +45,8 @@ const outcomeSchema = z.strictObject({
 
 export const chanceModifierSchema = z.strictObject({
   when: z.string(),
-  op: z.enum(['set', 'mul']),
+  // odds：オッズ比としてオッズに掛ける（p → OR·p ／ (1 − p + OR·p)）。研究のオッズ比をそのまま使うため
+  op: z.enum(['set', 'mul', 'odds']),
   value: z.number().min(0),
   source: z.enum(['choice', 'upbringing', 'society', 'others']),
   statRef: statIdSchema,

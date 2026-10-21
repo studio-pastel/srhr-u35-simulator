@@ -128,7 +128,7 @@ export function ProbabilityCard({ entry, content, animate }: { entry: ChanceLogE
             <ul style={{ margin: 0, paddingLeft: '1.2em' }}>
               {entry.modifiersApplied.map((m, i) => (
                 <li key={i} class="num">
-                  {SOURCE_LABELS[m.source]}：{m.note}　{pct(m.from)} → {pct(m.to)}（{m.statRef}）
+                  {SOURCE_LABELS[m.source]}：{m.note}　{pct(m.from)} → {pct(m.to)}（{m.op === 'odds' ? `オッズ比${m.value}、` : ''}{m.statRef}）
                 </li>
               ))}
             </ul>

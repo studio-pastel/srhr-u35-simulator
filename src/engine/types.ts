@@ -86,7 +86,7 @@ export interface LedgerEntry {
 
 export interface AppliedModifier {
   source: Source;
-  op: 'set' | 'mul';
+  op: 'set' | 'mul' | 'odds';
   value: number;
   statRef: StatId;
   note: string;

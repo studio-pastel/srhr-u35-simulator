@@ -28,9 +28,9 @@ describe('実コンテンツ', () => {
   it('章が欠けていると失敗する', () => {
     expect(validateWith((r) => (r.chapters = r.chapters.filter((c: any) => c.age !== 24))).errors.join()).toMatch(/24歳の章がありません/);
   });
-  it('S01〜S34 がすべてある', () => {
+  it('S01〜S37 がすべてある', () => {
     const r = validateContent(rawContent(), dev);
-    expect(r.content!.stats.map((s) => s.id)).toEqual(Array.from({ length: 34 }, (_, i) => `S${String(i + 1).padStart(2, '0')}`));
+    expect(r.content!.stats.map((s) => s.id)).toEqual(Array.from({ length: 37 }, (_, i) => `S${String(i + 1).padStart(2, '0')}`));
   });
   it('Claude Code が書いた本文はすべて status: draft', () => {
     const r = validateContent(rawContent(), dev);

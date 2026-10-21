@@ -1,12 +1,18 @@
-# 19歳の章（SPEC.md §10.3）。Claude Code の下書き。すべて status: draft。
+# 19歳の章（SPEC.md §10.3）。会話中心の形式（付録B-2）。Claude Code の下書き。すべて status: draft。
 #
-# 文字数の上限（src/engine/limits.ts、SPEC.md 付録A-7）
-#   シーン本文 text ……… 200字以内（超えると警告）
-#   選択肢 label ………… 30字以内（超えると警告）
-#   効果 note …………… 20字以内（超えるとエラー。ビルドが止まる）
+# 文字数の上限（src/engine/limits.ts）
+#   吹き出し lines[].text …… 40字以内（超えると警告）
+#   選択肢 label ………………… 30字以内（超えると警告）
+#   効果 note ………………………… 20字以内（超えるとエラー。ビルドが止まる）
+#   とばしたときの要約 summary … 40字以内（超えると警告）
 #
-# P7：ミナミの視点のシーンから harutoRoute を書き換えない。
-# 暴力による変化は「他者の行為」として、シーンに入ったときの効果で記録する（付録A-14・A-15）。
+# ハルトの行動の決め方（付録B-12〜B-15・B-32）
+#   ハルト以外の人物で遊ぶときは、ハルトの暴力が身体的・性的なものに進むかを確率ノード CH-HARUTO19 で決める
+#   （「ハルトの決定（統計にもとづく）」）。確率を変える要因は、ハルトの生育条件と社会条件だけ（P7）。
+#   ハルトで遊ぶときは、プレイヤーの選択（h-choose）で決まる。どちらの場合も harutoRoute に結果を残し、
+#   相手の側の場面は、そのフラグで続きを合わせる。
+#
+# 性交渉の場面（付録B-30）：行為は描かず、前後の会話と暗転で描く。暴力の行為も描かない（P4）。
 age: 19
 title: "19歳"
 season: "春"
@@ -14,46 +20,83 @@ status: draft
 intro:
   minami: "大学1年の春。ハルトとは、別々の大学に進んでからも付き合っている。"
   haruto: "大学1年の春。ミナミとは、別々の大学に進んでからも付き合っている。"
-  yu: "大学1年の春。新しい友人に囲まれて、毎日が少し忙しい。"
+  yu: "大学1年の春。軽音サークルに入って、毎日が少し忙しい。"
   kei: "高校を卒業して、働き始めた。休みの日には、交際しているサキと会う。"
 events:
+  # ───────── ミナミとハルト：19歳 ─────────
   - id: E19-MH-ESCALATE
     age: 19
     characters: [minami, haruto]
-    kind: fixed
+    kind: chance
     domains: [対人暴力, 避妊]
-    triggerWarning: "この章には、交際相手からの暴言や、避妊に協力しないといった性的な強要に触れる場面があります。暴力の行為そのものは描きません。"
     viewpointSwitch:
       from: minami
       to: haruto
       entry: { minami: m-start, haruto: h-start }
-    statCard: [S01, S02, S04]
+    statCard: [S35, S01, S04, S37]
     resources: [violence]
-    stage: { place: campus, time: dusk, cast: [{ id: minami }, { id: haruto }] }
+    stage: { place: campus, time: dusk, cast: [{ id: minami, x: 34, pose: phone }] }
+    summary: "別々の大学に進んだハルトとの関係が、変わっていった。"
     status: draft
     scenes:
       # ── ミナミの視点 ──
       - id: m-start
         viewpoint: minami
         effects:
-          - { param: psychSafety, sign: -1, size: L, source: others, statRef: S04, note: "交際相手からの暴言と強要" }
-          - { param: safety, sign: -1, size: M, source: others, statRef: S04, note: "避妊に協力してもらえない" }
-        text: "予定を断ると、ハルトから強い言葉が返ってくるようになった。避妊をしてほしいと伝えても、聞き入れてもらえなかった。"
-        next: m-feel
-      - id: m-feel
+          - { param: psychSafety, sign: -1, size: M, source: others, statRef: S07, note: "束縛が続いている" }
+        lines:
+          - { who: narration, text: "別々の大学に進んで、会えるのは週末だけになった。" }
+          - { who: haruto, kind: message, text: "今日、誰といた？" }
+          - { who: haruto, kind: message, text: "サークルの飲み会とか、行かないでほしい。" }
+          - { who: minami, kind: inner, text: "（高校のころと、変わらない）", face: anxious }
+        # ハルトで遊んだときは、ハルトの選択の結果に合わせる（ミナミで遊ぶときは、ここで確率を決める）
+        branches:
+          - when: "flags.harutoRoute == 'continued'"
+            next: m-escalated
+          - when: "flags.harutoRoute == 'stopped'"
+            next: m-calm
+        next: m-chance
+      - id: m-chance
         viewpoint: minami
-        text: "自分が何か間違えたのだろうか、と考えてしまう。でも、ハルトの言葉や行動を決めているのは、ミナミではない。"
+        lines:
+          - { who: minami, kind: inner, text: "（この先、ハルトはどうなっていくんだろう）" }
+        chance:
+          id: CH-HARUTO19
+          label: "ハルトの暴力が、身体的・性的なものに進む確率"
+          actorLabel: "ハルトの決定"
+          base: { value: 0.23, statRef: S35 }
+          modifiers:
+            # ハルトの生育条件は固定（characters.yaml：witnessedDV: true）。誰で遊んでも必ずかかる
+            - { when: "true", op: odds, value: 1.92, source: upbringing, statRef: S36, note: "ハルトが親の暴力を見て育った" }
+            - { when: "cond.sexEducation == 'taught'", op: odds, value: 0.75, source: society, statRef: S37, note: "学校でデートDVを学んだ" }
+          outcomes:
+            happens: { setFlags: { harutoRoute: continued }, next: m-escalated }
+            notHappens: { setFlags: { harutoRoute: stopped }, next: m-calm }
+
+      # 暴力が身体的・性的なものに進んだ。行為は描かず、そのあとの気持ちを描く（P4）
+      - id: m-escalated
+        viewpoint: minami
+        effects:
+          - { param: psychSafety, sign: -1, size: L, source: others, statRef: S04, note: "交際相手からの暴力" }
+          - { param: safety, sign: -1, size: M, source: others, statRef: S04, note: "避妊に協力してもらえない" }
+        lines:
+          - { who: narration, text: "予定を断った日から、ハルトの態度は、もっと強くなった。" }
+          - { who: minami, kind: inner, text: "（避妊してって言っても、聞いてもらえない）", face: sad }
+          - { who: minami, kind: inner, text: "（……私が、何か間違えたのかな）" }
+          - { who: narration, text: "ハルトの言葉や行動を決めているのは、ミナミではない。" }
         branches:
           - when: "flags.knowsHelplines == true"
             next: m-know
         next: m-choose
       - id: m-know
         viewpoint: minami
-        text: "高校の授業で配られたカードを思い出す。相談窓口の番号が並んでいた。"
+        lines:
+          - { who: minami, kind: inner, text: "（高校でもらったカード。相談窓口の番号が、並んでた）" }
         next: m-choose
       - id: m-choose
         viewpoint: minami
-        text: "ミナミは、スマホを手に取る。"
+        lines:
+          - { who: narration, text: "ミナミは、スマホを手に取る。" }
         choices:
           - id: helpline
             label: "相談窓口に連絡する"
@@ -64,7 +107,7 @@ events:
             setFlags: { minamiResponse19: helpline }
             next: m-helpline
           - id: friend
-            label: "友人に話す"
+            label: "リコに話す"
             effects:
               - { param: connection, sign: 1, size: M, source: choice, note: "友人に話した" }
             setFlags: { minamiResponse19: toldFriend }
@@ -78,40 +121,105 @@ events:
         effects:
           - { param: psychSafety, sign: 1, size: M, source: others, note: "相談員が話を聞いた" }
           - { param: safety, sign: 1, size: S, source: others, note: "安全の計画を考えた" }
-        text: "電話の向こうの相談員は、最後まで話を聞いてくれた。「あなたのせいではありません」。これからの安全について、一緒に考えることになった。"
+        lines:
+          - { who: counselor, text: "話してくれて、ありがとうございます。" }
+          - { who: counselor, text: "あなたのせいではありません。" }
+          - { who: counselor, text: "これからの安全のこと、いっしょに考えましょう。" }
+          - { who: minami, kind: inner, text: "（……ひとりじゃ、なかった）", face: relieved }
         next: END
       - id: m-friend
         viewpoint: minami
         effects:
           - { param: psychSafety, sign: 1, size: S, source: others, note: "友人が受け止めた" }
-        text: "友人は「話してくれてよかった」と言って、相談窓口の連絡先を一緒に調べてくれた。"
+        lines:
+          - { who: riko, kind: message, text: "話してくれて、よかった。" }
+          - { who: riko, kind: message, text: "相談できるところ、いっしょに調べよう。" }
+          - { who: minami, kind: inner, text: "（リコに話して、よかった）", face: relieved }
         next: END
       - id: m-notyet
         viewpoint: minami
-        text: "今は、誰にも話さないことにした。話すかどうか、いつ話すかは、ミナミが決めていい。相談窓口の連絡先は、このあと紹介する。"
+        lines:
+          - { who: minami, kind: inner, text: "（今は、まだ誰にも言えない）" }
+          - { who: narration, text: "話すかどうか、いつ話すかは、ミナミが決めていい。" }
+        next: END
+
+      # 暴力が激しくならなかった
+      - id: m-calm
+        viewpoint: minami
+        lines:
+          - { who: narration, text: "ある夜、ハルトから長いメッセージが来た。" }
+          - { who: haruto, kind: message, text: "これまで、スマホ見せろとか言って、ごめん。" }
+          - { who: haruto, kind: message, text: "このままだと、父さんと同じになると思った。大学の相談室に行ってる。" }
+          - { who: minami, kind: inner, text: "（……信じていいのかな）", face: anxious }
+        choices:
+          - id: wait
+            label: "「話してくれて、ありがとう」"
+            neutral: true
+            canonical: true
+            effects:
+              - { param: autonomy, sign: 1, size: S, source: choice, note: "自分で受けとめ方を決めた" }
+            setFlags: { minamiResponse19: waited }
+            next: m-wait
+          - id: distance
+            label: "「少し、距離を置きたい」"
+            neutral: true
+            effects:
+              - { param: autonomy, sign: 1, size: S, source: choice, note: "距離を置くと伝えた" }
+            setFlags: { minamiResponse19: distance }
+            next: m-distance
+      - id: m-wait
+        viewpoint: minami
+        lines:
+          - { who: minami, kind: message, text: "話してくれて、ありがとう。" }
+          - { who: minami, kind: inner, text: "（すぐには、前みたいには戻れない。でも、見ていよう）" }
+        next: END
+      - id: m-distance
+        viewpoint: minami
+        lines:
+          - { who: minami, kind: message, text: "少し、距離を置きたい。" }
+          - { who: haruto, kind: message, text: "……わかった。" }
+          - { who: minami, kind: inner, text: "（自分の気持ちを、先にしていい）" }
         next: END
 
       # ── ハルトの視点 ──
       - id: h-start
         viewpoint: haruto
+        lines:
+          - { who: narration, text: "別々の大学に進んで、会えるのは週末だけになった。" }
+          - { who: haruto, kind: inner, text: "（ミナミが、知らない人と笑ってるかもしれない）", face: anxious }
+        # ミナミで遊んだときは、確率（ハルトの決定）の結果に合わせて続きを見せる
+        branches:
+          - when: "char != 'haruto' && flags.harutoRoute == 'continued'"
+            next: h-escalated
+          - when: "char != 'haruto' && flags.harutoRoute == 'stopped'"
+            next: h-calm
+        next: h-anger
+      - id: h-anger
+        viewpoint: haruto
         effects:
           - { param: autonomy, sign: -1, size: S, source: upbringing, statRef: S04, when: "up.witnessedDV == true", note: "支配を見て育った" }
-        text: "ミナミが思いどおりにならないと、強い言葉が出る。避妊の話を出されると、責められている気がして、聞き流した。"
+        lines:
+          - { who: minami, kind: message, text: "週末は、サークルの集まりがあるから会えない。" }
+          - { who: haruto, kind: inner, text: "（……思いどおりにならないと、強い言葉が出そうになる）" }
+          - { who: haruto, kind: inner, text: "（避妊の話をされると、責められてる気がする）" }
         next: h-think
       - id: h-think
         viewpoint: haruto
-        text: "怒鳴っていた父の顔が浮かぶ。自分は父とは違う、と思っていた。"
+        lines:
+          - { who: haruto, kind: inner, text: "（怒鳴っていた父さんの顔が浮かぶ。自分は、父さんとは違うはずだった）" }
         branches:
           - when: "flags.knowsDateDV == true"
             next: h-know
         next: h-choose
       - id: h-know
         viewpoint: haruto
-        text: "高校の授業で聞いた話がよみがえる。避妊に協力しないことも、暴力になりうる。"
+        lines:
+          - { who: haruto, kind: inner, text: "（授業で聞いた。避妊に協力しないことも、暴力になりうる）" }
         next: h-choose
       - id: h-choose
         viewpoint: haruto
-        text: "ハルトは、どうする？"
+        lines:
+          - { who: haruto, kind: inner, text: "（……おれは、どうする？）" }
         choices:
           - id: reflect
             label: "自分の言動を振り返る"
@@ -120,7 +228,7 @@ events:
             setFlags: { harutoRoute: stopped }
             next: h-reflect
           - id: blame
-            label: "相手のせいにする"
+            label: "「ミナミが悪いんだ」"
             canonical: true
             effects:
               - { param: connection, sign: -1, size: M, source: choice, note: "関係がこじれていく" }
@@ -128,13 +236,33 @@ events:
             next: h-blame
       - id: h-reflect
         viewpoint: haruto
-        text: "「あれは、父と同じことだった」。言葉にすると、足元が揺れる。それでも、ここで止めると決めた。"
+        lines:
+          - { who: haruto, kind: inner, text: "（あれは、父さんと同じことだった）", face: sad }
+          - { who: haruto, kind: inner, text: "（言葉にすると、足元が揺れる。それでも、ここで止める）" }
+          - { who: haruto, kind: message, text: "これまで、スマホ見せろとか言って、ごめん。" }
         next: END
       - id: h-blame
         viewpoint: haruto
-        text: "「ミナミが悪いんだ」と思うことにした。そう思えば、自分を見なくて済む。"
+        lines:
+          - { who: haruto, kind: inner, text: "（ミナミが悪いんだ）" }
+          - { who: haruto, kind: inner, text: "（そう思えば、自分を見なくて済む）" }
+        next: END
+      - id: h-escalated
+        viewpoint: haruto
+        lines:
+          - { who: haruto, kind: inner, text: "（思いどおりにならないと、強い言葉が出る）" }
+          - { who: haruto, kind: inner, text: "（避妊の話をされると、責められてる気がして、聞き流した）" }
+          - { who: haruto, kind: inner, text: "（ミナミが悪いんだ。そう思えば、自分を見なくて済む）" }
+        next: END
+      - id: h-calm
+        viewpoint: haruto
+        lines:
+          - { who: haruto, kind: inner, text: "（このままだと、父さんと同じになる）", face: sad }
+          - { who: haruto, kind: inner, text: "（大学の相談室に、行ってみよう）" }
+          - { who: haruto, kind: message, text: "これまで、スマホ見せろとか言って、ごめん。" }
         next: END
 
+  # ───────── ケイとサキ：避妊を二人で決める（付録B-30） ─────────
   - id: E19-KS-CONTRACEPTION
     age: 19
     characters: [kei]
@@ -142,14 +270,61 @@ events:
     domains: [避妊, 緊急避妊]
     statCard: [S25, S26, S11]
     resources: [ec]
-    stage: { place: bedroom, time: night, cast: [{ id: kei }, { id: saki }] }
+    stage: { place: bedroom, time: night, cast: [{ id: kei, x: 30 }, { id: saki, x: 62 }] }
+    summary: "サキと避妊のことを話した。この1年に、避妊のトラブルが起きるかどうか。"
     status: draft
     scenes:
       - id: start
-        text: "働きながら家族を支える毎日。サキと会える時間は短いけれど、一緒にいると落ち着く。"
+        lines:
+          - { who: narration, text: "働きながら、家のことも手伝う毎日。" }
+          - { who: kei, kind: inner, text: "（サキと会える時間は短い。でも、いっしょにいると落ち着く）", face: smile }
+          - { who: saki, text: "ねえ、ケイ。ちゃんと話しておきたいことがあって。" }
+          - { who: saki, text: "避妊のこと、どうする？" }
+        choices:
+          - id: ask
+            label: "「サキは、どうしたい？」"
+            canonical: true
+            effects:
+              - { param: autonomy, sign: 1, size: M, source: choice, note: "避妊を二人で決めた" }
+              - { param: connection, sign: 1, size: M, source: choice, note: "相手の考えを聞いた" }
+            setFlags: { method: condom }
+            next: ask
+          - id: condom
+            label: "「毎回、コンドームを使おう」"
+            effects:
+              - { param: autonomy, sign: 1, size: M, source: choice, note: "避妊を二人で決めた" }
+            setFlags: { method: condom }
+            next: condom
+          - id: withdrawal
+            label: "「外に出せば、大丈夫だよ」"
+            requires: "flags.method == 'withdrawal'"
+            next: withdrawal
+      - id: ask
+        lines:
+          - { who: saki, text: "コンドームは、毎回使ってほしい。" }
+          - { who: saki, text: "ピルのことも、婦人科で聞いてみようかなって。" }
+          - { who: kei, text: "うん。わかった。いっしょに調べよう。" }
+          - { who: kei, kind: inner, text: "（話してよかった。二人のことだから）" }
+        next: together
+      - id: condom
+        lines:
+          - { who: kei, text: "毎回、コンドームを使おう。" }
+          - { who: saki, text: "うん。そう言ってくれて、安心した。", face: smile }
+        next: together
+      - id: withdrawal
+        lines:
+          - { who: kei, text: "外に出せば、大丈夫だよ。" }
+          - { who: saki, text: "……そうなの？", face: anxious }
+          - { who: kei, kind: inner, text: "（友だちもそう言ってたし）" }
+        next: together
+      - id: together
+        lines:
+          - { who: narration, kind: fade, text: "――" }
+          - { who: kei, kind: inner, text: "（サキといると、安心する）", face: smile }
         next: trouble
       - id: trouble
-        text: "ふたりで過ごす時間が増えた、この1年。"
+        lines:
+          - { who: narration, text: "二人で過ごす時間が増えた、この1年。" }
         chance:
           id: CH-CONTRACEPTION
           label: "この1年に、避妊のトラブルで妊娠に至りうる出来事が起きる確率"
@@ -160,10 +335,12 @@ events:
             happens: { next: notice }
             notHappens: { setFlags: { pregnant: false }, next: noTrouble }
       - id: noTrouble
-        text: "この1年、避妊のトラブルは起きなかった。"
+        lines:
+          - { who: narration, text: "この1年、避妊のトラブルは起きなかった。" }
         next: END
       - id: notice
-        text: "ある夜のこと。"
+        lines:
+          - { who: narration, text: "ある夜のこと。" }
         branches:
           - when: "flags.method == 'withdrawal' && flags.knowsWithdrawalUnreliable != true"
             next: unaware
@@ -171,28 +348,35 @@ events:
             next: awareW
         next: awareC
       - id: unaware
-        text: "外に出したから大丈夫だと、ケイもサキも思っていた。"
+        lines:
+          - { who: kei, kind: inner, text: "（外に出したから、大丈夫なはず）" }
+          - { who: narration, text: "ケイもサキも、そう思っていた。" }
         next: ec
       - id: awareW
-        text: "外に出したつもりだった。でも、それが確実な避妊にならないことを、ケイは知っている。"
+        lines:
+          - { who: kei, kind: inner, text: "（外に出したつもりだった。でも、それは確実な避妊じゃない）", face: anxious }
         next: ecAsk
       - id: awareC
-        text: "終わったあとで、コンドームが破れていたことに気づいた。"
+        lines:
+          - { who: saki, text: "……ねえ、コンドーム、破れてない？", face: anxious }
+          - { who: kei, kind: inner, text: "（……ほんとだ）", face: anxious }
         next: ecAsk
       - id: ecAsk
-        text: "緊急避妊薬は、性交後72時間以内に飲むのが原則だという。"
+        lines:
+          - { who: saki, text: "緊急避妊薬って、72時間以内だよね。" }
         choices:
           - id: use
-            label: "緊急避妊薬を入手する"
+            label: "「いっしょに買いに行こう」"
             canonical: true
             setFlags: { usedEC: true }
             next: getEC
           - id: wait
-            label: "様子を見る"
+            label: "「たぶん、大丈夫だよ」"
             setFlags: { usedEC: false }
             next: ec
       - id: getEC
-        text: "サキと二人で、どこで手に入るかを調べた。"
+        lines:
+          - { who: narration, text: "二人で、どこで手に入るかを調べた。" }
         branches:
           - when: "cond.ecAccess == 'prescriptionOnly'"
             next: clinic
@@ -200,13 +384,18 @@ events:
       - id: clinic
         effects:
           - { param: options, sign: -1, size: S, source: society, statRef: S11, note: "受診しないと買えない" }
-        text: "この頃は、受診して処方を受けないと買えなかった。仕事を抜けて、二人で病院を探した。"
+        lines:
+          - { who: narration, text: "この頃は、受診して処方を受けないと買えなかった。" }
+          - { who: kei, kind: inner, text: "（仕事を抜けて、開いている病院を探すしかない）" }
         next: costCheck
       - id: pharmacy
-        text: "近くの薬局で、薬剤師に相談した。処方箋はいらず、サキは薬剤師の前で薬を飲んだ。"
+        lines:
+          - { who: narration, text: "近くの薬局で、薬剤師に相談した。" }
+          - { who: narration, text: "処方箋はいらず、サキは薬剤師の前で薬を飲んだ。" }
         next: costCheck
       - id: costCheck
-        text: "薬を受け取って、店を出た。"
+        lines:
+          - { who: narration, text: "薬を受け取って、店を出た。" }
         branches:
           - when: "up.economy == 'hardship'"
             next: cost
@@ -214,10 +403,13 @@ events:
       - id: cost
         effects:
           - { param: options, sign: -1, size: S, source: upbringing, statRef: S11, note: "薬代7,480円の負担" }
-        text: "薬の値段は7,480円だった。今月の家計を思い浮かべると、小さくない金額だ。二人で出し合って払った。"
+        lines:
+          - { who: kei, kind: inner, text: "（7,480円。今月の家計には、小さくない）" }
+          - { who: narration, text: "二人で出し合って払った。" }
         next: ec
       - id: ec
-        text: "あとは、結果を待つしかない。"
+        lines:
+          - { who: narration, text: "あとは、結果を待つしかない。" }
         chance:
           id: CH-EC
           label: "妊娠が成立する確率"
@@ -228,29 +420,40 @@ events:
             happens: { setFlags: { pregnant: true }, next: pregnant }
             notHappens: { setFlags: { pregnant: false }, next: notPregnant }
       - id: pregnant
-        text: "しばらくして、サキから連絡が来た。「妊娠しているみたい」。"
+        lines:
+          - { who: saki, kind: message, text: "妊娠してるみたい。" }
+          - { who: kei, kind: inner, text: "（……）", face: anxious }
         next: END
       - id: notPregnant
-        text: "しばらくして、月経が来たとサキから連絡があった。二人で、これからの避妊について話した。"
+        lines:
+          - { who: saki, kind: message, text: "月経、来たよ。" }
+          - { who: kei, kind: message, text: "よかった。これからのこと、また話そう。" }
         next: END
 
+  # ───────── ユウ：自分を表す言葉と、アオイ（付録B-30） ─────────
   - id: E19-YU-COMINGOUT
     age: 19
     characters: [yu]
     kind: fixed
-    domains: [性の多様性, 人権]
+    domains: [性の多様性, 人権, 同意]
     statCard: [S24]
-    stage: { place: campus, time: day, cast: [{ id: yu }] }
+    stage: { place: campus, time: dusk, cast: [{ id: yu, x: 30 }, { id: aoi, x: 62 }] }
+    summary: "サークルのアオイと近づき、気持ちを伝え合った。"
     status: draft
     scenes:
       - id: start
         effects:
           - { param: psychSafety, sign: -1, size: S, source: upbringing, when: "up.comingOutAnxiety == true", note: "話した後の反応が不安" }
-        text: "大学で、よく話す友人ができた。恋愛の話になると、ユウは少しだけ黙ってしまう。"
+        lines:
+          - { who: narration, text: "軽音サークルで、ひとつ上のアオイと話すようになった。" }
+          - { who: aoi, text: "ユウもそのバンド好きなの？　あのアルバム、最高だよね。" }
+          - { who: yu, kind: inner, text: "（アオイさんといると、時間が早い）", face: smile }
+          - { who: yu, kind: inner, text: "（……この気持ちは、たぶん、好きってことだ）" }
         next: word
       - id: word
         # §11-6：自認の言葉は、本人が選ぶ場面を経てから使う。どれを選んでも正解・不正解はない
-        text: "自分のことを、どんな言葉で表すか。考える時間は、これまでにもたくさんあった。"
+        lines:
+          - { who: yu, kind: inner, text: "（自分のことを、どんな言葉で表そう）" }
         choices:
           - id: lesbian
             label: "「レズビアン」がしっくりくる"
@@ -258,14 +461,14 @@ events:
             effects:
               - { param: autonomy, sign: 1, size: S, source: choice, note: "自分の言葉を選んだ" }
             setFlags: { yuWord: lesbian }
-            next: tell
+            next: walk
           - id: bi
             label: "「バイセクシュアル」がしっくりくる"
             neutral: true
             effects:
               - { param: autonomy, sign: 1, size: S, source: choice, note: "自分の言葉を選んだ" }
             setFlags: { yuWord: bisexual }
-            next: tell
+            next: walk
           - id: none
             label: "今は、言葉を決めない"
             neutral: true
@@ -273,30 +476,65 @@ events:
             effects:
               - { param: autonomy, sign: 1, size: S, source: choice, note: "決めない自由を選んだ" }
             setFlags: { yuWord: none }
-            next: tell
-      - id: tell
-        text: "友人に、自分のことを話すかどうか。"
+            next: walk
+      - id: walk
+        lines:
+          - { who: narration, text: "練習の帰り道。駅までの道を、二人で歩く。" }
+          - { who: aoi, text: "ユウ。あのさ。" }
+          - { who: aoi, text: "ユウのこと、好きなんだ。付き合ってほしい。" }
         choices:
-          - id: talk
-            label: "話す"
-            neutral: true
-            effects:
-              - { param: connection, sign: 1, size: M, source: choice, note: "友人に話した" }
-            setFlags: { yuOut19: true }
-            next: talked
-          - id: notYet
-            label: "まだ話さない"
+          - id: yes
+            label: "「私も、好きです」"
             neutral: true
             canonical: true
             effects:
-              - { param: autonomy, sign: 1, size: S, source: choice, note: "話す時を自分で選ぶ" }
+              - { param: connection, sign: 1, size: M, source: choice, note: "気持ちを伝えた" }
+            setFlags: { yuOut19: true }
+            next: hand
+          - id: think
+            label: "「少し、考えさせてください」"
+            neutral: true
+            effects:
+              - { param: autonomy, sign: 1, size: S, source: choice, note: "考える時間をとった" }
             setFlags: { yuOut19: false }
-            next: notTalked
-      - id: talked
+            next: think
+      - id: hand
+        lines:
+          - { who: yu, text: "……私も、好きです。" }
+          - { who: aoi, text: "ほんと？　……よかった。", face: smile }
+          - { who: aoi, text: "手、つないでもいい？" }
+        choices:
+          - id: ok
+            label: "「うん」"
+            neutral: true
+            canonical: true
+            effects:
+              - { param: autonomy, sign: 1, size: S, source: choice, note: "気持ちを言えた" }
+            next: handOk
+          - id: notYet
+            label: "「まだ、ちょっと恥ずかしい」"
+            neutral: true
+            effects:
+              - { param: autonomy, sign: 1, size: S, source: choice, note: "気持ちを言えた" }
+            next: handNotYet
+      - id: handOk
         effects:
-          - { param: psychSafety, sign: 1, size: S, source: others, note: "友人が受け止めた" }
-        text: "友人は少し驚いてから、「教えてくれてありがとう」と言った。それだけで、肩の力が抜けた。"
+          - { param: psychSafety, sign: 1, size: S, source: others, note: "相手が確かめてくれた" }
+        lines:
+          - { who: narration, text: "駅までの道が、いつもより短かった。" }
+          - { who: yu, kind: inner, text: "（聞いてくれるの、うれしいな）", face: smile }
         next: END
-      - id: notTalked
-        text: "今は、まだ話さないと決めた。話すかどうか、いつ話すかは、ユウが決めていい。"
+      - id: handNotYet
+        effects:
+          - { param: psychSafety, sign: 1, size: S, source: others, note: "相手が受けとめた" }
+        lines:
+          - { who: aoi, text: "わかった。言ってくれて、ありがとう。" }
+          - { who: aoi, text: "ユウのペースでいいよ。" }
+          - { who: yu, kind: inner, text: "（この人となら、ちゃんと話せる）", face: relieved }
+        next: END
+      - id: think
+        lines:
+          - { who: yu, text: "少し、考えさせてください。" }
+          - { who: aoi, text: "うん。待ってる。急がなくていいからね。" }
+          - { who: yu, kind: inner, text: "（自分の気持ちを、ちゃんと確かめたい）" }
         next: END

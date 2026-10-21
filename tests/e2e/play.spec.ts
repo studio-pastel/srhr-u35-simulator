@@ -206,3 +206,27 @@ test('相手の視点は「そのころ、〇〇は……」から、のぞい�
   await page.getByRole('button', { name: '先へ進む' }).click();
   await expect(page.locator('.peek')).toHaveCount(0);
 });
+
+test('ミナミで遊ぶと、19歳のハルトの行動は「ハルトの決定（統計にもとづく）」の確率カードで決まる（付録B-12）', async ({ page }) => {
+  await start(page, 'ミナミ');
+  const reached = await page.evaluate(async () => {
+    const wait = () => new Promise((r) => setTimeout(r, 20));
+    for (let i = 0; i < 1500; i++) {
+      const main = document.querySelector('main')!;
+      if (main.innerText.includes('ハルトの決定（統計にもとづく）')) return true;
+      const b =
+        main.querySelector<HTMLButtonElement>('.choices button.btn') ??
+        main.querySelector<HTMLButtonElement>('button.next-tap') ??
+        main.querySelector<HTMLButtonElement>('button.btn:not(.small):not([disabled])');
+      b?.click();
+      await wait();
+    }
+    return false;
+  });
+  expect(reached).toBe(true);
+  const card = page.locator('article.panel');
+  await expect(card).toContainText('ハルトの暴力が、身体的・性的なものに進む確率');
+  await expect(card).toContainText('基本の確率23%');
+  await expect(card).toContainText('オッズ比1.92');
+  await expect(card).toContainText('オッズ比0.75');
+});

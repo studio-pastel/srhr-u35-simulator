@@ -1,5 +1,5 @@
 // 他の主人公の標準ルート（§6.8、付録A-19）と、パラメーターの軌跡。
-import { CHARACTER_IDS } from './constants';
+import { CHARACTER_IDS, HARUTO_ONLY_FLAGS } from './constants';
 import type { CharacterId, Content } from './schema';
 import type { Params, RunState } from './types';
 import { paramsFrom } from './effects';
@@ -17,13 +17,41 @@ export function autoPlay(content: Content, start: RunState): RunState {
   return s;
 }
 
+/** ハルトの行動を表すフラグを、ある周回から取り出す */
+function harutoFlags(run: RunState): Record<string, unknown> {
+  const out: Record<string, unknown> = {};
+  for (const f of HARUTO_ONLY_FLAGS) if (run.flags[f] !== undefined) out[f] = run.flags[f];
+  return out;
+}
+
+/** ハルトの視点の選択肢のうち、決まったハルトの行動（フラグ）と同じ結果になるものを選ぶ */
+function pinsFromHarutoFlags(content: Content, flags: Record<string, unknown>): Record<string, string> {
+  const pins: Record<string, string> = {};
+  for (const ch of content.chapters)
+    for (const ev of ch.events) {
+      if (!ev.viewpointSwitch) continue;
+      for (const sc of ev.scenes) {
+        if (sc.viewpoint !== 'haruto' || !sc.choices) continue;
+        const c = sc.choices.find((x) => {
+          const set = Object.entries(x.setFlags ?? {}).filter(([k]) => (HARUTO_ONLY_FLAGS as readonly string[]).includes(k));
+          return set.length > 0 && set.every(([k, v]) => flags[k] === v);
+        });
+        if (c) pins[`${ev.id}/${sc.id}`] = c.id;
+      }
+    }
+  return pins;
+}
+
 /**
  * 主人公以外の1人の標準ルート。
  * - 確率ノードは同じ seed で解決する（§6.5 の方式のため、乱数を消費しない）。
  * - 視点切替のあるイベントでは、プレイヤーがその周回で選んだ選択を優先する（付録A-19）。
- *   例：ハルトで遊んで19歳で「振り返る」を選んだら、ミナミの標準ルートでもハルトは止まる。
+ * - ハルトの行動は、どの標準ルートでも1つにそろえる（付録B-32）。
+ *   ハルトで遊んでいるときは、プレイヤーの選択（フラグ）をミナミの標準ルートに最初から入れておく。
+ *   ハルト以外で遊んでいるときは、ミナミの側で決まった「ハルトの決定」（確率）にハルトの標準ルートを合わせる。
+ *   `minamiRoute` は、ミナミの標準ルートを先に計算した結果（ユウ・ケイで遊んでいるとき）。
  */
-export function standardRoute(content: Content, run: RunState, character: CharacterId): RunState {
+export function standardRoute(content: Content, run: RunState, character: CharacterId, minamiRoute?: RunState): RunState {
   const shared: Record<string, string> = {};
   for (const ch of content.chapters)
     for (const ev of ch.events) {
@@ -35,13 +63,20 @@ export function standardRoute(content: Content, run: RunState, character: Charac
     }
   const s = createRun(content, { protagonist: character, seed: run.seed, conditions: run.conditions, avatarSalts: run.avatarSalts, runId: `${run.runId}-${character}` });
   s.conditions = { ...run.conditions };
+  if (character === 'minami' && run.protagonist === 'haruto') Object.assign(s.flags, harutoFlags(run));
+  if (character === 'haruto' && run.protagonist !== 'haruto') {
+    const decided = run.protagonist === 'minami' ? run : minamiRoute;
+    if (decided) Object.assign(shared, pinsFromHarutoFlags(content, harutoFlags(decided)));
+  }
   s.pinnedChoices = shared;
   return autoPlay(content, s);
 }
 
 export function standardRoutes(content: Content, run: RunState): Partial<Record<CharacterId, RunState>> {
   const out: Partial<Record<CharacterId, RunState>> = {};
-  for (const id of CHARACTER_IDS) if (id !== run.protagonist) out[id] = standardRoute(content, run, id);
+  // ミナミを先に計算する（ハルトの標準ルートを、ミナミの側で決まったハルトの行動に合わせるため）
+  if (run.protagonist !== 'minami') out.minami = standardRoute(content, run, 'minami');
+  for (const id of CHARACTER_IDS) if (id !== run.protagonist && id !== 'minami') out[id] = standardRoute(content, run, id, out.minami);
   return out;
 }
 

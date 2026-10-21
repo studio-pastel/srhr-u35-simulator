@@ -433,3 +433,42 @@
     year: "2017年"
   verified: true
   jpData: false
+
+- id: S35
+  label: "デートDVの被害のうち、身体的・性的な被害を含む割合（S07からの解釈）"
+  value: "23.0〜33.1%（S07の「干渉・精神的暴力だけ」66.9〜77.0%の残り）。19歳のミナミに合う群（大学生の女性）の値は原文で確認できていないため、下限の23.0%を仮に使う"
+  cardText: "日本では、デートDVの被害を経験した若者の23.0〜33.1%が、干渉や精神的な暴力だけでなく、身体的・性的な被害も受けていました。"
+  numbers: { p: 0.23 }
+  definition: "S07（第9回青少年の性行動全国調査）からの解釈。群ごとの値を原文で確認するまで暫定（付録B-14・B-32）"
+  source:
+    title: "日本性教育協会 第9回青少年の性行動全国調査（現代性教育研究ジャーナル No.166）"
+    url: "https://www.jase.faje.or.jp/jigyo/journal/seikyoiku_journal_202501.pdf"
+    year: "2023年度"
+  verified: false
+  jpData: true
+
+- id: S36
+  label: "親の間の暴力を見て育つことと、大人になってからの交際相手への暴力"
+  value: "子どものころに親の間の暴力にさらされた男性は、大人になって交際相手に暴力をふるうオッズ比が1.92（95%CI：1.60〜2.29）"
+  cardText: "アフリカでは、子どものころに親の間の暴力を見て育った男性は、交際相手に暴力をふるうオッズ比が1.92でした。"
+  numbers: { oddsRatio: 1.92 }
+  definition: "アフリカ29か国・48研究のメタ解析（Wadji ほか、Trauma, Violence, & Abuse、2024年オンライン公開）。関連であって、親の暴力を見た人が必ず暴力をふるうわけではない。抄録で確認、本文は未確認"
+  source:
+    title: "Wadji, Pirro, Langevin: A Systematic Review and Meta-Analysis of the Association between Childhood Exposure to Intimate Partner Violence and Intimate Partner Violence Victimization/Perpetration in Adulthood in Africa"
+    url: "https://journals.sagepub.com/doi/10.1177/15248380241287144"
+    year: "2024年"
+  verified: false
+  jpData: false
+
+- id: S37
+  label: "若者向けのデートDV予防プログラムの効果"
+  value: "暴力をふるう行動への効果量0.157（38研究のメタ解析）。オッズ比に換算すると約0.75。学校での予防プログラムでは、行動への効果は有意でなかったとするメタ解析もある"
+  cardText: "海外では、若者向けのデートDV予防の学びで、交際相手に暴力をふるう行動が減ったとする研究と、行動までは変わらなかったとする研究があります。"
+  numbers: { oddsRatio: 0.75 }
+  definition: "Lee & Wong 2020（Journal of Experimental Criminology）。効果量（標準化平均差）0.157 を、ln(OR) = d × π/√3 でオッズ比に換算した。反対の結果は De La Rue ほか 2017（Review of Educational Research、学校での23研究）。検索結果の要約で確認、本文は未確認"
+  source:
+    title: "Lee & Wong (2020) Journal of Experimental Criminology"
+    url: "https://ojp.gov/ncjrs-virtual-library/redirect/308082"
+    year: "2020年"
+  verified: false
+  jpData: false

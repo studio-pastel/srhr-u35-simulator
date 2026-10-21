@@ -5,3 +5,5 @@ export const SOURCES = ['choice', 'upbringing', 'society', 'others', 'chance'] a
 export const CHARACTER_IDS = ['minami', 'haruto', 'yu', 'kei'] as const;
 export const AGES = [16, 17, 19, 21, 24, 27, 30, 35] as const;
 export const EFFECT_SIZES = ['S', 'M', 'L'] as const;
+/** ハルトの行動を表すフラグ。ハルトの視点か「ハルトの決定」の確率ノードからだけ書き換える（P7、付録B-12） */
+export const HARUTO_ONLY_FLAGS = ['harutoRoute', 'harutoControl17', 'harutoConsent17'] as const;

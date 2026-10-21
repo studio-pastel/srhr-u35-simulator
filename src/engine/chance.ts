@@ -12,14 +12,19 @@ export interface ChanceComputation {
 
 const clamp01 = (x: number) => Math.min(1, Math.max(0, x));
 
-/** base から始め、条件に合う modifier を順に適用する。set は置き換え、mul は掛け算。最後に 0〜1 に丸める */
+/** オッズ比を確率に当てはめる：p のオッズに or を掛けて、確率に戻す */
+export function applyOddsRatio(p: number, or: number): number {
+  return (or * p) / (1 - p + or * p);
+}
+
+/** base から始め、条件に合う modifier を順に適用する。set は置き換え、mul は掛け算、odds はオッズ比。最後に 0〜1 に丸める */
 export function computeChance(node: ChanceNode, ctx: EvalContext): ChanceComputation {
   let p = node.base.value;
   const modifiersApplied: AppliedModifier[] = [];
   for (const m of node.modifiers) {
     if (!check(m.when, ctx)) continue;
     const from = p;
-    p = m.op === 'set' ? m.value : p * m.value;
+    p = m.op === 'set' ? m.value : m.op === 'odds' ? applyOddsRatio(p, m.value) : p * m.value;
     modifiersApplied.push({ source: m.source, op: m.op, value: m.value, statRef: m.statRef, note: m.note, from, to: p });
   }
   return { base: node.base.value, modifiersApplied, finalP: clamp01(p) };

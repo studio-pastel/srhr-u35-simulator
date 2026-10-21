@@ -38,7 +38,8 @@ export interface ValidateResult {
 }
 
 /** P7：これらのフラグは、ハルトの視点のシーンからだけ書き換えられる（§6.7） */
-export const HARUTO_ONLY_FLAGS = ['harutoRoute', 'harutoControl17', 'harutoConsent17'] as const;
+import { HARUTO_ONLY_FLAGS } from './constants';
+export { HARUTO_ONLY_FLAGS };
 
 const ALL_AGES = [16, 17, 19, 21, 24, 27, 30, 35];
 
@@ -302,6 +303,11 @@ function checkEvent(ev: GameEvent, k: Checkers): void {
     if (sc.chance) {
       const node = sc.chance;
       const nw = `${w}[${node.id}]`;
+      const harutoDecision = node.actorLabel?.startsWith('ハルト') ?? false;
+      if (harutoDecision)
+        node.modifiers.forEach((m, i) => {
+          if (/\bflags\./.test(m.when)) errors.push(`${nw}.modifiers[${i}]：ハルトの決定の確率に、選択（flags）を使えません（P7、付録B-12）`);
+        });
       k.statRef(`${nw}.base`, node.base.statRef, 'probability');
       node.modifiers.forEach((m, i) => {
         k.expr(`${nw}.modifiers[${i}].when`, m.when);
@@ -317,7 +323,9 @@ function checkEvent(ev: GameEvent, k: Checkers): void {
             errors.push(`${ow}.effects[${i}]：確率ノードの結果効果の要因は chance だけです（${e.source} と書かれています。§6.4-3）`);
         });
         effectCheck(ow, o.effects);
-        protectedFlags(ow, sc, o.setFlags);
+        // ハルトの決定（付録B-12）は、ハルト以外の視点でもハルトのフラグを決めてよい。
+        // そのかわり、確率を変える要因に選択（flags）を使わない（P7：ミナミの選択でハルトの行動を変えない）
+        if (!harutoDecision) protectedFlags(ow, sc, o.setFlags);
         nextRef(ow, sc, o.next);
       }
     }

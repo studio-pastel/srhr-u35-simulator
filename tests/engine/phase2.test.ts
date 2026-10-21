@@ -52,12 +52,26 @@ describe('標準ルート（§6.8、付録A-19）', () => {
     expect(standardRoute(real, blame, 'minami').completedEvents).toContain('E21-MINAMI-STALKING');
   });
 
-  it('ミナミで遊んでハルトの視点で選んだ場合も、ハルトの標準ルートに反映する', () => {
-    const run = playPicking('minami', {});
-    expect(run.flags.harutoRoute).toBe('continued'); // 視点を切り替えなかった（canonical）
-    const pinned = structuredClone(run);
-    pinned.choices['E19-MH-ESCALATE/h-choose'] = 'reflect';
-    expect(standardRoute(real, pinned, 'haruto').flags.harutoRoute).toBe('stopped');
+  it('ミナミで遊ぶと、ハルトの標準ルートは、ミナミの側で決まった「ハルトの決定」に合う（付録B-32）', () => {
+    for (const seed of ['0'.repeat(32), '1'.repeat(32), '2'.repeat(32), '3'.repeat(32)]) {
+      const run = playThrough(real, createRun(real, { protagonist: 'minami', seed }), () => 0);
+      expect(standardRoute(real, run, 'haruto').flags.harutoRoute).toBe(run.flags.harutoRoute);
+    }
+  });
+
+  it('ユウで遊ぶと、ミナミとハルトの標準ルートで、ハルトの行動がそろう', () => {
+    for (const seed of ['0'.repeat(32), '1'.repeat(32), '2'.repeat(32), '3'.repeat(32)]) {
+      const run = playThrough(real, createRun(real, { protagonist: 'yu', seed }), () => 0);
+      const r = standardRoutes(real, run);
+      expect(r.haruto!.flags.harutoRoute).toBe(r.minami!.flags.harutoRoute);
+    }
+  });
+
+  it('ハルトで遊んで17歳で押した場合、ミナミの標準ルートでもミナミは帰る場面になる', () => {
+    const run = playPicking('haruto', { 'E17-MH-TALK/h-notYet': 'press' });
+    expect(run.flags.harutoConsent17).toBe('pressed');
+    expect(standardRoute(real, run, 'minami').choices['E17-MH-TALK/m-choose']).toBe('notYet');
+    expect(standardRoute(real, run, 'minami').ledger.some((e) => e.eventId === 'E17-MH-TALK' && e.sceneId === 'm-respected')).toBe(false);
   });
 
   it('軌跡は開始時と8章ぶんの点を持つ', () => {

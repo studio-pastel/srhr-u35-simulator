@@ -110,6 +110,8 @@ describe('CH-EC（§10.4）', () => {
       (n, s) => {
         const sc = currentScene(real, s)!;
         if (s.position.eventId === 'E17-KEI-MYTH') return sc.choices!.findIndex((c) => c.id === (believe ? 'believe' : 'research'));
+        // 19歳でサキと話すときも「外に出せば、大丈夫だよ」を選ぶ（17歳で信じた場合だけ出る選択肢）
+        if (believe && s.position.eventId === 'E19-KS-CONTRACEPTION' && sc.id === 'start') return 2;
         return 0;
       },
       { override: () => true, onStep: (s) => s.position.eventId === 'E19-KS-CONTRACEPTION' && s.position.step === 'scene' && visited.push(s.position.sceneId) },
@@ -173,10 +175,29 @@ describe('視点切替と P7（§6.7）', () => {
     expect(results.size).toBe(1);
   });
 
-  it('ミナミのプレイで視点を切り替えなかった場合は、ハルトの canonical を使う', () => {
+  it('ミナミのプレイでは、17歳のハルトは canonical、19歳のハルトは確率（ハルトの決定）で決まる（付録B-12）', () => {
     const s = playThrough(real, createRun(real, { protagonist: 'minami', seed: '0'.repeat(32) }), () => 0);
     expect(s.flags.harutoControl17).toBe('continued');
-    expect(s.flags.harutoRoute).toBe('continued');
+    const node = s.chanceLog.find((c) => c.nodeId === 'CH-HARUTO19')!;
+    expect(node.actorLabel).toBe('ハルトの決定');
+    expect(s.flags.harutoRoute).toBe(node.happened ? 'continued' : 'stopped');
+  });
+
+  it('CH-HARUTO19：基本の確率23.0%に、生育条件と社会条件のオッズ比を掛ける。ミナミの選択は使わない', () => {
+    for (const sexEducation of ['taught', 'notTaught']) {
+      const s = playThrough(real, createRun(real, { protagonist: 'minami', seed: '0'.repeat(32), conditions: { sexEducation } }), () => 0);
+      const node = s.chanceLog.find((c) => c.nodeId === 'CH-HARUTO19')!;
+      expect(node.base).toBe(0.23);
+      expect(node.modifiersApplied.map((m) => m.source)).toEqual(sexEducation === 'taught' ? ['upbringing', 'society'] : ['upbringing']);
+      // 0.23 → オッズ比1.92 → 約36.4%、さらに 0.75 → 約30.1%
+      expect(node.finalP).toBeCloseTo(sexEducation === 'taught' ? 0.3008 : 0.3645, 3);
+    }
+  });
+
+  it('ハルトで遊ぶときは確率を使わず、プレイヤーの選択で決まる', () => {
+    const s = playThrough(real, createRun(real, { protagonist: 'haruto', seed: '0'.repeat(32) }), () => 0);
+    expect(s.chanceLog.some((c) => c.nodeId === 'CH-HARUTO19')).toBe(false);
+    expect(s.flags.harutoRoute).toBe('stopped'); // 最初の選択肢「自分の言動を振り返る」
   });
 
   it('相手の視点は、主人公の場面が終わったあとに「そのころ」として出る。選択肢はなく、パラメーターも動かない（付録B-11）', () => {
