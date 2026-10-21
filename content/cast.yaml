@@ -66,6 +66,11 @@
   look: { skin: "#e3b38f", hair: "#1f1f24", hairStyle: short, clothes: ["#3b3b3b", "#3b3b3b", "#3b3b3b"], pants: "#2b2b2b" }
 
 # ── 脇役（17歳以降）。名前は仮（付録B-5） ──
+- id: senpai
+  name: 先輩
+  role: 21歳の飲み会にいる先輩（サークル・職場。名前は付けない）
+  peerOffset: 2
+  look: { skin: "#e6b896", hair: "#4a3a30", hairStyle: short, clothes: ["#b0704a", "#b0704a", "#b0704a"], pants: "#3a3f4a" }
 - id: takumi
   name: タクミ
   role: ケイの友だち

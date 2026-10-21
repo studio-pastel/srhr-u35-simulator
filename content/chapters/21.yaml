@@ -1,12 +1,14 @@
-# 21歳の章（SPEC.md §10.3）。Claude Code の下書き。すべて status: draft。
+# 21歳の章（SPEC.md §10.3）。会話中心の形式（付録B-2）。Claude Code の下書き。すべて status: draft。
 #
-# 文字数の上限（src/engine/limits.ts、SPEC.md 付録A-7）
-#   シーン本文 text ……… 200字以内（超えると警告）
-#   選択肢 label ………… 30字以内（超えると警告）
-#   効果 note …………… 20字以内（超えるとエラー。ビルドが止まる）
+# 文字数の上限（src/engine/limits.ts）
+#   吹き出し lines[].text …… 40字以内（超えると警告）
+#   選択肢 label ………………… 30字以内（超えると警告）
+#   効果 note ………………………… 20字以内（超えるとエラー。ビルドが止まる）
+#   とばしたときの要約 summary … 40字以内（超えると警告）
 #
-# P7：つきまといが止まるかどうかを、ミナミの選択で変えない。
+# P7：つきまといが止まるかどうかを、ミナミの選択で変えない。21歳のつきまといは、19歳の結果に従う（付録B-13）。
 # T9：加害者向けの相談先は、特定の窓口名を出さない。
+# 付録B-33：飲み会は、飲み方と、まわりの人への気づかいだけを扱う。性的同意の話にはつながない（B-30 の追記）。
 age: 21
 title: "21歳"
 season: "冬"
@@ -14,46 +16,161 @@ status: draft
 intro:
   minami: "大学3年の冬。ハルトとは、少し前に別れた。"
   haruto: "大学3年の冬。ミナミとは、少し前に別れた。"
-  yu: "大学3年の冬。自治体から、いろいろな案内が届くようになった。"
+  yu: "大学3年の冬。アオイと付き合って、もうすぐ2年になる。"
   kei: "働き始めて3年目の冬。サキとの付き合いは続いている。"
 events:
+  # ───────── 4人とも：20歳を過ぎて、最初の大きな飲み会（付録B-33） ─────────
+  - id: E21-ALL-DRINK
+    age: 21
+    characters: [minami, haruto, yu, kei]
+    kind: fixed
+    domains: [飲酒, からだ]
+    statCard: [S39]
+    stage: { place: izakaya, time: night, cast: [{ id: self, x: 28 }, { id: senpai, x: 62 }] }
+    summary: "飲み会で、自分のお酒の飲み方を考えた。"
+    status: draft
+    scenes:
+      - id: start
+        lines:
+          - { who: narration, text: "年末の飲み会。20人ほどが集まった。" }
+          - { who: senpai, text: "とりあえず、みんな同じのでいいよね！" }
+          - { who: self, kind: inner, text: "（お酒、まだそんなに飲んだことない）", face: anxious }
+          - { who: senpai, text: "ほら、もう1杯いけるでしょ？" }
+        choices:
+          - id: ownPace
+            label: "「自分のペースで飲みます」"
+            canonical: true
+            effects:
+              - { param: autonomy, sign: 1, size: S, source: choice, note: "自分のペースを守った" }
+            setFlags: { drink21: ownPace }
+            next: ownPace
+          - id: soft
+            label: "「次は、ウーロン茶にします」"
+            effects:
+              - { param: autonomy, sign: 1, size: S, source: choice, note: "飲まないと伝えた" }
+            setFlags: { drink21: soft }
+            next: soft
+          - id: along
+            label: "勧められるまま飲む"
+            effects:
+              - { param: body, sign: -1, size: S, source: choice, statRef: S39, note: "飲みすぎた" }
+            setFlags: { drink21: along }
+            next: along
+      - id: ownPace
+        lines:
+          - { who: self, text: "自分のペースで飲みます。" }
+          - { who: senpai, text: "お、いいね。そういうの大事。", face: smile }
+          - { who: self, kind: inner, text: "（言ってみたら、べつに空気は悪くならなかった）", face: relieved }
+        next: friend
+      - id: soft
+        lines:
+          - { who: self, text: "次は、ウーロン茶にします。" }
+          - { who: senpai, text: "了解！　すみません、ウーロン茶ひとつ！" }
+          - { who: self, kind: inner, text: "（飲まなくても、ちゃんと楽しい）", face: smile }
+        next: friend
+      - id: along
+        lines:
+          - { who: narration, text: "断るタイミングがわからないまま、グラスが空いていく。" }
+          - { who: self, kind: inner, text: "（……ちょっと、天井が回ってる）", face: anxious }
+        next: friend
+      - id: friend
+        lines:
+          - { who: narration, text: "隣の席の友だちが、顔を真っ赤にして、もう1杯頼もうとしている。" }
+          - { who: self, kind: inner, text: "（……大丈夫かな）" }
+        choices:
+          - id: water
+            label: "水を頼んで、隣にいる"
+            canonical: true
+            effects:
+              - { param: connection, sign: 1, size: S, source: choice, note: "友だちを気づかった" }
+            next: water
+          - id: stopSenpai
+            label: "「もう勧めないであげてください」"
+            effects:
+              - { param: connection, sign: 1, size: S, source: choice, note: "友だちを気づかった" }
+              - { param: autonomy, sign: 1, size: S, source: choice, note: "先輩に意見を言えた" }
+            next: stopSenpai
+      - id: water
+        lines:
+          - { who: self, text: "すみません、お水ふたつください。" }
+          - { who: narration, text: "友だちは水を飲んで、少し落ち着いた。" }
+        next: home
+      - id: stopSenpai
+        lines:
+          - { who: self, text: "あの、もう勧めないであげてください。" }
+          - { who: senpai, text: "あ、ごめんごめん。無理させちゃだめだよね。" }
+        next: home
+      - id: home
+        stage: { place: station, time: night, cast: [{ id: self, x: 34 }] }
+        lines:
+          - { who: narration, text: "帰り道。友だちが改札を通るのを、見送った。" }
+        branches:
+          - when: "flags.drink21 == 'along'"
+            next: homeAlong
+        next: homeOk
+      - id: homeOk
+        lines:
+          - { who: self, kind: inner, text: "（楽しく飲めるくらいが、ちょうどいいのかも）", face: smile }
+        next: END
+      - id: homeAlong
+        lines:
+          - { who: self, kind: inner, text: "（……明日、絶対つらい。次は、自分で量を決めよう）", face: sad }
+        next: END
+
+  # ───────── ケイ：サキの妊娠 ─────────
   - id: E21-KS-PREGNANCY
     age: 21
     characters: [kei]
     kind: chance
     domains: [予期せぬ妊娠, 人工妊娠中絶]
     requires: "flags.pregnant == true"
-    triggerWarning: "この章には、妊娠と人工妊娠中絶について話し合う場面があります。"
     statCard: [S27, S10]
     resources: [health]
-    stage: { place: living, time: night, cast: [{ id: kei }, { id: saki }] }
+    stage: { place: living, time: night, cast: [{ id: kei, x: 30 }, { id: saki, x: 62 }] }
+    summary: "サキの妊娠がわかり、二人で何度も話した。決めたのはサキだった。"
     status: draft
     scenes:
       - id: start
-        text: "妊娠がわかってから、サキとは何度も話した。続けるか、人工妊娠中絶を選ぶか。決めるのはサキだと、ケイは分かっている。"
-        next: choose
-      - id: choose
-        text: "ケイにできることは、何だろう。"
+        lines:
+          - { who: narration, text: "妊娠がわかってから、サキとは何度も話した。" }
+          - { who: saki, text: "続けるか、やめるか……まだ、決められない。", face: anxious }
+          - { who: kei, kind: inner, text: "（決めるのは、サキだ。でも、おれにできることは何だろう）" }
         choices:
           - id: listen
-            label: "意見を押しつけずに話を聞く"
+            label: "意見を押しつけずに、話を聞く"
             canonical: true
             effects:
               - { param: connection, sign: 1, size: M, source: choice, note: "サキの話を聞いた" }
-            next: decide
+            next: listen
           - id: share
-            label: "費用と通院を分担する"
+            label: "「費用も通院も、半分ずつにしよう」"
             effects:
               - { param: connection, sign: 1, size: M, source: choice, note: "費用と通院を分担した" }
               - { param: options, sign: -1, size: S, source: upbringing, statRef: S22, when: "up.economy == 'hardship'", note: "家計に余裕がない" }
-            next: decide
+            next: share
           - id: distance
-            label: "距離を置く"
+            label: "連絡を返さなくなる"
             effects:
               - { param: connection, sign: -1, size: M, source: choice, note: "サキと距離を置いた" }
-            next: decide
+            next: distance
+      - id: listen
+        lines:
+          - { who: kei, text: "サキがどう思ってるか、ちゃんと聞きたい。" }
+          - { who: saki, text: "……ありがとう。いっしょに考えてくれて。", face: relieved }
+        next: decide
+      - id: share
+        lines:
+          - { who: kei, text: "どっちになっても、費用も通院も、半分ずつにしよう。" }
+          - { who: saki, text: "うん。……一人じゃないって思える。" }
+        next: decide
+      - id: distance
+        lines:
+          - { who: narration, text: "サキからのメッセージに、返事ができない日が続いた。" }
+          - { who: kei, kind: inner, text: "（どうしたらいいか、わからない）", face: sad }
+        next: decide
       - id: decide
-        text: "サキは、考えて、自分で決めた。"
+        lines:
+          - { who: narration, text: "サキは、考えて、自分で決めた。" }
         chance:
           id: CH-SAKI-DECISION
           label: "サキが人工妊娠中絶を選ぶ確率"
@@ -63,12 +180,17 @@ events:
             happens: { setFlags: { keiFather: false }, next: abortion }
             notHappens: { setFlags: { keiFather: true }, next: birth }
       - id: abortion
-        text: "サキは、人工妊娠中絶を選んだ。それは、サキが考えて決めたことだ。ケイは、その決定を大切にしたいと思う。"
+        lines:
+          - { who: saki, text: "……中絶を選ぶことにした。" }
+          - { who: kei, kind: inner, text: "（サキが考えて、決めたことだ。その決定を、大切にしたい）" }
         next: END
       - id: birth
-        text: "サキは、出産を選んだ。それは、サキが考えて決めたことだ。ケイは、これからの暮らしを考え始める。"
+        lines:
+          - { who: saki, text: "……産むことにした。" }
+          - { who: kei, kind: inner, text: "（サキが考えて、決めたことだ。これからの暮らしを考えよう）" }
         next: END
 
+  # ───────── ケイ：梅毒の検査 ─────────
   - id: E21-KEI-STI
     age: 21
     characters: [kei]
@@ -77,11 +199,15 @@ events:
     requires: "flags.pregnant != true"
     statCard: [S12]
     resources: [health]
-    stage: { place: clinic, time: day, cast: [{ id: kei }] }
+    stage: { place: bedroom, time: night, cast: [{ id: kei, x: 34, pose: phone }] }
+    summary: "梅毒が増えているという記事を読み、検査を受けるか考えた。"
     status: draft
     scenes:
       - id: start
-        text: "保健所で梅毒の検査を受けられると、ネットの記事で知った。報告の数が増えているという。"
+        lines:
+          - { who: narration, text: "寝る前に、ネットの記事を読んだ。" }
+          - { who: kei, kind: inner, text: "（梅毒の報告が、過去最多……？）" }
+          - { who: kei, kind: inner, text: "（保健所なら、無料・匿名で検査できるところもあるのか）" }
         choices:
           - id: test
             label: "保健所で検査を受ける"
@@ -94,32 +220,40 @@ events:
             next: notTested
       # 検査の結果は陰性で固定（感染確率の統計が未収集のため確率化しない。§10.3）
       - id: tested
-        text: "検査の結果は、陰性だった。気になることがあれば、また検査を受けられる。"
+        stage: { place: clinic, time: day, cast: [{ id: kei, x: 34 }] }
+        lines:
+          - { who: narration, text: "数日後、保健所で結果を聞いた。陰性だった。" }
+          - { who: kei, kind: inner, text: "（受けてみたら、思ったよりあっさりしてた）", face: relieved }
+          - { who: kei, kind: inner, text: "（サキにも、話してみよう）" }
         next: END
       - id: notTested
-        text: "今は受けないことにした。気になったときは、保健所や医療機関で相談できる。"
+        lines:
+          - { who: kei, kind: inner, text: "（今は、いいかな）" }
+          - { who: narration, text: "気になったときは、保健所や医療機関で相談できる。" }
         next: END
 
+  # ───────── ミナミ：別れたあとのつきまとい（19歳で暴力が進んだ場合だけ） ─────────
   - id: E21-MINAMI-STALKING
     age: 21
     characters: [minami]
     kind: branch
     domains: [対人暴力]
     requires: "flags.harutoRoute == 'continued'"
-    triggerWarning: "この章には、別れた交際相手からのつきまといに触れる場面があります。暴力の行為そのものは描きません。"
     statCard: [S03]
     resources: [violence]
-    stage: { place: station, time: night, cast: [{ id: minami, face: anxious }] }
+    stage: { place: station, time: night, cast: [{ id: minami, x: 34, face: anxious, pose: phone }] }
+    summary: "別れたあとも、ハルトからの連絡や待ち伏せが続いた。"
     status: draft
     scenes:
       - id: start
         effects:
           - { param: psychSafety, sign: -1, size: L, source: others, statRef: S03, note: "元交際相手のつきまとい" }
           - { param: safety, sign: -1, size: M, source: others, statRef: S03, note: "待ち伏せされる不安" }
-        text: "別れてから、ハルトからのメッセージが止まらない。駅で待っていたこともあった。帰り道、何度も後ろを振り返ってしまう。"
-        next: choose
-      - id: choose
-        text: "ミナミは、考える。"
+        lines:
+          - { who: narration, text: "別れてから、ハルトからのメッセージが止まらない。" }
+          - { who: haruto, kind: message, text: "なんで無視するの" }
+          - { who: haruto, kind: message, text: "駅で待ってる" }
+          - { who: minami, kind: inner, text: "（帰り道、何度も後ろを振り返ってしまう）", face: anxious }
         choices:
           - id: report
             label: "警察や相談窓口に連絡する"
@@ -136,50 +270,66 @@ events:
         effects:
           - { param: safety, sign: 1, size: M, source: others, note: "警察が対応を始めた" }
           - { param: psychSafety, sign: 1, size: M, source: others, note: "相談員が支えてくれた" }
-        text: "警察と相談窓口は、ミナミの話を記録して、安全のための方法を一緒に考えてくれた。"
+        lines:
+          - { who: counselor, text: "メッセージは、消さずに残しておいてください。" }
+          - { who: counselor, text: "安全のためにできること、いっしょに考えましょう。" }
+          - { who: minami, kind: inner, text: "（話を、ちゃんと記録してくれた）", face: relieved }
         next: end
       - id: notYet
-        text: "今は、誰にも言わないことにした。どうするかを決めるのは、ミナミだ。"
+        lines:
+          - { who: minami, kind: inner, text: "（今は、まだ誰にも言えない）" }
+          - { who: narration, text: "どうするかを決めるのは、ミナミだ。" }
         next: end
       - id: end
-        text: "つきまといがいつ止まるかは、ミナミの行動では決まらない。止めることができるのは、つきまとう側だけだ。"
+        lines:
+          - { who: narration, text: "つきまといがいつ止まるかは、ミナミの行動では決まらない。" }
+          - { who: narration, text: "止めることができるのは、つきまとう側だけだ。" }
         next: END
 
+  # ───────── ハルト：振り返り ─────────
   - id: E21-HARUTO-REFLECT
     age: 21
     characters: [haruto]
     kind: branch
     domains: [対人暴力, メンタルヘルス]
     statCard: [S01]
-    stage: { place: campus, time: dusk, cast: [{ id: haruto }] }
+    stage: { place: campus, time: dusk, cast: [{ id: haruto, x: 34 }] }
+    summary: "ミナミと別れたあと、自分の言動と向き合うかどうか考えた。"
     status: draft
     scenes:
       - id: start
-        text: "ミナミと別れてから、しばらくがたった。"
+        lines:
+          - { who: narration, text: "ミナミと別れてから、しばらくがたった。" }
         branches:
           - when: "flags.harutoRoute == 'stopped'"
             next: s1
         next: c1
-      # ── 止まった場合 ──
+      # ── 19歳で振り返った場合 ──
       - id: s1
-        text: "あの日から、自分の言動を振り返り続けている。一人で考えるだけでは、また同じことをしてしまいそうで、こわい。"
+        lines:
+          - { who: haruto, kind: inner, text: "（あの日から、自分の言動を振り返り続けている）" }
+          - { who: haruto, kind: inner, text: "（一人で考えるだけだと、また同じことをしそうで、こわい）", face: anxious }
         choices:
           - id: consult
-            label: "誰かに相談する"
+            label: "相談室に、続けて通う"
             canonical: true
             effects:
               - { param: autonomy, sign: 1, size: M, source: choice, note: "自分の行動を相談した" }
               - { param: connection, sign: 1, size: S, source: choice, note: "一人で抱えなかった" }
             next: consulted
           - id: notConsult
-            label: "相談しない"
+            label: "もう大丈夫だと思うことにする"
             next: sAlone
       - id: sAlone
-        text: "一人で抱えたまま、日々が過ぎていく。"
+        lines:
+          - { who: haruto, kind: inner, text: "（……もう、大丈夫なはずだ）" }
+          - { who: narration, text: "一人で抱えたまま、日々が過ぎていく。" }
         next: END
-      # ── 続いた場合 ──
+      # ── 19歳で相手のせいにした場合 ──
       - id: c1
-        text: "別れた後も、ミナミへの連絡をやめられなかった。新しく知り合った人にも、同じことを言いかけて、口をつぐむ。"
+        lines:
+          - { who: haruto, kind: inner, text: "（別れたあとも、ミナミへの連絡をやめられなかった）" }
+          - { who: haruto, kind: inner, text: "（新しく知り合った人にも、同じことを言いかけて、口をつぐむ）", face: sad }
         choices:
           - id: consult
             label: "誰かに相談する"
@@ -188,43 +338,74 @@ events:
               - { param: connection, sign: 1, size: S, source: choice, note: "一人で抱えなかった" }
             next: consulted
           - id: notConsult
-            label: "相談しない"
+            label: "「自分は悪くない」"
             canonical: true
             next: cAlone
       - id: cAlone
-        text: "「自分は悪くない」と思うことで、考えるのをやめた。"
+        lines:
+          - { who: haruto, kind: inner, text: "（自分は悪くない）" }
+          - { who: narration, text: "そう思うことで、考えるのをやめた。" }
         next: END
       - id: consulted
         effects:
           - { param: psychSafety, sign: 1, size: S, source: others, note: "話を聞いてもらえた" }
-        text: "大学の相談室で、すべてを話した。人を支配するような行動は学んで身についたもので、学び直すこともできると言われた。"
+        lines:
+          - { who: counselor, text: "話してくれて、ありがとうございます。" }
+          - { who: counselor, text: "人を支配するような行動は、学んで身についたもの。学び直すこともできます。" }
+          - { who: haruto, kind: inner, text: "（……変われるのかもしれない）", face: relieved }
         next: END
 
+  # ───────── ユウ：アオイと、からだのことを話す（付録B-30・B-32） ─────────
   - id: E21-YU-SCREENING
     age: 21
     characters: [yu]
     kind: fixed
-    domains: [がん予防]
-    statCard: []   # T7：子宮頸がん検診の受診率は未収集
+    domains: [がん予防, STI]
+    statCard: [S28, S12]
     resources: [health]
-    stage: { place: clinic, time: day, cast: [{ id: yu }] }
+    stage: { place: living, time: night, cast: [{ id: yu, x: 30 }, { id: aoi, x: 62 }] }
+    summary: "アオイと、検診や性感染症の予防のことを話した。"
     status: draft
     scenes:
       - id: start
-        text: "自治体から、子宮頸がん検診の案内が届いた。"
+        lines:
+          - { who: narration, text: "自治体から、子宮頸がん検診の案内が届いた。" }
+          - { who: aoi, text: "それ、私にも来てた。行こうかなって思ってる。" }
+          - { who: yu, kind: inner, text: "（女性どうしだから、関係ないと思ってたけど……）" }
+          - { who: aoi, text: "女性どうしでも、HPVとか性感染症はうつることがあるんだって。" }
+          - { who: aoi, text: "だから、二人のからだのこと、ちゃんと話しておきたくて。" }
         choices:
-          - id: go
-            label: "検診を受ける"
+          - id: together
+            label: "「いっしょに検診と検査に行こう」"
             canonical: true
             effects:
-              - { param: body, sign: 1, size: M, source: choice, note: "検診を受けた" }
-            next: went
+              - { param: body, sign: 1, size: M, source: choice, statRef: S28, note: "検診と検査を受けた" }
+              - { param: connection, sign: 1, size: S, source: choice, note: "からだのことを話せた" }
+            next: together
+          - id: screening
+            label: "「検診は、自分で予約してみる」"
+            effects:
+              - { param: body, sign: 1, size: M, source: choice, statRef: S28, note: "検診を受けた" }
+            next: screening
           - id: later
-            label: "後回しにする"
-            next: postponed
-      - id: went
-        text: "検診を受けた。わからないことは、その場で聞くことができた。"
+            label: "「今は、まだいいかな」"
+            next: later
+      - id: together
+        stage: { place: clinic, time: day, cast: [{ id: yu, x: 30 }, { id: aoi, x: 62 }] }
+        lines:
+          - { who: narration, text: "休みの日に、二人で検診と検査を受けた。" }
+          - { who: yu, kind: inner, text: "（わからないことも、その場で聞けた）" }
+          - { who: aoi, text: "帰りに、パンケーキ食べて帰ろ。", face: smile }
+          - { who: yu, kind: inner, text: "（からだのことを話せる相手がいるのって、安心する）", face: smile }
         next: END
-      - id: postponed
-        text: "案内はファイルにしまった。気になったときは、医療機関で相談できる。"
+      - id: screening
+        lines:
+          - { who: yu, text: "検診は、自分で予約してみる。" }
+          - { who: aoi, text: "うん。わからないことあったら、また話そう。" }
+        next: END
+      - id: later
+        lines:
+          - { who: yu, text: "今は、まだいいかな。" }
+          - { who: aoi, text: "そっか。気になったら、いつでも言ってね。" }
+          - { who: narration, text: "案内は、ファイルにしまった。気になったときは、医療機関で相談できる。" }
         next: END

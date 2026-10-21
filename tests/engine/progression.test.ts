@@ -350,3 +350,16 @@ describe('要因分解の表示用の集計', () => {
     expect(b.psychSafety.others).toEqual({ plus: 10, minus: -20 });
   });
 });
+
+describe('21歳の飲み会（付録B-33）', () => {
+  it.each(CHARACTER_IDS)('%s も飲み会の場面を通る。飲み方の選択は、からだ・自己決定だけを動かす', (id) => {
+    const s = playThrough(real, createRun(real, { protagonist: id, seed: '0'.repeat(32) }), (n, x) =>
+      x.position.eventId === 'E21-ALL-DRINK' && currentScene(real, x)!.id === 'start' ? 2 : 0,
+    );
+    expect(s.completedEvents).toContain('E21-ALL-DRINK');
+    expect(s.flags.drink21).toBe('along');
+    const drink = s.ledger.filter((e) => e.eventId === 'E21-ALL-DRINK');
+    expect(drink).toContainEqual(expect.objectContaining({ param: 'body', delta: -5, source: 'choice', statRef: 'S39' }));
+    expect(drink.every((e) => ['body', 'autonomy', 'connection'].includes(e.param))).toBe(true);
+  });
+});
