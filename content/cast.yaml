@@ -66,6 +66,16 @@
   look: { skin: "#e3b38f", hair: "#1f1f24", hairStyle: short, clothes: ["#3b3b3b", "#3b3b3b", "#3b3b3b"], pants: "#2b2b2b" }
 
 # ── 脇役（17歳以降）。名前は仮（付録B-5） ──
+- id: takumi
+  name: タクミ
+  role: ケイの友だち
+  peerOffset: 0
+  look: { skin: "#e6b48e", hair: "#3a2a22", hairStyle: mid, clothes: ["#4c7a8a", "#4c7a8a", "#4c7a8a"], pants: "#2f3542" }
+- id: netFriend
+  name: SNSの相手
+  role: ユウがSNSで知り合った相手（顔アイコンだけ。画面には描かない）
+  peerOffset: 0
+  look: { skin: "#d9c2ad", hair: "#55505a", hairStyle: short, clothes: ["#6a6f7a", "#6a6f7a", "#6a6f7a"], pants: "#3a3f4a" }
 - id: saki
   name: サキ
   role: ケイの交際相手

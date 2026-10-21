@@ -5,13 +5,13 @@ import { validateContent } from '../../src/engine/validate';
 import {
   advanceReview,
   advanceScene,
+  advancePeek,
   advanceStatCards,
   beginChapter,
   chapterResourceTags,
   choose,
   createRun,
   currentScene,
-  switchViewpoint,
 } from '../../src/engine/progression';
 import { AGES, CHARACTER_IDS } from '../../src/engine/schema';
 import type { Content } from '../../src/engine/schema';
@@ -179,28 +179,58 @@ describe('視点切替と P7（§6.7）', () => {
     expect(s.flags.harutoRoute).toBe('continued');
   });
 
-  it('ハルトの視点で選んだ場合は、その選択が harutoControl17 を決める', () => {
+  it('相手の視点は、主人公の場面が終わったあとに「そのころ」として出る。選択肢はなく、パラメーターも動かない（付録B-11）', () => {
     let s = atE17(real, 'minami');
-    s = switchViewpoint(real, s, 'haruto');
-    // h-start → h-think → (h-know) → h-choose
-    while (!currentScene(real, s)!.choices) s = advanceScene(real, s);
+    expect(s.position.viewpoint).toBe('minami');
+    while (s.position.step === 'scene') s = playStep(s);
+    expect(s.position.step).toBe('peek');
+    expect(s.position.eventId).toBe('E17-MH-CONTROL');
+    const track = s.position.peek!.find((t) => t.viewpoint === 'haruto')!;
+    // ハルトの視点は canonical（確かめつづける）で進んでいる
+    expect(track.scenes.find((x) => x.sceneId === 'h-choose')?.choiceId).toBe('keepChecking');
+    expect(s.flags.harutoControl17).toBe('continued');
     const before = { ...s.params };
-    s = choose(real, s, 'stop');
-    expect(s.flags.harutoControl17).toBe('stopped');
-    expect(s.params).toEqual(before); // ハルトの選択でミナミのパラメーターは動かない
-    s = advanceScene(real, s); // h-stop → END
-    expect(s.position.viewpoint).toBe('minami'); // 読み終えたら主人公の視点に戻る
-    expect(s.position.tracksDone?.haruto).toBe(true);
+    const ledger = s.ledger.length;
+    s = advancePeek(real, s);
+    expect(s.params).toEqual(before);
+    expect(s.ledger.length).toBe(ledger);
+    expect(s.completedEvents).toContain('E17-MH-CONTROL');
   });
 
-  it('ハルトを主人公にした場合、ミナミの視点の選択でパラメーターは動かない', () => {
+  it('ハルトを主人公にした場合、ミナミの視点の効果も選択もハルトに付かない', () => {
     let s = atE17(real, 'haruto');
-    s = switchViewpoint(real, s, 'minami');
-    while (!currentScene(real, s)!.choices) s = advanceScene(real, s);
-    const before = { ...s.params };
-    s = choose(real, s, 'friend');
-    expect(s.params).toEqual(before);
-    expect(s.flags.minamiResponse17).toBe('toldFriend');
+    expect(s.position.viewpoint).toBe('haruto');
+    expect(s.position.sceneId).toBe('h-start');
+    while (s.position.step === 'scene') s = playStep(s);
+    expect(s.position.step).toBe('peek');
+    expect(s.flags.minamiResponse17).toBe('spoke'); // ミナミの canonical
+    expect(s.ledger.some((e) => e.eventId === 'E17-MH-CONTROL' && e.sceneId.startsWith('m-'))).toBe(false);
+  });
+
+  it('するかどうか（E17-MH-TALK）：ミナミで遊ぶと、ハルトはどの答えでも同意を確かめる（P7・付録B-30）', () => {
+    for (const pick of [0, 1, 2]) {
+      const s = playThrough(real, createRun(real, { protagonist: 'minami', seed: '2'.repeat(32) }), (n, x) => (x.position.eventId === 'E17-MH-TALK' ? pick : 0));
+      expect(s.flags.harutoConsent17 ?? 'respected').toBe('respected');
+      // するか・しないかに、選択による負の効果を付けない
+      expect(s.ledger.some((e) => e.eventId === 'E17-MH-TALK' && e.source === 'choice' && e.delta < 0)).toBe(false);
+    }
+  });
+
+  it('するかどうか：ハルトで「理由を聞きつづける」を選ぶと、ミナミの側は帰る場面になり、学び直す選択肢が出る', () => {
+    let s = createRun(real, { protagonist: 'haruto', seed: '0'.repeat(32) });
+    s = beginChapter(real, s, false);
+    while (s.position.age === 16) s = playStep(s);
+    s = beginChapter(real, s, false);
+    expect(s.position.eventId).toBe('E17-MH-TALK');
+    while (currentScene(real, s)!.id !== 'h-notYet') s = advanceScene(real, s);
+    s = choose(real, s, 'press');
+    expect(s.flags.harutoConsent17).toBe('pressed');
+    expect(currentScene(real, s)!.choices!.map((c) => c.id)).toEqual(['apologize', 'blame']);
+    s = choose(real, s, 'apologize');
+    s = advanceScene(real, s);
+    expect(s.position.step).toBe('peek');
+    const minami = s.position.peek!.find((t) => t.viewpoint === 'minami')!;
+    expect(minami.scenes.map((x) => x.sceneId)).toContain('m-pressed');
   });
 });
 
@@ -213,6 +243,8 @@ function playStep(s: RunState): RunState {
       const sc = currentScene(real, s)!;
       return sc.choices?.length ? choose(real, s, sc.choices[0]!.id) : advanceScene(real, s);
     }
+    case 'peek':
+      return advancePeek(real, s);
     case 'statCards':
       return advanceStatCards(real, s);
     case 'review':
@@ -231,23 +263,6 @@ describe('シーンに入ったときの効果と「他者の行為」（付録A
       expect(harm(s)).toEqual([expect.objectContaining({ param: 'psychSafety', delta: -20, source: 'others' })]);
       expect(s.ledger.some((e) => e.eventId === 'E17-MH-CONTROL' && e.source === 'choice' && e.delta < 0)).toBe(false);
     }
-  });
-
-  it('視点を切り替えて戻っても、入ったときの効果を重ねて適用しない', () => {
-    // E17 の冒頭まで進める
-    let s = createRun(real, { protagonist: 'minami', seed: '0'.repeat(32) });
-    s = beginChapter(real, s, false);
-    while (s.position.age === 16) s = playStep(s);
-    s = beginChapter(real, s, false);
-    expect(s.position.sceneId).toBe('m-start');
-    expect(harm(s)).toHaveLength(1);
-    // ハルトの視点へ切り替え、最後まで読んで戻る → もう一度ミナミの視点の続きを読む
-    s = switchViewpoint(real, s, 'haruto');
-    while (s.position.viewpoint === 'haruto') s = playStep(s);
-    expect(s.position.sceneId).toBe('m-start');
-    expect(harm(s)).toHaveLength(1);
-    s = playThrough(real, s, () => 0);
-    expect(harm(s)).toHaveLength(1);
   });
 
   it('ハルトを主人公にした場合、ミナミの視点の効果はハルトに付かない', () => {
@@ -310,7 +325,7 @@ describe('要因分解の表示用の集計', () => {
     const s = playThrough(real, createRun(real, { protagonist: 'minami', seed: '0'.repeat(32) }), (n, x) =>
       x.position.eventId === 'E17-MH-CONTROL' ? 2 : 0,
     );
-    const b = breakdown(s.ledger, (e) => e.age === 17);
+    const b = breakdown(s.ledger, (e) => e.eventId === 'E17-MH-CONTROL');
     expect(b.psychSafety.others).toEqual({ plus: 10, minus: -20 });
   });
 });

@@ -28,9 +28,9 @@ describe('実コンテンツ', () => {
   it('章が欠けていると失敗する', () => {
     expect(validateWith((r) => (r.chapters = r.chapters.filter((c: any) => c.age !== 24))).errors.join()).toMatch(/24歳の章がありません/);
   });
-  it('S01〜S31 がすべてある', () => {
+  it('S01〜S34 がすべてある', () => {
     const r = validateContent(rawContent(), dev);
-    expect(r.content!.stats.map((s) => s.id)).toEqual(Array.from({ length: 31 }, (_, i) => `S${String(i + 1).padStart(2, '0')}`));
+    expect(r.content!.stats.map((s) => s.id)).toEqual(Array.from({ length: 34 }, (_, i) => `S${String(i + 1).padStart(2, '0')}`));
   });
   it('Claude Code が書いた本文はすべて status: draft', () => {
     const r = validateContent(rawContent(), dev);
@@ -76,7 +76,7 @@ describe('ビルドを失敗させる条件（§12.1）', () => {
     ['到達できない（表示できる選択肢がない）', (r) => ks(r, 'ecAsk').choices.forEach((c: any) => (c.requires = 'false')), /表示できる選択肢がありません/],
     ['統計カードの文に、表にない数字を書く', (r) => (r.stats[0].cardText = '日本では、女性の22.7%、男性の99.9%です。'), /数字 99\.9 が value/],
     ['統計カードの文の書き出し', (r) => (r.stats[0].cardText = '女性で22.7%です。'), /「日本では、」で始めて/],
-    ['米国データの書き出し', (r) => (r.stats.find((s: any) => s.id === 'S25').cardText = '日本では、20%です。'), /「米国では、」で始めて/],
+    ['米国データの書き出し', (r) => (r.stats.find((s: any) => s.id === 'S25').cardText = '日本では、20%です。'), /国名（例：「米国では、」）で始めて/],
     ['シーンに入ったときの効果に choice', (r) => (ks(r, 'unaware').effects = [{ param: 'safety', sign: -1, size: 'S', source: 'choice', note: 'x' }]), /choice は使えません/],
     ['ルビの書き方の誤り', (r) => (ks(r, 'unaware').text = '{漢字かんじ}'), /ルビ/],
   ];

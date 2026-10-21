@@ -1273,3 +1273,50 @@ ul.plain {
   font-size: 13px;
   cursor: pointer;
 }
+
+/* 暗転（付録B-30）：行為は描かず、画面を暗くして時間が過ぎたことだけを伝える */
+.stage-wrap::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: #0b0c10;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.9s ease;
+  border-radius: inherit;
+}
+.stage-wrap.faded::after {
+  opacity: 0.92;
+}
+@media (prefers-reduced-motion: reduce) {
+  .stage-wrap::after {
+    transition: none;
+  }
+}
+.chat.fade-line {
+  align-self: stretch;
+  max-width: 100%;
+  margin: 6px 0;
+  padding: 14px 12px;
+  border-radius: 8px;
+  background: #16171c;
+  color: #e9e8e4;
+  justify-content: center;
+  text-align: center;
+  font-size: 15px;
+  letter-spacing: 0.08em;
+}
+
+/* 「そのころ、〇〇は……」（付録B-11） */
+.peek {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.peek-title {
+  margin: 8px 0 0;
+  font-size: var(--fs-h2);
+}
+.peek .btn {
+  width: 100%;
+}

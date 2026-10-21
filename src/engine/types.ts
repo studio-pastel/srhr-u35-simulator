@@ -41,7 +41,13 @@ export const SOURCE_LABELS: Record<Source, string> = {
 export type Params = Record<ParamKey, number>;
 
 /** 進行の段階。UI はこれを見て画面を切り替える */
-export type Step = 'chapterTop' | 'scene' | 'chance' | 'statCards' | 'review' | 'finished';
+export type Step = 'chapterTop' | 'scene' | 'chance' | 'peek' | 'statCards' | 'review' | 'finished';
+
+/** 相手の視点で進んだ場面（付録B-11）。選択肢のある場面は、選ばれた選択肢も残す */
+export interface PeekTrack {
+  viewpoint: CharacterId;
+  scenes: { sceneId: string; choiceId?: string }[];
+}
 
 export interface Position {
   age: number;
@@ -55,6 +61,8 @@ export interface Position {
   tracks?: Partial<Record<CharacterId, string>>;
   /** 読み終えた視点 */
   tracksDone?: Partial<Record<CharacterId, boolean>>;
+  /** 「そのころ、〇〇は……」で読める、相手の視点の場面の並び（付録B-11） */
+  peek?: PeekTrack[];
   /** 確率カードの後に進むシーン */
   pendingNext?: string;
   /** 「この章を読まずに進む」または「この場面をとばす」で自動進行している */

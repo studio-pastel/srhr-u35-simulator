@@ -6,6 +6,7 @@ import {
   advanceChance,
   advanceReview,
   advanceScene,
+  advancePeek,
   advanceStatCards,
   beginChapter,
   choose,
@@ -59,6 +60,9 @@ export function playThrough(
       }
       case 'chance':
         s = advanceChance(content, s, opts.override);
+        break;
+      case 'peek':
+        s = advancePeek(content, s);
         break;
       case 'statCards':
         s = advanceStatCards(content, s);

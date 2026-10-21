@@ -64,7 +64,8 @@ export const chanceNodeSchema = z.strictObject({
 export const FACES = ['normal', 'smile', 'anxious', 'sad', 'relieved'] as const;
 export const PLACES = ['classroom', 'nurse', 'hallway', 'bedroom', 'living', 'campus', 'station', 'office', 'clinic', 'home2', 'gate'] as const;
 export const TIMES = ['day', 'dusk', 'night'] as const;
-export const LINE_KINDS = ['say', 'inner', 'message', 'narration'] as const;
+// fade は暗転（付録B-30）。画面を暗くして、地の文を1行だけ出す
+export const LINE_KINDS = ['say', 'inner', 'message', 'narration', 'fade'] as const;
 
 /** 会話の1行（付録B-2）。who は登場人物のID（cast.yaml）か narration */
 export const lineSchema = z.strictObject({

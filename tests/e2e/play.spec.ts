@@ -177,3 +177,31 @@ test('幅360pxで横スクロールが出ない', async ({ page }) => {
     expect(sw, path).toBeLessThanOrEqual(iw);
   }
 });
+
+test('相手の視点は「そのころ、〇〇は……」から、のぞいたときだけ読める（付録B-11）', async ({ page }) => {
+  await start(page, 'ミナミ');
+  // 17歳の最初のイベント（するかどうか）を終えて「そのころ」が出るまで進める
+  const reached = await page.evaluate(async () => {
+    const wait = () => new Promise((r) => setTimeout(r, 20));
+    for (let i = 0; i < 600; i++) {
+      const main = document.querySelector('main')!;
+      if (main.querySelector('.peek')) return true;
+      const b =
+        main.querySelector<HTMLButtonElement>('.choices button.btn') ??
+        main.querySelector<HTMLButtonElement>('button.next-tap') ??
+        main.querySelector<HTMLButtonElement>('button.btn:not(.small):not([disabled])');
+      b?.click();
+      await wait();
+    }
+    return false;
+  });
+  expect(reached).toBe(true);
+  await expect(page.getByRole('heading', { level: 1 })).toHaveText('そのころ、ハルトは……');
+  // のぞくまでは、相手の会話は出ない
+  await expect(page.locator('.peek .chat-log')).toHaveCount(0);
+  await page.getByRole('button', { name: 'ハルトの側を、のぞいてみる' }).click();
+  await expect(page.locator('.peek .chat-log')).toContainText('ハルト（心の声）');
+  await expect(page.locator('.peek .choices')).toHaveCount(0); // 相手の視点に選択肢はない
+  await page.getByRole('button', { name: '先へ進む' }).click();
+  await expect(page.locator('.peek')).toHaveCount(0);
+});

@@ -10,7 +10,7 @@ export interface ShownLine {
   /** 画面に出す名前（地の文では空） */
   name: string;
   text: string;
-  kind: 'say' | 'inner' | 'message' | 'narration';
+  kind: 'say' | 'inner' | 'message' | 'narration' | 'fade';
   face?: Face;
 }
 

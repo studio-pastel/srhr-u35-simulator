@@ -14,7 +14,7 @@ import {
   createRun,
   currentEvent,
   currentScene,
-  switchViewpoint,
+  advancePeek,
   visibleChoices,
   type ChanceOverride,
 } from './progression';
@@ -38,7 +38,7 @@ export interface ValidateResult {
 }
 
 /** P7：これらのフラグは、ハルトの視点のシーンからだけ書き換えられる（§6.7） */
-export const HARUTO_ONLY_FLAGS = ['harutoRoute', 'harutoControl17'] as const;
+export const HARUTO_ONLY_FLAGS = ['harutoRoute', 'harutoControl17', 'harutoConsent17'] as const;
 
 const ALL_AGES = [16, 17, 19, 21, 24, 27, 30, 35];
 
@@ -101,8 +101,9 @@ export function validateContent(raw: unknown, opts: ValidateOptions): ValidateRe
   // ── 統計カードの文（§11-7、付録A-10） ──
   for (const st of content.stats) {
     const w = `統計 ${st.id}.cardText`;
-    const head = st.jpData ? '日本では、' : '米国では、';
-    if (!st.cardText.startsWith(head)) errors.push(`${w}：「${head}」で始めてください`);
+    // 日本のデータは「日本では、」、海外のデータは国名から始める（例：「米国では、」「英国では、」）
+    if (st.jpData ? !st.cardText.startsWith('日本では、') : !/^(?!日本)[^、]{1,6}では、/.test(st.cardText))
+      errors.push(`${w}：${st.jpData ? '「日本では、」' : '国名（例：「米国では、」）'}で始めてください`);
     rubyCheck(w, st.cardText, errors);
     const allowed = new Set(numbersIn(`${st.value} ${st.definition} ${st.label}`));
     for (const n of numbersIn(st.cardText))
@@ -254,6 +255,9 @@ function checkEvent(ev: GameEvent, k: Checkers): void {
     sc.lines?.forEach((l, i) => {
       const lw = `${w}.lines[${i}]`;
       if (l.who !== 'narration' && !k.castIds.has(l.who)) errors.push(`${lw}：登場人物 ${l.who} が cast.yaml にありません`);
+      // 視点のあるシーンは、ほかの人物で遊ぶときにも「そのころ」で読まれる。self だと読む人によって人物が変わる
+      if (sc.viewpoint && l.who === 'self') errors.push(`${lw}：視点のあるシーンでは who: self を使わず、人物の ID を書きます`);
+      if (l.kind === 'fade' && l.who !== 'narration') errors.push(`${lw}：暗転（kind: fade）は who: narration で書きます`);
       const n = countChars(l.text);
       if (n > TEXT_LIMITS.line) warnings.push(`${lw}：吹き出しが ${n}字です（上限 ${TEXT_LIMITS.line}字）`);
       rubyCheck(lw, l.text, errors);
@@ -370,10 +374,6 @@ function actionsFor(content: Content, s: RunState): Action[] {
       const scene = currentScene(content, s);
       if (!scene) throw new Error(`シーンがありません：${pos.eventId}/${pos.sceneId}`);
       const out: Action[] = [];
-      const ev = currentEvent(content, s);
-      if (ev?.viewpointSwitch && pos.tracks)
-        for (const vp of Object.keys(pos.tracks) as CharacterId[])
-          if (vp !== pos.viewpoint && !pos.tracksDone?.[vp]) out.push({ label: `視点を${vp}に`, run: (x) => switchViewpoint(content, x, vp) });
       if (scene.choices?.length) {
         const vis = visibleChoices(content, s, scene);
         if (vis.length === 0) throw new Error(`${pos.eventId}/${scene.id}：表示できる選択肢がありません`);
@@ -385,6 +385,8 @@ function actionsFor(content: Content, s: RunState): Action[] {
     }
     case 'chance':
       return [{ label: '確率カード→', run: (x, o) => advanceChance(content, x, o) }];
+    case 'peek':
+      return [{ label: 'そのころ→', run: (x) => advancePeek(content, x) }];
     case 'statCards':
       return [{ label: '統計カード→', run: (x) => advanceStatCards(content, x) }];
     case 'review':

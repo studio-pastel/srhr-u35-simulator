@@ -2,7 +2,7 @@
 // 各操作は RunState を複製して新しい状態を返す。
 import type { Chapter, CharacterId, Choice, Content, GameEvent, Scene } from './schema';
 import { CHARACTER_IDS } from './constants';
-import type { RunState } from './types';
+import type { PeekTrack, RunState } from './types';
 import { check, type EvalContext } from './flags';
 import { applyEffects } from './effects';
 import { resolveChance } from './chance';
@@ -155,6 +155,7 @@ function enterNextEvent(content: Content, s: RunState, fromIndex: number): void 
   delete s.position.tracks;
   delete s.position.tracksDone;
   delete s.position.pendingNext;
+  delete s.position.peek;
 }
 
 function startEvent(content: Content, s: RunState, ev: GameEvent, index: number): void {
@@ -198,6 +199,7 @@ function endEvent(content: Content, s: RunState, ev: GameEvent): void {
   s.completedEvents.push(ev.id);
   delete s.position.tracks;
   delete s.position.tracksDone;
+  delete s.position.peek;
   s.position.viewpoint = s.protagonist;
   // 暴力の場面のあとは、とばした場合も含めて、必ず支援のカードを出す（付録B-20）。
   // 統計カードは章のふりかえりでまとめて出す（付録B-4）。読まずに進んだ章（旧形式）では出さない
@@ -210,12 +212,17 @@ function endEvent(content: Content, s: RunState, ev: GameEvent): void {
   enterNextEvent(content, s, s.position.eventIndex + 1);
 }
 
-/** 主人公以外の視点の残りを、canonical の選択で最後まで進める（効果は付けず、フラグだけ反映） */
-function finishOtherTracks(content: Content, s: RunState, ev: GameEvent, override?: ChanceOverride): void {
+/**
+ * 主人公以外の視点を、canonical の選択で最後まで進める（効果は付けず、フラグだけ反映）。
+ * 進んだ場面の並びを返す。「そのころ、〇〇は……」で読めるようにするため（付録B-11）
+ */
+function finishOtherTracks(content: Content, s: RunState, ev: GameEvent, override?: ChanceOverride): PeekTrack[] {
   const tracks = s.position.tracks ?? {};
+  const out: PeekTrack[] = [];
   for (const vp of Object.keys(tracks) as CharacterId[]) {
     if (vp === s.protagonist || s.position.tracksDone?.[vp]) continue;
     const saved = { viewpoint: s.position.viewpoint, sceneId: s.position.sceneId };
+    const path: PeekTrack['scenes'] = [];
     s.position.viewpoint = vp;
     s.position.sceneId = tracks[vp]!;
     let guard = 0;
@@ -224,11 +231,15 @@ function finishOtherTracks(content: Content, s: RunState, ev: GameEvent, overrid
       const scene = ev.scenes.find((x) => x.id === s.position.sceneId);
       if (!scene) throw new ProgressionError(`${ev.id}：シーンがありません ${s.position.sceneId}`);
       s.position.sceneId = stepOffTrack(content, s, scene, override);
+      const choiceId = scene.choices?.length ? s.choices[choiceKey(s.position.eventId, scene.id)] : undefined;
+      path.push(choiceId ? { sceneId: scene.id, choiceId } : { sceneId: scene.id });
     }
     s.position.tracksDone = { ...s.position.tracksDone, [vp]: true };
     s.position.viewpoint = saved.viewpoint;
     s.position.sceneId = saved.sceneId;
+    out.push({ viewpoint: vp, scenes: path });
   }
+  return out;
 }
 
 function stepOffTrack(content: Content, s: RunState, scene: Scene, override?: ChanceOverride): string {
@@ -264,15 +275,17 @@ function moveTo(content: Content, s: RunState, next: string, override?: ChanceOv
     endEvent(content, s, ev);
     return;
   }
+  // 主人公の場面が終わったら、相手の視点を canonical で進め、「そのころ、〇〇は……」を出す（付録B-11）。
+  // 相手の視点はプレイヤーが選ばない（相手の選択は、その人物で遊ぶときに選ぶ）
   pos.tracksDone = { ...pos.tracksDone, [pos.viewpoint]: true };
   if (pos.tracks) pos.tracks[pos.viewpoint] = 'END';
-  if (pos.viewpoint === s.protagonist) {
-    finishOtherTracks(content, s, ev, override);
-    endEvent(content, s, ev);
-  } else {
-    pos.viewpoint = s.protagonist;
-    pos.sceneId = pos.tracks?.[s.protagonist] ?? ev.viewpointSwitch.entry[s.protagonist]!;
+  const peek = finishOtherTracks(content, s, ev, override);
+  if (!pos.skipping && peek.some((p) => p.scenes.length > 0)) {
+    pos.step = 'peek';
+    pos.peek = peek;
+    return;
   }
+  endEvent(content, s, ev);
 }
 
 /** 確率ノードを解決し、chanceLog に記録して、結果の next を返す */
@@ -337,6 +350,8 @@ export function autoStep(content: Content, s: RunState, override?: ChanceOverrid
     } else moveTo(content, s, nextOf(content, s, scene), override);
   } else if (pos.step === 'chance') {
     finishChanceStep(content, s, override);
+  } else if (pos.step === 'peek') {
+    endEvent(content, s, currentEvent(content, s)!);
   } else if (pos.step === 'statCards') {
     enterNextEvent(content, s, pos.eventIndex + 1);
   } else {
@@ -392,6 +407,14 @@ export function advanceChance(content: Content, state: RunState, override?: Chan
   return s;
 }
 
+/** 「そのころ、〇〇は……」から先へ進む（のぞいたかどうかは状態に残さない） */
+export function advancePeek(content: Content, state: RunState): RunState {
+  if (state.position.step !== 'peek') throw new ProgressionError('「そのころ」の段階ではありません');
+  const s = clone(state);
+  endEvent(content, s, currentEvent(content, s)!);
+  return s;
+}
+
 export function advanceStatCards(content: Content, state: RunState): RunState {
   if (state.position.step !== 'statCards') throw new ProgressionError('統計カードではありません');
   const s = clone(state);
@@ -432,17 +455,5 @@ export function skipEvent(content: Content, state: RunState): RunState {
   }
   delete s.position.skipping;
   delete s.position.skippingEvent;
-  return s;
-}
-
-/** 視点切替（§6.7）。読み終えた視点には切り替えない */
-export function switchViewpoint(content: Content, state: RunState, vp: CharacterId): RunState {
-  const ev = currentEvent(content, state);
-  const pos = state.position;
-  if (!ev?.viewpointSwitch || pos.step !== 'scene') throw new ProgressionError('視点を切り替えられません');
-  if (!pos.tracks || !(vp in pos.tracks) || pos.tracksDone?.[vp]) throw new ProgressionError(`この視点には切り替えられません：${vp}`);
-  const s = clone(state);
-  s.position.viewpoint = vp;
-  s.position.sceneId = s.position.tracks![vp]!;
   return s;
 }

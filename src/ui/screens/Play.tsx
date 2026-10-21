@@ -3,6 +3,7 @@ import { useEffect, useMemo, useRef, useState } from 'preact/hooks';
 import { navigate, useApp } from '../app';
 import {
   advanceChance,
+  advancePeek,
   advanceReview,
   advanceScene,
   advanceStatCards,
@@ -12,15 +13,12 @@ import {
   currentScene,
   getChapter,
   getCharacter,
-  onProtagonistTrack,
   skipEvent,
   sortedChapters,
-  switchViewpoint,
   visibleChoices,
 } from '../../engine/progression';
 import { breakdown, displayValue, paramsFrom } from '../../engine/effects';
 import { PARAM_KEYS } from '../../engine/constants';
-import type { CharacterId } from '../../engine/schema';
 import { PARAM_LABELS, SOURCE_LABELS, type LedgerEntry, type RunState } from '../../engine/types';
 import { Hud } from '../components/Hud';
 import { Modal } from '../components/Modal';
@@ -173,6 +171,7 @@ export function Play() {
         />
       )}
       {step === 'chance' && <ChanceView run={run} go={go} back={back} canBack={canBackState} />}
+      {step === 'peek' && <PeekView run={run} onNext={() => go(advancePeek(content, run), false)} />}
       {step === 'statCards' && <SupportCard run={run} skippedSummary={skipped} onNext={() => go(advanceStatCards(content, run), false)} />}
       {step === 'review' && <ChapterReview run={run} onNext={() => go(advanceReview(content, run), false)} />}
       {step === 'finished' && <OverallReview run={run} onRestart={() => setRun(null)} />}
@@ -211,12 +210,14 @@ function Interlude({ run, onStart }: { run: RunState; onStart: () => void }) {
 }
 
 // ── 場面（付録B-2・B-27）：会話を積み重ねて見せ、最新の行は文字が流れるように出す ──
-function ChatLine({ run, line, typing, typed }: { run: RunState; line: ShownLine; typing: boolean; typed: number }) {
+function ChatLine({ run, line, typing, typed, self }: { run: RunState; line: ShownLine; typing: boolean; typed: number; self?: string }) {
   const { content } = useApp();
   const text = typing ? Array.from(plainText(line.text)).slice(0, typed).join('') : null;
   const body = text !== null ? text : <RichText text={line.text} />;
   if (line.kind === 'narration') return <p class="chat narration">{body}</p>;
-  const mine = line.who === run.protagonist;
+  // 暗転（付録B-30）：行為は描かず、時間が過ぎたことだけを伝える
+  if (line.kind === 'fade') return <p class="chat fade-line">{body}</p>;
+  const mine = line.who === (self ?? run.protagonist);
   const member = content.cast.find((c) => c.id === line.who);
   const age = member ? ageOf(content, run, member.id) : run.position.age;
   return (
@@ -256,7 +257,6 @@ function SceneView(props: {
   const choices = visibleChoices(content, run, scene);
   const spec = sceneSpec(content, run, stageOf(ev, scene), line);
   const h = useFocusHeading(`${pos.eventId}/${pos.viewpoint}`);
-  const offTrack = !onProtagonistTrack(content, run);
   const me = getCharacter(content, run.protagonist);
   // これまでに読んだ場面の会話（同じイベントの中だけ）
   const earlier = props.visited.flatMap((id) => {
@@ -306,31 +306,8 @@ function SceneView(props: {
       <h2 class="sr-only" tabIndex={-1} ref={h}>
         場面
       </h2>
-      {ev.viewpointSwitch && pos.tracks && (
-        <>
-          <div class="tabs" role="group" aria-label="視点の切り替え">
-            {(Object.keys(pos.tracks) as CharacterId[]).map((id) => {
-              const done = Boolean(pos.tracksDone?.[id]);
-              const selected = id === pos.viewpoint;
-              return (
-                <button
-                  key={id}
-                  type="button"
-                  class="tab"
-                  aria-pressed={selected}
-                  disabled={done && !selected}
-                  onClick={() => !selected && go(switchViewpoint(content, run, id), false)}
-                >
-                  {getCharacter(content, id).name}の視点{done ? '（読んだ）' : ''}
-                </button>
-              );
-            })}
-          </div>
-          {offTrack && <p class="sub">この視点での選択では、{me.name}のパラメーターは動きません。</p>}
-        </>
-      )}
       <div class="stage-sticky">
-        <div class="stage-wrap">
+        <div class={`stage-wrap${line.kind === 'fade' ? ' faded' : ''}`}>
           <PixelStage spec={spec} label={`${me.name}の場面`} animate={animate} />
           {props.change && <ChangeCard entries={props.change.entries} before={props.change.before} animate={animate} onClose={props.closeChange} />}
         </div>
@@ -370,6 +347,72 @@ function SceneView(props: {
           この場面をとばす
         </button>
       </div>
+    </section>
+  );
+}
+
+// ── 「そのころ、〇〇は……」（付録B-11）：主人公の場面のあと、のぞいたときだけ相手の視点を読む。選択肢はない ──
+function PeekView({ run, onNext }: { run: RunState; onNext: () => void }) {
+  const { content, animate } = useApp();
+  const ev = currentEvent(content, run)!;
+  const tracks = (run.position.peek ?? []).filter((t) => t.scenes.length > 0);
+  const [open, setOpen] = useState<string | null>(null);
+  const h = useFocusHeading(`peek-${ev.id}-${open ?? ''}`);
+  const track = tracks.find((t) => t.viewpoint === open);
+  const names = tracks.map((t) => getCharacter(content, t.viewpoint).name);
+  if (!track) {
+    return (
+      <section class="peek fade-in">
+        <h1 tabIndex={-1} ref={h} class="peek-title">
+          そのころ、{names.join('と')}は……
+        </h1>
+        <p class="sub">相手の側で起きていたことを、のぞいてみることができます。読まずに先へ進んでもかまいません。</p>
+        {tracks.map((t) => (
+          <button key={t.viewpoint} type="button" class="btn primary" onClick={() => setOpen(t.viewpoint)}>
+            {getCharacter(content, t.viewpoint).name}の側を、のぞいてみる
+          </button>
+        ))}
+        <button type="button" class="btn" onClick={onNext}>
+          先へ進む
+        </button>
+      </section>
+    );
+  }
+  const who = track.viewpoint;
+  const name = getCharacter(content, who).name;
+  // 相手の視点の会話。選ばれた選択肢は、その人のセリフや行動として並べる
+  const lines: ShownLine[] = track.scenes.flatMap(({ sceneId, choiceId }) => {
+    const sc = ev.scenes.find((x) => x.id === sceneId);
+    if (!sc) return [];
+    const out = linesOf(content, run, sc);
+    const c = choiceId ? sc.choices?.find((x) => x.id === choiceId) : undefined;
+    if (c) out.push({ who, name: `${name}が選んだこと`, text: c.label, kind: 'say' });
+    return out;
+  });
+  const firstScene = ev.scenes.find((x) => x.id === track.scenes[0]?.sceneId);
+  const spec = sceneSpec(content, run, stageOf(ev, firstScene));
+  return (
+    <section class="peek fade-in">
+      <h1 tabIndex={-1} ref={h} class="peek-title">
+        そのころ、{name}は……
+      </h1>
+      <div class="stage-wrap">
+        <PixelStage spec={spec} label={`${name}の側の場面`} animate={animate} />
+      </div>
+      <p class="sub">{name}の選択は、{name}で遊ぶときに選べます。ここでは、パラメーターは動きません。</p>
+      <div class="chat-log">
+        {lines.map((l, k) => (
+          <ChatLine key={k} run={run} line={l} typing={false} typed={0} self={who} />
+        ))}
+      </div>
+      {tracks.length > 1 && (
+        <button type="button" class="btn" onClick={() => setOpen(null)}>
+          ほかの人の側も見る
+        </button>
+      )}
+      <button type="button" class="btn primary" onClick={onNext}>
+        先へ進む
+      </button>
     </section>
   );
 }
