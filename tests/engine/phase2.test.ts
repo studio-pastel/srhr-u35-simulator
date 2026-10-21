@@ -151,17 +151,17 @@ describe('19〜35歳の確率ノード（§10.4、付録A-17〜A-22）', () => {
   });
 
   it('CH-LBW：16歳で食事をさらに減らした場合だけ、確率が9.8%から14.9%になる（要因は選択）', () => {
-    const extreme = playPicking('minami', { 'E16-MINAMI-DIET/choose': 'keepOn', 'E27-MINAMI-DECIDE/choose': 'now' });
+    const extreme = playPicking('minami', { 'E16-MINAMI-DIET/choose': 'keepOn', 'E27-MINAMI-DECIDE/start': 'now' });
     const node = extreme.chanceLog.find((c) => c.nodeId === 'CH-LBW')!;
     expect(node.base).toBe(0.098);
     expect(node.finalP).toBe(0.149);
     expect(node.modifiersApplied[0]).toEqual(expect.objectContaining({ source: 'choice', statRef: 'S30' }));
-    const nurse = playPicking('minami', { 'E16-MINAMI-DIET/choose': 'nurse', 'E27-MINAMI-DECIDE/choose': 'now' });
+    const nurse = playPicking('minami', { 'E16-MINAMI-DIET/choose': 'nurse', 'E27-MINAMI-DECIDE/start': 'now' });
     expect(nurse.chanceLog.find((c) => c.nodeId === 'CH-LBW')!.finalP).toBe(0.098);
   });
 
   it('CH-LBW・出産の結果では、ミナミのパラメーターを動かさない', () => {
-    const run = playPicking('minami', { 'E27-MINAMI-DECIDE/choose': 'now' });
+    const run = playPicking('minami', { 'E27-MINAMI-DECIDE/start': 'now' });
     expect(run.ledger.filter((e) => e.eventId === 'E30-MINAMI-BRANCH' && e.source === 'chance')).toEqual([]);
   });
 

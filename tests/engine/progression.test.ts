@@ -371,10 +371,13 @@ describe('24歳のケイとたばこ（付録B-33）', () => {
         x.position.eventId === 'E24-KEI-WORK' && currentScene(real, x)!.id === 'start' ? (take ? 1 : 0) : 0,
       );
     const took = pick(true);
-    expect(took.flags.keiSmokes).toBe(true);
+    // 27歳の標準の選択は「禁煙外来に行ってみる」なので、最後は禁煙している
+    expect(took.flags.keiQuit27).toBe(true);
+    expect(took.ledger).toContainEqual(expect.objectContaining({ eventId: 'E27-KEI-PATH', param: 'body', delta: 10, source: 'choice', statRef: 'S38' }));
     expect(took.ledger).toContainEqual(expect.objectContaining({ eventId: 'E24-KEI-WORK', param: 'body', delta: -5, source: 'choice', statRef: 'S38' }));
     const declined = pick(false);
     expect(declined.flags.keiSmokes).toBe(false);
+    expect(declined.flags.keiQuit27).toBeUndefined();
     expect(declined.ledger.some((e) => e.eventId === 'E24-KEI-WORK' && e.param === 'body')).toBe(false);
   });
 });

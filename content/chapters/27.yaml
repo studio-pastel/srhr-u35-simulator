@@ -1,45 +1,52 @@
-# 27歳の章（SPEC.md §10.3）。Claude Code の下書き。すべて status: draft。
+# 27歳の章（SPEC.md §10.3）。会話中心の形式（付録B-2）。Claude Code の下書き。すべて status: draft。
 #
-# 文字数の上限（src/engine/limits.ts、SPEC.md 付録A-7）
-#   シーン本文 text ……… 200字以内（超えると警告）
-#   選択肢 label ………… 30字以内（超えると警告）
-#   効果 note …………… 20字以内（超えるとエラー。ビルドが止まる）
+# 文字数の上限（src/engine/limits.ts）
+#   吹き出し lines[].text …… 40字以内（超えると警告）
+#   選択肢 label ………………… 30字以内（超えると警告）
+#   効果 note ………………………… 20字以内（超えるとエラー。ビルドが止まる）
+#   とばしたときの要約 summary … 40字以内（超えると警告）
 #
 # T10：同性カップルが子どもを持つ際の制度は、具体名を書かない。
+# 付録B-33：子どもを持つことを考え始めたときの、葉酸とお酒・たばこの見直し（S41・S42）。
+#   準備は女性だけのものとして描かず、パートナーも自分の生活を見直す（男性のプレコン）。
+#   ケイが24歳で吸い始めていた場合（keiSmokes）は、やめるかどうかを考える。
 age: 27
 title: "27歳"
 season: "夏"
 status: draft
 intro:
-  minami: "会社で、後輩を指導するようになった。パートナーと暮らして2年になる。"
-  haruto: "パートナーと暮らし始めて3年。二人で、子どもを持つことを話し始めた。"
+  minami: "会社で、後輩を指導するようになった。ソウと暮らして2年になる。"
+  haruto: "ナオと暮らし始めて3年。二人で、子どもを持つことを話し始めた。"
   yu: "アオイと暮らして3年。二人の生活は、すっかり日常になった。"
   kei: "27歳の夏。働き方も暮らしも、少しずつ形になってきた。"
 events:
+  # ───────── ミナミ：自分の人生と、子どものこと ─────────
   - id: E27-MINAMI-DECIDE
     age: 27
     characters: [minami]
     kind: fixed
-    domains: [妊孕性, ライフコース]
-    statCard: [S17, S19]
-    stage: { place: home2, time: dusk, cast: [{ id: minami }, { id: sou }] }
+    domains: [妊孕性, ライフコース, プレコンセプションケア]
+    statCard: [S17, S41, S19]
+    stage: { place: home2, time: dusk, cast: [{ id: minami, x: 30 }, { id: sou, x: 62 }] }
+    summary: "年齢と妊娠の話を聞いて、子どもを持つかどうかを考えた。"
     status: draft
     scenes:
       - id: start
-        text: "職場の健康セミナーで、年齢と妊娠についての話を聞いた。生殖補助医療で出産に至る割合は、35歳ごろまでは約30%前後で、その後は下がっていくという。"
-        next: choose
-      - id: choose
-        text: "子どもを持つかどうか。ミナミは、自分の人生を考える。"
+        lines:
+          - { who: narration, text: "職場の健康セミナーで、年齢と妊娠の話を聞いた。" }
+          - { who: minami, kind: inner, text: "（生殖補助医療で出産に至る割合は、35歳ごろまでは約30%前後……）" }
+          - { who: minami, kind: inner, text: "（妊娠を考えるなら、その前から葉酸をとるといい、とも言ってた）" }
+          - { who: sou, text: "おかえり。セミナー、どうだった？" }
         choices:
           - id: noChildren
-            label: "子どもを持たないと決める"
+            label: "「私、子どもは持たないって決めた」"
             neutral: true
             effects:
               - { param: autonomy, sign: 1, size: S, source: choice, note: "自分の人生を考えた" }
             setFlags: { minamiPath: noChildren }
             next: noChildren
           - id: later
-            label: "いずれ考える"
+            label: "「まだ、決めなくていいかな」"
             neutral: true
             canonical: true
             effects:
@@ -47,133 +54,274 @@ events:
             setFlags: { minamiPath: later }
             next: later
           - id: now
-            label: "パートナーと話し、子どもを持つことを考える"
+            label: "「子どものこと、ちゃんと話したい」"
             neutral: true
             effects:
               - { param: autonomy, sign: 1, size: S, source: choice, note: "自分の人生を考えた" }
             setFlags: { minamiPath: now }
             next: now
       - id: noChildren
-        text: "子どもを持たない人生を選ぶ。それも、ミナミが自分で決めた生き方だ。"
+        lines:
+          - { who: minami, text: "私、子どもは持たないって決めた。" }
+          - { who: sou, text: "そっか。ミナミが考えて決めたなら、それでいいと思う。" }
+          - { who: minami, kind: inner, text: "（それも、私が自分で決めた生き方だ）", face: relieved }
         next: END
       - id: later
-        text: "今は、まだ決めない。考える時間を持つことも、ひとつの選択だ。"
+        lines:
+          - { who: minami, text: "まだ、決めなくていいかなって。" }
+          - { who: sou, text: "うん。考える時間があっても、いいよね。" }
         next: END
       - id: now
-        text: "パートナーと話して、子どもを持つことを考え始めた。"
+        lines:
+          - { who: minami, text: "子どものこと、ちゃんと話したい。" }
+          - { who: sou, text: "うん。おれも、考えてた。" }
+          - { who: minami, kind: inner, text: "（考えるなら、いまからできることもある）" }
+        choices:
+          - id: prepare
+            label: "「葉酸、飲み始めてみる」"
+            canonical: true
+            effects:
+              - { param: body, sign: 1, size: S, source: choice, statRef: S41, note: "葉酸をとり始めた" }
+            setFlags: { minamiFolate: true }
+            next: prepare
+          - id: talkMore
+            label: "「まずは、二人でもっと話そう」"
+            next: talkMore
+      - id: prepare
+        lines:
+          - { who: minami, text: "葉酸、飲み始めてみる。" }
+          - { who: sou, text: "じゃあ、おれはお酒を減らそうかな。二人のことだし。" }
+          - { who: minami, kind: inner, text: "（「二人のこと」って言ってくれるの、うれしい）", face: smile }
+        next: END
+      - id: talkMore
+        lines:
+          - { who: minami, text: "まずは、二人でもっと話そう。" }
+          - { who: sou, text: "うん。急がなくていいよ。" }
         next: END
 
+  # ───────── ハルトとナオ：子どもを望んでから ─────────
   - id: E27-HARUTO-TEST
     age: 27
     characters: [haruto]
     kind: fixed
-    domains: [不妊]
-    statCard: [S16]
+    domains: [不妊, プレコンセプションケア]
+    statCard: [S41, S42, S16]
     resources: [health]
-    stage: { place: clinic, time: day, cast: [{ id: haruto }, { id: nao }] }
+    stage: { place: living, time: night, cast: [{ id: haruto, x: 30 }, { id: nao, x: 62 }] }
+    summary: "ナオと子どもを望み、生活の見直しや検査のことを話した。"
     status: draft
     scenes:
       - id: start
-        text: "子どもを望んで1年。まだ妊娠していない。パートナーは、病院で検査を受けることにした。"
+        lines:
+          - { who: nao, text: "葉酸、飲み始めたんだ。妊娠の前から、とったほうがいいんだって。" }
+          - { who: haruto, kind: inner, text: "（ナオだけが準備するのは、なんか違う気がする）" }
+          - { who: haruto, kind: inner, text: "（最近、仕事帰りに飲む量が増えてる）" }
+        choices:
+          - id: cutDown
+            label: "「おれも、お酒を見直すよ」"
+            canonical: true
+            effects:
+              - { param: body, sign: 1, size: S, source: choice, statRef: S42, note: "お酒を見直した" }
+              - { param: connection, sign: 1, size: S, source: choice, note: "二人で準備した" }
+            next: cutDown
+          - id: herThing
+            label: "「それは、ナオのことでしょ」"
+            effects:
+              - { param: connection, sign: -1, size: S, source: choice, note: "準備を相手に任せた" }
+            next: herThing
+      - id: cutDown
+        lines:
+          - { who: haruto, text: "おれも、お酒を見直すよ。平日は飲まない。" }
+          - { who: nao, text: "ほんと？　……二人でやるって感じがして、うれしい。", face: smile }
+        next: year
+      - id: herThing
+        lines:
+          - { who: haruto, text: "それは、ナオのことでしょ。" }
+          - { who: nao, text: "……そっか。", face: sad }
+        next: year
+      - id: year
+        stage: { place: clinic, time: day, cast: [{ id: haruto, x: 30 }, { id: nao, x: 62 }] }
+        lines:
+          - { who: narration, text: "子どもを望んで1年。まだ、妊娠していない。" }
+          - { who: nao, text: "病院で、検査を受けてみようと思う。" }
         choices:
           - id: together
-            label: "一緒に検査を受ける"
+            label: "「おれも、いっしょに検査を受ける」"
             canonical: true
             effects:
               - { param: connection, sign: 1, size: M, source: choice, note: "一緒に検査を受けた" }
               - { param: body, sign: 1, size: S, source: choice, note: "自分のからだを知った" }
             next: together
           - id: leave
-            label: "相手に任せる"
+            label: "「ナオに任せるよ」"
             effects:
               - { param: connection, sign: -1, size: S, source: choice, note: "検査を相手に任せた" }
             next: leave
       - id: together
-        text: "二人で病院に行き、二人で結果を聞いた。これからのことも、二人で決めていく。"
+        lines:
+          - { who: narration, text: "二人で病院に行き、二人で結果を聞いた。" }
+          - { who: haruto, kind: inner, text: "（不妊の原因は、男性にあることもある。知らなかった）" }
+          - { who: nao, text: "これからのことも、二人で決めていこうね。" }
         next: END
       - id: leave
-        text: "検査は、パートナーが一人で受けた。結果を聞く日も、ハルトは仕事だった。"
+        lines:
+          - { who: narration, text: "検査は、ナオが一人で受けた。" }
+          - { who: narration, text: "結果を聞く日も、ハルトは仕事だった。" }
         next: END
 
+  # ───────── ユウとアオイ：家族のかたち ─────────
   - id: E27-YU-FAMILY
     age: 27
     characters: [yu]
     kind: fixed
     domains: [ライフコース, 人権]
     statCard: [S24]
-    stage: { place: home2, time: night, cast: [{ id: yu }, { id: aoi }] }
+    stage: { place: home2, time: night, cast: [{ id: yu, x: 30 }, { id: aoi, x: 62 }] }
+    summary: "アオイと、子どもを持つことについて話した。"
     status: draft
     scenes:
       - id: start
         effects:
           - { param: options, sign: -1, size: S, source: society, note: "制度の壁がある" }
-        text: "アオイと、子どもを持つことについて話すようになった。調べるほど、同性カップルが子どもを持つまでの道のりの多さに気づく。"
+        lines:
+          - { who: aoi, text: "ねえ、子どものこと、どう思う？" }
+          - { who: yu, kind: inner, text: "（考えたことはある。でも、調べるほど、道のりの多さに気づく）" }
+          - { who: aoi, text: "私たちの場合、どうしたらいいか、わからないことだらけだよね。" }
         choices:
           - id: info
-            label: "情報を集める"
+            label: "「いっしょに調べてみよう」"
             effects:
               - { param: autonomy, sign: 1, size: S, source: choice, note: "自分たちで調べた" }
             next: info
           - id: support
-            label: "支援団体に相談する"
+            label: "「支援団体に、相談してみない？」"
             canonical: true
             effects:
               - { param: connection, sign: 1, size: M, source: choice, note: "支援団体に相談した" }
             next: support
           - id: pass
-            label: "今は見送る"
+            label: "「今は、二人の暮らしを大事にしたい」"
             neutral: true
             next: pass
       - id: info
-        text: "二人で、同じような家族の体験談を読んだ。道のりはひとつではないと知った。"
+        lines:
+          - { who: narration, text: "二人で、同じような家族の体験談を読んだ。" }
+          - { who: yu, kind: inner, text: "（道のりは、ひとつじゃないんだ）" }
         next: END
       - id: support
         effects:
           - { param: psychSafety, sign: 1, size: S, source: others, note: "支援団体が話を聞いた" }
-        text: "支援団体の人は、二人の話をゆっくり聞いてくれた。同じように考えている家族が、ほかにもいる。"
+        lines:
+          - { who: narration, text: "支援団体の人は、二人の話をゆっくり聞いてくれた。" }
+          - { who: aoi, text: "同じように考えてる家族、ほかにもいるんだね。" }
+          - { who: yu, kind: inner, text: "（二人だけじゃなかった）", face: relieved }
         next: END
       - id: pass
-        text: "今は見送ることにした。二人で話し合って決めたことだ。"
+        lines:
+          - { who: yu, text: "今は、二人の暮らしを大事にしたい。" }
+          - { who: aoi, text: "うん。私も、そう思う。", face: smile }
         next: END
 
+  # ───────── ケイ：暮らしのかたちと、たばこ ─────────
   - id: E27-KEI-PATH
     age: 27
     characters: [kei]
     kind: branch
-    domains: [ライフコース]
-    statCard: [S21, S19]
-    stage: { place: living, time: dusk, cast: [{ id: kei }, { id: saki, when: "flags.keiFather == true" }, { id: keiChild, when: "flags.keiFather == true" }] }
+    domains: [ライフコース, 喫煙]
+    statCard: [S21, S42, S38]
+    stage: { place: living, time: dusk, cast: [{ id: kei, x: 26 }, { id: saki, x: 52, when: "flags.keiFather == true" }, { id: keiChild, x: 72, when: "flags.keiFather == true" }] }
+    summary: "仕事と暮らしのことを考えた。たばこを吸っていれば、やめるかどうかも。"
     status: draft
     scenes:
       - id: start
-        text: "気づけば、20代も後半になった。"
+        lines:
+          - { who: narration, text: "気づけば、20代も後半になった。" }
+        branches:
+          - when: "flags.keiSmokes == true && flags.keiFather == true"
+            next: smokeFather
+          - when: "flags.keiSmokes == true"
+            next: smokeSingle
+          - when: "flags.keiFather == true"
+            next: father
+        next: single
+      # ── 24歳で吸い始めていた場合 ──
+      - id: smokeFather
+        lines:
+          - { who: narration, text: "ベランダで一服して、部屋に戻った。" }
+          - { who: keiChild, text: "パパ、なんかくさい。" }
+          - { who: kei, kind: inner, text: "（外で吸っても、服や息に残るのか……）", face: sad }
+        next: quit
+      - id: smokeSingle
+        lines:
+          - { who: narration, text: "健康診断で、医師に言われた。" }
+          - { who: narration, text: "「たばこ、やめるなら早いほうがいいですよ。禁煙外来もあります」" }
+          - { who: kei, kind: inner, text: "（吸い始めて、もう3年か）" }
+        next: quit
+      - id: quit
+        lines:
+          - { who: kei, kind: inner, text: "（……どうしよう）" }
+        choices:
+          - id: quitClinic
+            label: "禁煙外来に行ってみる"
+            canonical: true
+            effects:
+              - { param: body, sign: 1, size: M, source: choice, statRef: S38, note: "禁煙を始めた" }
+            setFlags: { keiSmokes: false, keiQuit27: true }
+            next: quitDone
+          - id: keepSmoking
+            label: "今は、やめられない"
+            next: keepSmoking
+      - id: quitDone
+        lines:
+          - { who: narration, text: "禁煙外来で、薬を使いながらやめる方法を相談した。" }
+          - { who: kei, kind: inner, text: "（一人で我慢するより、ずっと続けやすそうだ）", face: relieved }
         branches:
           - when: "flags.keiFather == true"
             next: father
         next: single
+      - id: keepSmoking
+        lines:
+          - { who: kei, kind: inner, text: "（わかってはいる。でも、今は無理だ）" }
+          - { who: narration, text: "やめたくなったときは、禁煙外来で相談できる。" }
+        branches:
+          - when: "flags.keiFather == true"
+            next: father
+        next: single
+      # ── 父親になっている場合 ──
       - id: father
-        text: "子どもは、小学校に入る年になった。仕事と育児の両立に、毎日追われている。"
+        lines:
+          - { who: narration, text: "子どもは、小学校に入る年になった。" }
+          - { who: saki, text: "来週の参観日、どっちが行けそう？" }
+          - { who: kei, kind: inner, text: "（仕事と育児、毎日追われてる）" }
         choices:
           - id: time
-            label: "育児の時間を増やす"
+            label: "「おれが休みを取るよ」"
             canonical: true
             effects:
               - { param: connection, sign: 1, size: M, source: choice, note: "育児の時間を増やした" }
               - { param: options, sign: -1, size: S, source: society, statRef: S21, when: "cond.parentalLeave == 'hard'", note: "育児に理解の少ない職場" }
             next: time
           - id: work
-            label: "仕事を優先する"
+            label: "「ごめん、仕事が抜けられない」"
             effects:
               - { param: connection, sign: -1, size: S, source: choice, note: "家族との時間が減った" }
             next: work
       - id: time
-        text: "職場に事情を話して、早く帰れる日を増やした。子どもと過ごす夕方が、少しずつ増えていく。"
+        lines:
+          - { who: kei, text: "おれが休みを取るよ。" }
+          - { who: narration, text: "職場に事情を話して、早く帰れる日も増やした。" }
+          - { who: kei, kind: inner, text: "（子どもと過ごす夕方が、少しずつ増えていく）", face: smile }
         next: END
       - id: work
-        text: "今は仕事を優先することにした。子どもの寝顔を見て、一日が終わる。"
+        lines:
+          - { who: kei, text: "ごめん、仕事が抜けられない。" }
+          - { who: kei, kind: inner, text: "（今日も、子どもの寝顔を見て一日が終わる）", face: sad }
         next: END
+      # ── 父親になっていない場合 ──
       - id: single
-        text: "周りでは、結婚の話が増えてきた。ケイは、自分の暮らし方を考える。"
+        lines:
+          - { who: narration, text: "周りでは、結婚の話が増えてきた。" }
+          - { who: kei, kind: inner, text: "（自分は、どんなふうに暮らしたいんだろう）" }
         choices:
           - id: noMarriage
             label: "結婚しない暮らしを選ぶ"
@@ -189,8 +337,10 @@ events:
               - { param: autonomy, sign: 1, size: S, source: choice, note: "暮らし方を自分で選んだ" }
             next: laterS
       - id: noMarriage
-        text: "結婚しない暮らしを選ぶ。それも、ケイが自分で決めた生き方だ。"
+        lines:
+          - { who: kei, kind: inner, text: "（結婚しない暮らしを選ぶ。それも、自分で決めた生き方だ）" }
         next: END
       - id: laterS
-        text: "今は決めない。自分のペースで考えていけばいい。"
+        lines:
+          - { who: kei, kind: inner, text: "（今は決めない。自分のペースで考えればいい）" }
         next: END
