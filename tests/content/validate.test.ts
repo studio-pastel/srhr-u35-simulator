@@ -88,7 +88,8 @@ describe('ビルドを失敗させる条件（§12.1）', () => {
   });
 
   it('本番ビルドでは verified: false の統計を参照する確率ノードで失敗する', () => {
-    const r = validateWith(() => {}, { production: true, allowUnverified: false });
+    // S26 を暫定値に戻して確かめる（いまの本文で暫定値なのは S35 だけ）
+    const r = validateWith((raw) => (raw.stats.find((s: any) => s.id === 'S26').verified = false), { production: true, allowUnverified: false });
     expect(r.errors.join('\n')).toMatch(/E19-KS-CONTRACEPTION\/ec\[CH-EC\]\.modifiers\[0\]：本番ビルドで verified: false の統計 S26/);
   });
 });
