@@ -51,37 +51,38 @@
   verified: true
 - id: okayama-youth
   name: "3丁目ユース相談室"
-  contact: "10代〜20代が、からだやこころの悩みを無料で相談できる"
+  contact: "10代〜20代が、からだやこころの悩みを無料で相談できる。個別相談は予約制（毎月第2・4土曜の午後）"
   url: "https://www.city.okayama.jp/kurashi/0000048902.html"
   target: "からだやこころの悩み"
   audience: "10代〜20代"
   region: "岡山市"
-  checkedAt: { title: "岡山市", url: "https://www.city.okayama.jp/kurashi/0000048902.html" }
+  checkedAt: { title: "岡山市 3丁目ユース相談室（2026-10-21 確認）", url: "https://www.city.okayama.jp/kurashi/0000048902.html" }
   tags: []
   categories: [body]
-  verified: false
+  verified: true
 
 - id: kamakura-youth
-  name: "鎌倉市の若者のための相談窓口"
-  contact: "市役所で、保健師・助産師が月3回、性や人間関係など思春期の悩みを聞く。医療や福祉にもつなぐ"
-  url: null   # 鎌倉市の公式ページを確認する
-  target: "思春期の性や人間関係の悩み"
+  name: "保健室きらきら（鎌倉市）"
+  contact: "10代・20代と保護者が、こころやからだの変化、性のこと、学校や友人関係の悩みを専門スタッフに相談できる。開催日は市のページで確認"
+  url: "https://www.city.kamakura.kanagawa.jp/boshi/6208hokennsitsu.html"
+  target: "思春期の性やからだ、人間関係の悩み"
+  audience: "10代・20代"
   region: "鎌倉市"
-  checkedAt: { title: "神奈川新聞", url: "https://www.kanaloco.jp/news/government/article-1310888.html" }
+  checkedAt: { title: "鎌倉市 保健室きらきら（2026-10-21 確認）", url: "https://www.city.kamakura.kanagawa.jp/boshi/6208hokennsitsu.html" }
   tags: []
   categories: [body]
-  verified: false
+  verified: true
 
 # ── 妊娠かもしれない ──
 - id: ninshin-site
-  name: "思いがけない妊娠の相談窓口サイト（こども家庭庁）"
-  contact: "全国の「にんしんSOS」などの窓口を、夜間受付などの条件で探せる。無料・匿名で相談できる窓口が中心"
-  url: null   # 報道では https://ninshin-soudan.go.jp/ 。公式発表で確認する
+  name: "思いがけない妊娠の相談窓口サイト"
+  contact: "全国の「にんしんSOS」などの窓口を、夜間・土日祝の受付や、電話・メール・LINE などの相談方法で探せる。相談は無料（こども家庭庁の補助事業）"
+  url: "https://ninshin-soudan.go.jp/"
   target: "思いがけない妊娠"
-  checkedAt: { title: "秋田魁新報（2026年4月）", url: "https://www.sakigake.jp/news/article/20260407CO0006/" }
+  checkedAt: { title: "思いがけない妊娠の相談窓口サイト（2026-10-21 確認）", url: "https://ninshin-soudan.go.jp/" }
   tags: [ec, health]
   categories: [pregnancy]
-  verified: false
+  verified: true
 - id: ec-pharmacy
   name: "緊急避妊薬の販売が可能な薬局の一覧（厚生労働省）"
   contact: "処方箋なしで緊急避妊薬を買える薬局。行く前に、在庫や薬剤師がいるかを電話で確かめると安心"
@@ -95,13 +96,13 @@
 # ── 検査を受けたい ──
 - id: hiv-map
   name: "HIV検査・相談マップ（厚生労働省）"
-  contact: "全国の保健所などで、HIV・性感染症の検査を匿名・無料で受けられる場所を探せる（検査の種類や予約は会場ごと）"
+  contact: "全国の保健所などで、HIV・性感染症の検査を無料・匿名で受けられる場所を、都道府県やキーワードで探せる（検査の種類や予約は会場ごと）"
   url: "https://www.mhlw.go.jp/hivkensa/"
   target: "性感染症・HIV の検査"
-  checkedAt: { title: "茨城県 厚生労働省事務連絡（令和8年4月1日）", url: "https://www.pref.ibaraki.jp/hokenfukushi/eiken/kikaku/tuuchi/documents/zimurennraku_hivstiwebsaito.pdf" }
+  checkedAt: { title: "厚生労働省 HIV検査・相談マップ（2026-10-21 確認）", url: "https://www.mhlw.go.jp/hivkensa/" }
   tags: [health]
   categories: [testing]
-  verified: false   # 移管後のページの中身を確認する
+  verified: true
 
 # ── 好きになる人や、自分の性のこと ──
 - id: yorisoi
@@ -116,14 +117,13 @@
   verified: true
 - id: nijiz
   name: "にじーず"
-  contact: "LGBT（そうかもしれない人を含む）の子ども・若者の居場所。全国各地とオンラインで開いている"
-  url: null   # 公式 URL を確認する
+  contact: "LGBT（かもしれない人を含む）の子ども・若者の居場所。各地と、オンラインの「バーチャルにじーず」で開いている"
+  url: "https://24zzz-lgbt.com/"
   target: "性のあり方について話せる仲間"
-  audience: "10代〜23歳"
-  checkedAt: { title: "静岡市", url: "https://www.city.shizuoka.lg.jp/003_000001_00046.html" }
+  checkedAt: { title: "にじーず 公式サイト（2026-10-21 確認）", url: "https://24zzz-lgbt.com/" }
   tags: []
   categories: [identity]
-  verified: false
+  verified: true
 
 # ── 付き合っている人や、家族との関係 ──
 - id: dv-plus
@@ -201,13 +201,13 @@
   verified: true
 - id: curetime
   name: "Cure Time（キュアタイム）"
-  contact: "性暴力について、チャットで匿名で相談できる（内閣府）。年齢・性別を問わない。受付時間は公式ページで確認"
+  contact: "性暴力について、チャット（毎日17時〜21時）とメールで、匿名で相談できる（内閣府）。年齢・性別・セクシュアリティを問わない"
   url: "https://curetime.jp/"
   target: "性暴力の被害"
-  checkedAt: { title: "滋賀県（2026年2月）", url: "https://www.pref.shiga.lg.jp/cd00/420.html" }
+  checkedAt: { title: "Cure Time 公式サイト（2026-10-21 確認）", url: "https://curetime.jp/" }
   tags: [violence]
   categories: [harm]
-  verified: false
+  verified: true
 - id: police-8103
   name: "性犯罪被害相談電話"
   contact: "#8103"
@@ -220,14 +220,14 @@
   verified: true
 - id: police-9110
   name: "警察相談専用電話"
-  contact: "#9110（つきまといなど、警察への相談）"
+  contact: "#9110（つきまといなど、緊急ではない警察への相談。平日の昼間が中心で、受付時間は都道府県ごとに違う）。緊急のときは110番"
   tel: "#9110"
-  url: null
+  url: "https://www.gov-online.go.jp/article/201309/entry-7508.html"
   target: "つきまとい・ストーカー"
-  checkedAt: { title: "あなたのミカタ 相談先リスト", url: "https://anata-no-mikata.mhlw.go.jp/window" }
+  checkedAt: { title: "政府広報オンライン（2026-10-21 確認）", url: "https://www.gov-online.go.jp/article/201309/entry-7508.html" }
   tags: [violence]
   categories: [harm, relationship]
-  verified: false
+  verified: true
 
 # ── こころがしんどい・話を聞いてほしい ──
 - id: ibasho
@@ -235,10 +235,10 @@
   contact: "チャット（24時間365日・無料・匿名）。年齢・性別を問わない"
   url: "https://talkme.jp/"
   target: "どんな悩みでも"
-  checkedAt: { title: "熊本市", url: "https://www.city.kumamoto.jp/kiji00352838/index.html" }
+  checkedAt: { title: "あなたのいばしょ 公式サイト（2026-10-21 確認）", url: "https://talkme.jp/" }
   tags: []
   categories: [mind]
-  verified: false
+  verified: true
 - id: inochi-sos
   name: "#いのちSOS"
   contact: "0120-061-338（24時間）"
@@ -251,15 +251,15 @@
   verified: true
 - id: childline
   name: "チャイルドライン"
-  contact: "0120-99-7777（毎日16〜21時、12/29〜1/3を除く）。チャットもある"
+  contact: "0120-99-7777（毎日16〜21時、12/29〜1/3を除く。通話料はかからない）。チャットもある"
   tel: "0120997777"
   url: "https://childline.or.jp/"
   target: "子どもの悩み全般"
   audience: "18歳まで"
-  checkedAt: { title: "厚生労働省 まもろうよ こころ（電話相談）", url: "https://www.mhlw.go.jp/mamorouyokokoro/soudan/tel" }
+  checkedAt: { title: "チャイルドライン 電話で話す（2026-10-21 確認）", url: "https://childline.or.jp/tel/" }
   tags: []
   categories: [mind]
-  verified: false
+  verified: true
 - id: mamorouyo
   name: "まもろうよ こころ（厚生労働省）"
   contact: "電話・SNS の相談窓口の一覧"
@@ -273,10 +273,10 @@
 # ── 妊娠・不妊・これからの家族 ──
 - id: foster-adoption
   name: "里親・特別養子縁組の相談"
-  contact: "住んでいる都道府県・政令市の児童相談所などで相談できる"
-  url: null
+  contact: "里親は、児童相談所や里親支援機関に相談できる。特別養子縁組は、児童相談所か、民間のあっせん事業者に相談できる"
+  url: "https://tokubetsuyoshiengumi.cfa.go.jp/about/"
   target: "里親・特別養子縁組"
-  checkedAt: null
+  checkedAt: { title: "こども家庭庁 特別養子縁組制度（2026-10-21 確認）", url: "https://tokubetsuyoshiengumi.cfa.go.jp/about/" }
   tags: []
   categories: [family]
-  verified: false
+  verified: true
