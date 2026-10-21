@@ -1,39 +1,85 @@
-# 24歳の章（SPEC.md §10.3）。Claude Code の下書き。すべて status: draft。
+# 24歳の章（SPEC.md §10.3）。会話中心の形式（付録B-2）。Claude Code の下書き。すべて status: draft。
 #
-# 文字数の上限（src/engine/limits.ts、SPEC.md 付録A-7）
-#   シーン本文 text ……… 200字以内（超えると警告）
-#   選択肢 label ………… 30字以内（超えると警告）
-#   効果 note …………… 20字以内（超えるとエラー。ビルドが止まる）
+# 文字数の上限（src/engine/limits.ts）
+#   吹き出し lines[].text …… 40字以内（超えると警告）
+#   選択肢 label ………………… 30字以内（超えると警告）
+#   効果 note ………………………… 20字以内（超えるとエラー。ビルドが止まる）
+#   とばしたときの要約 summary … 40字以内（超えると警告）
 #
 # 付録A-17：ユウの住む自治体にパートナーシップ制度があるかを、ここで決める。
 # 付録A-18：ケイの父親ルートでは、サキの就業継続（CH-PARTNER-WORK）をここで判定する。
+# 付録B-33：ミナミの忙しい日の食事（体型や体重への評価は書かない）。ケイが職場でたばこを勧められる
+#   （keiSmokes。27・30歳の、子どものそばでの喫煙とやめるかどうかにつなげる）。
 age: 24
 title: "24歳"
 season: "春"
 status: draft
 intro:
   minami: "会社員になって2年目の春。仕事は忙しく、帰りはいつも遅い。"
-  haruto: "会社員になって2年目の春。新しいパートナーと出会った。"
+  haruto: "会社員になって2年目の春。ナオという人と付き合い始めた。"
   yu: "会社員になって2年目の春。アオイと一緒に暮らすことにした。"
   kei: "働き始めて6年目の春。いまも、家族の生活を支えている。"
 events:
+  # ───────── ミナミ：忙しい毎日の、食事とからだ ─────────
   - id: E24-MINAMI-WORK
     age: 24
     characters: [minami]
     kind: fixed
-    domains: [月経, 労働]
-    statCard: []   # T7：月経のつらさと労働の統計は未収集
+    domains: [食生活, 月経, 労働]
+    statCard: [S40]
     resources: [health]
-    stage: { place: office, time: night, cast: [{ id: minami }, { id: coworker }] }
+    stage: { place: office, time: day, cast: [{ id: minami, x: 30 }, { id: coworker, x: 62 }] }
+    summary: "忙しい毎日の中で、食事や月経のつらさのことを考えた。"
     status: draft
     scenes:
       - id: start
         effects:
           - { param: body, sign: -1, size: S, source: society, note: "長時間労働が続く" }
-        text: "残業続きの毎日で、月経のつらさが前よりひどくなった。痛み止めを飲んで、会議に出る。"
+        lines:
+          - { who: narration, text: "昼休み。机の上には、食べかけのおにぎりが1つ。" }
+          - { who: minami, kind: inner, text: "（昨日の夜も、コンビニだったな）" }
+          - { who: coworker, text: "ミナミ、また机で食べてる。たまには社食、行かない？" }
+        choices:
+          - id: canteen
+            label: "「行く！　ちょうど休みたかった」"
+            canonical: true
+            effects:
+              - { param: body, sign: 1, size: S, source: choice, statRef: S40, note: "食事を整えた" }
+              - { param: connection, sign: 1, size: S, source: choice, note: "同期と話せた" }
+            next: canteen
+          - id: prep
+            label: "「週末に、作り置きしてみようかな」"
+            effects:
+              - { param: body, sign: 1, size: S, source: choice, statRef: S40, note: "食事を整えた" }
+            next: prep
+          - id: busy
+            label: "「今日は無理。これで十分」"
+            next: busy
+      - id: canteen
+        stage: { place: office, time: day, cast: [{ id: minami, x: 30 }, { id: coworker, x: 62 }] }
+        lines:
+          - { who: narration, text: "日替わり定食。ごはんと、魚と、野菜の小鉢。" }
+          - { who: coworker, text: "温かいもの食べると、午後ちょっと持つよね。" }
+          - { who: minami, kind: inner, text: "（座って食べるの、久しぶりかも）", face: smile }
+        next: period
+      - id: prep
+        lines:
+          - { who: minami, text: "週末に、作り置きしてみようかな。" }
+          - { who: coworker, text: "いいね。おすすめのレシピ、送るよ。" }
+        next: period
+      - id: busy
+        lines:
+          - { who: minami, text: "今日は無理。これで十分。" }
+          - { who: coworker, text: "そっか。無理しすぎないでね。" }
+        next: period
+      - id: period
+        stage: { place: office, time: night, cast: [{ id: minami, x: 34 }] }
+        lines:
+          - { who: narration, text: "その夜も、残業。下腹が重く痛む。" }
+          - { who: minami, kind: inner, text: "（最近、月経のつらさが前よりひどい。痛み止めでごまかしてる）", face: sad }
         choices:
           - id: clinic
-            label: "受診して治療を相談する"
+            label: "婦人科で相談してみる"
             canonical: true
             effects:
               - { param: body, sign: 1, size: M, source: choice, note: "受診して相談した" }
@@ -42,64 +88,87 @@ events:
             label: "今は、このまま様子を見る"
             next: wait
       - id: clinic
-        text: "婦人科で、つらさを和らげる方法をいくつか教わった。職場にも、少しずつ相談してみるつもりだ。"
+        stage: { place: clinic, time: day, cast: [{ id: minami, x: 34 }] }
+        lines:
+          - { who: narration, text: "婦人科で、つらさを和らげる方法をいくつか教わった。" }
+          - { who: minami, kind: inner, text: "（我慢するものだと思ってた。相談してよかった）", face: relieved }
         next: END
       - id: wait
-        text: "今は様子を見ることにした。つらいときは、医療機関で相談できる。"
+        lines:
+          - { who: minami, kind: inner, text: "（今は、様子を見よう）" }
+          - { who: narration, text: "つらいときは、医療機関で相談できる。" }
         next: END
 
+  # ───────── ハルト：ナオに、過去のことを話すか ─────────
   - id: E24-HARUTO-DISCLOSE
     age: 24
     characters: [haruto]
     kind: fixed
     domains: [関係性, 同意]
-    stage: { place: living, time: dusk, cast: [{ id: haruto }, { id: nao }] }
+    stage: { place: living, time: dusk, cast: [{ id: haruto, x: 30 }, { id: nao, x: 62 }] }
+    summary: "ナオに、過去の自分のことを話すかどうか迷った。"
     status: draft
     scenes:
       - id: start
-        text: "新しいパートナーとの関係は、穏やかに続いている。過去の自分のことを話すかどうか、ずっと迷っている。"
+        lines:
+          - { who: narration, text: "ナオとの関係は、穏やかに続いている。" }
+          - { who: nao, text: "ハルトって、前の恋人の話、ぜんぜんしないよね。" }
+          - { who: haruto, kind: inner, text: "（……話すべきか、ずっと迷ってる）", face: anxious }
         choices:
           - id: tell
-            label: "過去のことを話す"
+            label: "「聞いてほしいことがある」"
             effects:
               - { param: connection, sign: 1, size: M, source: choice, note: "過去を打ち明けた" }
               - { param: autonomy, sign: 1, size: S, source: choice, note: "自分と向き合った" }
             next: told
           - id: notTell
-            label: "話さない"
+            label: "「まあ、いろいろあって」"
             canonical: true
             next: notTold
       - id: told
-        text: "パートナーは黙って最後まで聞いてから、「話してくれて、ありがとう」と言った。"
+        lines:
+          - { who: haruto, text: "前の恋人を、縛るようなことをしてた。" }
+          - { who: haruto, text: "同じことは、もうしたくない。" }
+          - { who: nao, text: "……話してくれて、ありがとう。" }
+          - { who: nao, text: "これから、私がいやなことがあったら、ちゃんと言うね。" }
+          - { who: haruto, kind: inner, text: "（うん。それを、聞ける自分でいたい）" }
         next: END
       - id: notTold
-        text: "まだ話さないことにした。過去は、なくなったわけではない。"
+        lines:
+          - { who: haruto, text: "まあ、いろいろあって。" }
+          - { who: haruto, kind: inner, text: "（まだ話せない。でも、過去がなくなったわけじゃない）", face: sad }
         next: END
 
+  # ───────── ユウ：アオイとの部屋探しと、職場 ─────────
   - id: E24-YU-WORKPLACE
     age: 24
     characters: [yu]
     kind: fixed
     domains: [性の多様性, 労働]
     statCard: [S24, S29]
-    stage: { place: home2, time: day, cast: [{ id: yu }, { id: aoi }] }
+    stage: { place: home2, time: day, cast: [{ id: yu, x: 30 }, { id: aoi, x: 62 }] }
+    summary: "アオイと暮らす部屋を探し、職場で話すかどうかを考えた。"
     status: draft
     scenes:
       - id: start
-        text: "アオイと暮らす部屋を探している。住む自治体によって、パートナーシップ制度があるかどうかが違う。"
+        lines:
+          - { who: aoi, text: "この部屋、駅から近くていいね。" }
+          - { who: yu, text: "うん。……あ、パートナーシップ制度って、この市にあるのかな。" }
+          - { who: aoi, text: "住むところによって、あったりなかったりするんだよね。" }
         choices:
           - id: choose
-            label: "制度のある自治体を選んで住む"
+            label: "「制度のある市で探そう」"
             requires: "cond.partnership != 'notAvailable'"
             setFlags: { yuChoseResidence: true }
             next: residence
           - id: stay
-            label: "いまの地域で部屋を探す"
+            label: "「通いやすさを優先しよう」"
             canonical: true
             setFlags: { yuChoseResidence: false }
             next: residence
       - id: residence
-        text: "新しい部屋が決まった。"
+        lines:
+          - { who: narration, text: "新しい部屋が決まった。" }
         chance:
           id: CH-RESIDENCE
           label: "住む自治体にパートナーシップ制度がある確率"
@@ -112,17 +181,20 @@ events:
             happens: { setFlags: { partnershipLocal: true }, next: work }
             notHappens: { setFlags: { partnershipLocal: false }, next: work }
       - id: work
-        text: "職場では、まだ誰にもアオイのことを話していない。"
+        stage: { place: office, time: day, cast: [{ id: yu, x: 34 }] }
+        lines:
+          - { who: narration, text: "引っ越しの手続きで、職場に住所の変更を出した。" }
+          - { who: yu, kind: inner, text: "（同居人のこと、聞かれたら何て言おう）" }
         choices:
           - id: out
-            label: "職場で話す"
+            label: "「パートナーと暮らしています」"
             neutral: true
             effects:
               - { param: connection, sign: 1, size: S, source: choice, note: "職場で話した" }
             setFlags: { yuOutAtWork: true }
             next: outDone
           - id: notOut
-            label: "職場では話さない"
+            label: "職場では、話さないでおく"
             neutral: true
             canonical: true
             effects:
@@ -132,32 +204,74 @@ events:
       - id: outDone
         effects:
           - { param: psychSafety, sign: 1, size: S, source: others, note: "上司が受け止めた" }
-        text: "上司は少し考えてから、「教えてくれてありがとう。困ったことがあったら言って」と言った。"
+        lines:
+          - { who: narration, text: "上司は少し考えてから、こう言った。" }
+          - { who: narration, text: "「教えてくれてありがとう。困ったことがあったら言って」" }
+          - { who: yu, kind: inner, text: "（……言えて、よかった）", face: relieved }
         next: END
       - id: notOutDone
-        text: "職場で話すかどうかは、ユウが決めていい。家に帰れば、アオイがいる。"
+        lines:
+          - { who: yu, kind: inner, text: "（職場で話すかどうかは、私が決めていい）" }
+          - { who: yu, kind: inner, text: "（家に帰れば、アオイがいる）", face: smile }
         next: END
 
+  # ───────── ケイ：働き方と、たばこ ─────────
   - id: E24-KEI-WORK
     age: 24
     characters: [kei]
     kind: fixed
-    domains: [社会経済]
-    statCard: [S22, S19, S20]
-    stage: { place: office, time: dusk, cast: [{ id: kei }, { id: saki, when: "flags.keiFather == true" }, { id: keiChild, when: "flags.keiFather == true" }] }
+    domains: [社会経済, 喫煙]
+    statCard: [S38, S22, S20]
+    stage: { place: station, time: dusk, cast: [{ id: kei, x: 30 }, { id: senpai, x: 62 }] }
+    summary: "職場の先輩にたばこを勧められ、これからの働き方も考えた。"
     status: draft
     scenes:
       - id: start
         effects:
           - { param: options, sign: -1, size: S, source: upbringing, statRef: S22, when: "up.singleParent == true", note: "ひとり親家庭の家計" }
-        text: "非正規の仕事を続けながら、家族の生活を支えている。将来の見通しは、まだ立たない。"
+        lines:
+          - { who: narration, text: "現場の休憩時間。喫煙所の前で、先輩が手招きする。" }
+          - { who: senpai, text: "ケイ、一本どう？　疲れが取れるよ。" }
+          - { who: kei, kind: inner, text: "（みんな吸ってるし、断りにくいな）" }
+        choices:
+          - id: decline
+            label: "「いや、おれはいいです」"
+            canonical: true
+            effects:
+              - { param: autonomy, sign: 1, size: S, source: choice, note: "自分で断った" }
+            setFlags: { keiSmokes: false }
+            next: declined
+          - id: take
+            label: "「じゃあ、一本だけ」"
+            effects:
+              - { param: body, sign: -1, size: S, source: choice, statRef: S38, note: "たばこを吸い始めた" }
+            setFlags: { keiSmokes: true }
+            next: took
+      - id: declined
+        lines:
+          - { who: kei, text: "いや、おれはいいです。" }
+          - { who: senpai, text: "そっか。えらいな。" }
+          - { who: kei, kind: inner, text: "（風向きで、煙はこっちに来るけど）" }
+        next: home
+      - id: took
+        lines:
+          - { who: kei, text: "じゃあ、一本だけ。" }
+          - { who: narration, text: "その一本が、次の日も、その次の日も続いた。" }
+          - { who: kei, kind: inner, text: "（休憩のたびに、手がポケットに行く）" }
+        next: home
+      - id: home
+        stage: { place: living, time: night, cast: [{ id: kei, x: 26 }, { id: saki, x: 52, when: "flags.keiFather == true" }, { id: keiChild, x: 72, when: "flags.keiFather == true" }] }
+        lines:
+          - { who: narration, text: "非正規の仕事を続けながら、家族の生活を支えている。" }
         branches:
           - when: "flags.keiFather == true"
             next: father
         next: choose
       # 付録A-18：S20 は「妻」のデータ。サキとケイの関係に当てはめるのは解釈（「このサイトについて」に明記）
       - id: father
-        text: "サキとの子どもは、もうすぐ3歳になる。出産のあと、サキは仕事を続けるかどうかを考えていた。"
+        lines:
+          - { who: narration, text: "サキとの子どもは、もうすぐ3歳になる。" }
+          - { who: saki, text: "仕事、どうしようかって、ずっと考えてたんだ。" }
         chance:
           id: CH-PARTNER-WORK
           label: "パートナーが第1子の出産のあとも仕事を続ける確率"
@@ -166,16 +280,21 @@ events:
             happens: { setFlags: { sakiKeptWork: true }, next: kept }
             notHappens: { setFlags: { sakiKeptWork: false }, next: left }
       - id: kept
-        text: "サキは、仕事を続けた。二人の働き方を、毎月のように話し合っている。"
+        lines:
+          - { who: saki, text: "やっぱり、仕事は続ける。" }
+          - { who: kei, text: "うん。シフト、毎月いっしょに決めよう。" }
         next: choose
       - id: left
-        text: "サキは、出産をきっかけに仕事を辞めた。またいつか働きたいと話している。"
+        lines:
+          - { who: saki, text: "いまは、仕事をやめることにした。またいつか働きたい。" }
+          - { who: kei, text: "わかった。そのときは、おれも動けるようにする。" }
         next: choose
       - id: choose
-        text: "ケイは、これからの働き方を考える。"
+        lines:
+          - { who: kei, kind: inner, text: "（これからの働き方、どうしよう）" }
         choices:
           - id: support
-            label: "資格取得の支援制度を探す"
+            label: "資格を取る支援制度を調べる"
             canonical: true
             effects:
               - { param: options, sign: 1, size: M, source: choice, note: "支援制度を探した" }
@@ -184,8 +303,11 @@ events:
             label: "今の働き方を続ける"
             next: keptWork
       - id: searched
-        text: "役所で、働きながら資格を取るための支援制度があると教わった。来月から、夜間の講座に通う。"
+        lines:
+          - { who: narration, text: "役所で、働きながら資格を取るための支援制度を教わった。" }
+          - { who: kei, kind: inner, text: "（来月から、夜間の講座に通ってみよう）", face: smile }
         next: END
       - id: keptWork
-        text: "今は、今の働き方を続けることにした。毎日の生活を回すことで、精一杯だ。"
+        lines:
+          - { who: kei, kind: inner, text: "（今は、毎日の生活を回すので精一杯だ）", face: sad }
         next: END

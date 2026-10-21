@@ -363,3 +363,18 @@ describe('21歳の飲み会（付録B-33）', () => {
     expect(drink.every((e) => ['body', 'autonomy', 'connection'].includes(e.param))).toBe(true);
   });
 });
+
+describe('24歳のケイとたばこ（付録B-33）', () => {
+  it('勧められて吸い始めると keiSmokes が立ち、からだ −S（選択、S38）が付く。断れば付かない', () => {
+    const pick = (take: boolean) =>
+      playThrough(real, createRun(real, { protagonist: 'kei', seed: '0'.repeat(32) }), (n, x) =>
+        x.position.eventId === 'E24-KEI-WORK' && currentScene(real, x)!.id === 'start' ? (take ? 1 : 0) : 0,
+      );
+    const took = pick(true);
+    expect(took.flags.keiSmokes).toBe(true);
+    expect(took.ledger).toContainEqual(expect.objectContaining({ eventId: 'E24-KEI-WORK', param: 'body', delta: -5, source: 'choice', statRef: 'S38' }));
+    const declined = pick(false);
+    expect(declined.flags.keiSmokes).toBe(false);
+    expect(declined.ledger.some((e) => e.eventId === 'E24-KEI-WORK' && e.param === 'body')).toBe(false);
+  });
+});
