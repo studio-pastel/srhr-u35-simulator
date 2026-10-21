@@ -143,42 +143,53 @@ events:
           - { who: narration, text: "話すかどうか、いつ話すかは、ミナミが決めていい。" }
         next: END
 
-      # 暴力が激しくならなかった
+      # 暴力が激しくならなかった。ハルトは自分の言動を振り返り、謝る。二人は復縁しない（付録B-32）
       - id: m-calm
         viewpoint: minami
         lines:
           - { who: narration, text: "ある夜、ハルトから長いメッセージが来た。" }
-          - { who: haruto, kind: message, text: "これまで、スマホ見せろとか言って、ごめん。" }
-          - { who: haruto, kind: message, text: "このままだと、父さんと同じになると思った。大学の相談室に行ってる。" }
-          - { who: minami, kind: inner, text: "（……信じていいのかな）", face: anxious }
+          - { who: haruto, kind: message, text: "これまで、スマホを見せろとか、予定を決めつけたりして、ごめん。" }
+          - { who: haruto, kind: message, text: "あれは「心配」じゃなくて、ミナミを縛ってた。父さんと同じことをしてた。" }
+          - { who: haruto, kind: message, text: "大学の相談室に通ってる。自分の問題として、向き合っていく。" }
+          - { who: minami, kind: inner, text: "（……ちゃんと、自分のこととして話してる）" }
+          - { who: minami, kind: inner, text: "（でも、私の気持ちは、もう戻らない）" }
+        next: m-decide
+      - id: m-decide
+        viewpoint: minami
+        lines:
+          - { who: minami, kind: inner, text: "（別れることを、どう伝えよう）" }
         choices:
-          - id: wait
-            label: "「話してくれて、ありがとう」"
-            neutral: true
+          - id: tell
+            label: "「話してくれてありがとう。でも、別れたい」"
             canonical: true
             effects:
-              - { param: autonomy, sign: 1, size: S, source: choice, note: "自分で受けとめ方を決めた" }
-            setFlags: { minamiResponse19: waited }
-            next: m-wait
-          - id: distance
-            label: "「少し、距離を置きたい」"
-            neutral: true
+              - { param: autonomy, sign: 1, size: M, source: choice, note: "別れると自分で決めた" }
+            setFlags: { minamiResponse19: brokeUp }
+            next: m-tell
+          - id: riko
+            label: "リコに話してから、伝える"
             effects:
-              - { param: autonomy, sign: 1, size: S, source: choice, note: "距離を置くと伝えた" }
-            setFlags: { minamiResponse19: distance }
-            next: m-distance
-      - id: m-wait
+              - { param: autonomy, sign: 1, size: M, source: choice, note: "別れると自分で決めた" }
+              - { param: connection, sign: 1, size: S, source: choice, note: "友人に話した" }
+            setFlags: { minamiResponse19: brokeUpWithFriend }
+            next: m-riko
+      - id: m-tell
         viewpoint: minami
         lines:
-          - { who: minami, kind: message, text: "話してくれて、ありがとう。" }
-          - { who: minami, kind: inner, text: "（すぐには、前みたいには戻れない。でも、見ていよう）" }
+          - { who: minami, kind: message, text: "話してくれて、ありがとう。でも、別れたい。" }
+          - { who: haruto, kind: message, text: "わかった。ミナミが決めたことだから。いままで、ほんとうにごめん。" }
+          - { who: minami, kind: inner, text: "（謝ってもらっても、戻らなくていい。決めるのは、私だ）", face: relieved }
         next: END
-      - id: m-distance
+      - id: m-riko
         viewpoint: minami
+        stage: { place: campus, time: day, cast: [{ id: minami, x: 30 }, { id: riko, x: 64 }] }
+        effects:
+          - { param: psychSafety, sign: 1, size: S, source: others, note: "友人が受け止めた" }
         lines:
-          - { who: minami, kind: message, text: "少し、距離を置きたい。" }
-          - { who: haruto, kind: message, text: "……わかった。" }
-          - { who: minami, kind: inner, text: "（自分の気持ちを、先にしていい）" }
+          - { who: riko, text: "謝ってくれたからって、戻らなきゃいけないわけじゃないよ。" }
+          - { who: minami, kind: inner, text: "（……うん。そうだよね）", face: relieved }
+          - { who: minami, kind: message, text: "話してくれて、ありがとう。でも、別れたい。" }
+          - { who: haruto, kind: message, text: "わかった。いままで、ほんとうにごめん。" }
         next: END
 
       # ── ハルトの視点 ──
@@ -237,9 +248,12 @@ events:
       - id: h-reflect
         viewpoint: haruto
         lines:
-          - { who: haruto, kind: inner, text: "（あれは、父さんと同じことだった）", face: sad }
+          - { who: haruto, kind: inner, text: "（あれは「心配」じゃない。ミナミを縛ってた。父さんと同じことだった）", face: sad }
           - { who: haruto, kind: inner, text: "（言葉にすると、足元が揺れる。それでも、ここで止める）" }
-          - { who: haruto, kind: message, text: "これまで、スマホ見せろとか言って、ごめん。" }
+          - { who: haruto, kind: message, text: "これまで、スマホを見せろとか、予定を決めつけたりして、ごめん。" }
+          - { who: minami, kind: message, text: "話してくれて、ありがとう。でも、別れたい。" }
+          - { who: haruto, kind: inner, text: "（引き止めない。それが、いまのおれにできること）" }
+          - { who: haruto, kind: message, text: "わかった。いままで、ほんとうにごめん。" }
         next: END
       - id: h-blame
         viewpoint: haruto
@@ -258,8 +272,9 @@ events:
         viewpoint: haruto
         lines:
           - { who: haruto, kind: inner, text: "（このままだと、父さんと同じになる）", face: sad }
-          - { who: haruto, kind: inner, text: "（大学の相談室に、行ってみよう）" }
-          - { who: haruto, kind: message, text: "これまで、スマホ見せろとか言って、ごめん。" }
+          - { who: haruto, kind: inner, text: "（大学の相談室に行こう。自分の問題として、向き合う）" }
+          - { who: haruto, kind: message, text: "これまで、スマホを見せろとか、予定を決めつけたりして、ごめん。" }
+          - { who: haruto, kind: inner, text: "（許してもらうためじゃない。ミナミがどう決めても、受けとめる）" }
         next: END
 
   # ───────── ケイとサキ：避妊を二人で決める（付録B-30） ─────────
