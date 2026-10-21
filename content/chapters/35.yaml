@@ -277,6 +277,114 @@ events:
           - { who: haruto, kind: inner, text: "（同じように悩む親は、少なくないんだ）", face: relieved }
         next: END
 
+  # ───────── ユウとアオイ：家族のかたち ─────────
+  - id: E35-YU-FAMILY
+    age: 35
+    characters: [yu]
+    kind: fixed
+    domains: [性の多様性, 家族, がん予防]
+    statCard: [S24, S28]
+    stage: { place: home2, time: dusk, cast: [{ id: yu, x: 24 }, { id: aoi, x: 48 }, { id: yuMother, x: 72 }] }
+    summary: "母が、アオイと暮らす家に初めて来た。"
+    status: draft
+    scenes:
+      - id: start
+        effects:
+          - { param: psychSafety, sign: -1, size: S, source: upbringing, when: "up.comingOutAnxiety == true", note: "家族の反応が気になる" }
+        lines:
+          - { who: narration, text: "母が、アオイと暮らす家に初めて来た。" }
+          - { who: yuMother, text: "アオイさん、いつもユウがお世話になって。" }
+          - { who: aoi, text: "こちらこそ。今日は来てくださって、うれしいです。", face: smile }
+          - { who: yuMother, text: "……正直、まだわからないこともあるの。でも、会ってみたかった。" }
+          - { who: yu, kind: inner, text: "（11年。お母さんがここに来るまで、長かった）" }
+        choices:
+          - id: family
+            label: "「お母さん、アオイは私の家族だよ」"
+            neutral: true
+            canonical: true
+            effects:
+              - { param: connection, sign: 1, size: M, source: choice, note: "家族に気持ちを伝えた" }
+            next: family
+          - id: thanks
+            label: "「来てくれて、ありがとう」"
+            neutral: true
+            effects:
+              - { param: autonomy, sign: 1, size: S, source: choice, note: "伝え方を自分で選んだ" }
+            next: thanks
+      - id: family
+        effects:
+          - { param: psychSafety, sign: 1, size: S, source: others, note: "母が受けとめようとした" }
+        lines:
+          - { who: yu, text: "お母さん、アオイは私の家族だよ。" }
+          - { who: yuMother, text: "……うん。そうなんだね。", face: relieved }
+          - { who: yu, kind: inner, text: "（全部わかってもらえなくても、来てくれた）" }
+        next: after
+      - id: thanks
+        lines:
+          - { who: yu, text: "来てくれて、ありがとう。" }
+          - { who: yuMother, text: "ごはん、おいしかった。また来てもいい？", face: smile }
+        next: after
+      - id: after
+        lines:
+          - { who: narration, text: "母を駅まで送った帰り道。" }
+          - { who: aoi, text: "そういえば、来月の検診、また二人で行こうね。" }
+          - { who: yu, kind: inner, text: "（からだのことも、家族のことも、二人で続けていく）", face: smile }
+        next: END
+
+  # ───────── ケイ：きょうだいと、自分のからだ ─────────
+  - id: E35-KEI-SELF
+    age: 35
+    characters: [kei]
+    kind: fixed
+    domains: [ヤングケアラー, 健康]
+    statCard: [S23]
+    resources: [health]
+    stage: { place: living, time: dusk, cast: [{ id: kei, x: 24 }, { id: mio, x: 48 }, { id: sora, x: 72 }] }
+    summary: "大人になった弟と妹と話し、自分のからだのことも考えた。"
+    status: draft
+    scenes:
+      - id: start
+        lines:
+          - { who: narration, text: "年末、久しぶりにきょうだい3人が集まった。" }
+          - { who: sora, text: "兄ちゃんが毎日、保育園に迎えに来てくれてたの、覚えてる。" }
+          - { who: mio, text: "私も。……あのころ、お兄ちゃんは自分のこと、何もできなかったよね。" }
+          - { who: kei, kind: inner, text: "（あのころは、それが当たり前だと思ってた）" }
+          - { who: mio, text: "これからは、お兄ちゃんも自分のこと、大事にしてよ。" }
+        branches:
+          - when: "flags.keiSmokes == true"
+            next: smoke
+        next: checkup
+      - id: smoke
+        lines:
+          - { who: sora, text: "たばこも、そろそろやめなよ。" }
+          - { who: kei, kind: inner, text: "（……弟にまで、言われるようになったか）" }
+        next: checkup
+      - id: checkup
+        lines:
+          - { who: narration, text: "机の上に、健康診断の案内が届いている。" }
+          - { who: kei, kind: inner, text: "（去年は、忙しくて行かなかったな）" }
+        choices:
+          - id: go
+            label: "健康診断を予約する"
+            canonical: true
+            effects:
+              - { param: body, sign: 1, size: M, source: choice, note: "健康診断を受けた" }
+            next: go
+          - id: later
+            label: "今年も、後回しにする"
+            next: later
+      - id: go
+        stage: { place: clinic, time: day, cast: [{ id: kei, x: 34 }] }
+        lines:
+          - { who: narration, text: "久しぶりに、健康診断を受けた。" }
+          - { who: kei, kind: inner, text: "（自分のからだのために時間を使うのも、悪くない）", face: smile }
+        next: END
+      - id: later
+        lines:
+          - { who: kei, kind: inner, text: "（今年も、時間がとれない）", face: sad }
+          - { who: narration, text: "気になったときは、医療機関で相談できる。" }
+        next: END
+
   # ───────── 4人とも：ここまでの道のり ─────────
   - id: E35-ALL-REVIEW
     age: 35

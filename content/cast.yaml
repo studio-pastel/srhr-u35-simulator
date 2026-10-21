@@ -1,6 +1,7 @@
 # 登場人物の見た目（SPEC.md 付録B-1・B-5）。色と髪型は暫定値。パステルが選んで決める。
 # 髪型や服装で、性別のステレオタイプに寄せない（監修で確認する）。
-# 主人公の年齢は周回の年齢を使う。脇役は age の年齢で描く。
+# 主人公の年齢は周回の年齢を使う。脇役は age の年齢で描く。peerOffset は主人公と一緒に年をとる（主人公の年齢＋差）。
+# 家族（ユウの母、ケイの母・弟・妹）は peerOffset にして、35歳の章で年をとった姿を描く。
 # hairStyle：short／mid／bob／long／tied（結んだ髪）
 # clothes：[〜19歳, 20〜30歳, 31歳〜] の服の色
 
@@ -42,22 +43,22 @@
 - id: yuMother
   name: ユウの母
   role: ユウの母
-  age: 46
+  peerOffset: 30
   look: { skin: "#efc4a0", hair: "#4a3226", hairStyle: short, clothes: ["#9c6644", "#9c6644", "#9c6644"], pants: "#4a4a5a" }
 - id: sora
   name: ソラ
   role: ケイの弟
-  age: 5
+  peerOffset: -11
   look: { skin: "#dca782", hair: "#2a2320", hairStyle: short, clothes: ["#e0a526", "#e0a526", "#e0a526"], pants: "#3d5a80" }
 - id: mio
   name: ミオ
   role: ケイの妹
-  age: 9
+  peerOffset: -7
   look: { skin: "#dca782", hair: "#2a2320", hairStyle: long, clothes: ["#2a9d8f", "#2a9d8f", "#2a9d8f"], pants: "#34404f" }
 - id: kanako
   name: カナコ
   role: ケイの母
-  age: 42
+  peerOffset: 26
   look: { skin: "#dba580", hair: "#2a2320", hairStyle: tied, clothes: ["#5e8c61", "#5e8c61", "#5e8c61"], pants: "#3a3f4a" }
 - id: harutoFather
   name: ハルトの父
