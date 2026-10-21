@@ -34,7 +34,7 @@ events:
       - id: start
         lines:
           - { who: narration, text: "職場の健康セミナーで、年齢と妊娠の話を聞いた。" }
-          - { who: minami, kind: inner, text: "（生殖補助医療で出産に至る割合は、35歳ごろまでは約30%前後……）" }
+          - { who: minami, kind: inner, text: "（生殖補助医療で出産に至る割合は、35歳で29.6%、42歳で7.8%……）" }
           - { who: minami, kind: inner, text: "（妊娠を考えるなら、その前から葉酸をとるといい、とも言ってた）" }
           - { who: sou, text: "おかえり。セミナー、どうだった？" }
         choices:
