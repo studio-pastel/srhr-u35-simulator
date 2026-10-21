@@ -1,6 +1,6 @@
 // コンテンツ検証（§12.1）。npm run validate、ビルド、テストで共有する。
 import { contentSchema, CHARACTER_IDS } from './schema';
-import type { CharacterId, Content, GameEvent, Scene } from './schema';
+import type { CharacterId, Closeness, Content, GameEvent, Scene } from './schema';
 import type { RunState } from './types';
 import { collectComparisons, collectRefs, FlagExprError, parseFlagExpr } from './flags';
 import { countChars, TEXT_LIMITS } from './limits';
@@ -156,6 +156,13 @@ export function validateContent(raw: unknown, opts: ValidateOptions): ValidateRe
   // self は「いま遊んでいる主人公」（全員が出るイベントで使う）
   const castIds = new Set([...content.cast.map((c) => c.id), 'self']);
   for (const id of CHARACTER_IDS) if (!castIds.has(id)) errors.push(`cast.yaml に主人公 ${id} の見た目がありません`);
+  // 人との距離（付録B-9）：主人公ごとの近しい人
+  const bondsOf = new Map(content.characters.map((c) => [c.id as string, new Set(c.bonds.map((b) => b.id))]));
+  for (const c of content.characters)
+    for (const b of c.bonds) {
+      if (!castIds.has(b.id)) errors.push(`人物 ${c.id}.bonds：${b.id} が cast.yaml にありません`);
+      expr(`人物 ${c.id}.bonds.${b.id}.when`, b.when);
+    }
 
   // ── 章とイベント ──
   for (const ch of content.chapters) {
@@ -174,7 +181,7 @@ export function validateContent(raw: unknown, opts: ValidateOptions): ValidateRe
       for (const cid of ev.applyConditionFlags ?? []) if (!conds.has(cid)) errors.push(`${ew}：存在しない社会条件 ${cid}`);
       for (const c of ev.characters)
         if (!ch.intro[c]) errors.push(`${where}：${c} が出るイベントがあるのに intro.${c} がありません`);
-      checkEvent(ev, { errors, warnings, expr, statRef, textCheck, castIds });
+      checkEvent(ev, { errors, warnings, expr, statRef, textCheck, castIds, bondsOf });
     }
   }
 
@@ -197,6 +204,8 @@ interface Checkers {
   textCheck: (where: string, text: string) => void;
   /** 会話の行・舞台に出せる人物のID（cast.yaml）。narration は地の文 */
   castIds: Set<string>;
+  /** 主人公ごとの近しい人（付録B-9） */
+  bondsOf: Map<string, Set<string>>;
 }
 
 function checkEvent(ev: GameEvent, k: Checkers): void {
@@ -248,6 +257,22 @@ function checkEvent(ev: GameEvent, k: Checkers): void {
         errors.push(`${where}：${f} はハルトの視点のシーンからだけ書き換えられます（P7、§6.7）`);
   };
 
+  // 人との距離（付録B-9）。相手は、その場面の主人公の近しい人であること。
+  // 暴力の場面では、イベントに出る主人公どうしの近さを変えない（束縛を「近い」と描かないため）。関係の終わり（end）だけは書ける
+  const closenessCheck = (where: string, sc: Scene, list: Closeness[] | undefined) => {
+    (list ?? []).forEach((c, i) => {
+      const cw = `${where}.closeness[${i}]`;
+      const owners = sc.viewpoint ? [sc.viewpoint] : ev.characters;
+      if (!owners.some((o) => k.bondsOf.get(o)?.has(c.who))) errors.push(`${cw}：${c.who} は ${owners.join('・')} の近しい人（characters.yaml の bonds）にいません`);
+      if (c.delta === undefined && !c.end) errors.push(`${cw}：delta か end のどちらかが必要です`);
+      const n = countChars(c.note);
+      if (n > TEXT_LIMITS.effectNote) errors.push(`${cw}：note「${c.note}」が ${n}字です（上限 ${TEXT_LIMITS.effectNote}字）`);
+      k.expr(`${cw}.when`, c.when);
+      if ((ev.resources ?? []).includes('violence') && (ev.characters as string[]).includes(c.who) && !c.end)
+        errors.push(`${cw}：暴力の場面では、${c.who} との近さを変えられません（関係の終わり end だけ書けます。付録B-9）`);
+    });
+  };
+
   for (const sc of ev.scenes) {
     const w = `${ev.id}/${sc.id}`;
     if (vs && !sc.viewpoint) errors.push(`${w}：視点切替イベントのシーンには viewpoint が必要です`);
@@ -267,6 +292,8 @@ function checkEvent(ev: GameEvent, k: Checkers): void {
       if (!k.castIds.has(c.id)) errors.push(`${w}.stage：登場人物 ${c.id} が cast.yaml にありません`);
       k.expr(`${w}.stage.cast.when`, c.when);
     }
+    closenessCheck(w, sc, sc.closeness);
+    for (const c of sc.choices ?? []) closenessCheck(`${w}#${c.id}`, sc, c.closeness);
     if (sc.effects) {
       effectCheck(w, sc.effects);
       sc.effects.forEach((e, i) => {

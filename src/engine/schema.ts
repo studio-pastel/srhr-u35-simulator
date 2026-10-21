@@ -26,6 +26,18 @@ export const effectSchema = z.strictObject({
 /** 確率ノードの結果効果。source は省略可（省略時は chance）。chance 以外は検証で落とす（§6.4-3） */
 export const chanceEffectSchema = effectSchema.extend({ source: source.optional() });
 
+/**
+ * 人との距離（付録B-9）。主人公から見た脇役との近さ（0〜3）を変える。
+ * 6つのパラメーターと要因分解には含めない。delta は近さの増減、end は関係の終わり（別れたなど）。
+ */
+export const closenessSchema = z.strictObject({
+  who: z.string().min(1),
+  delta: z.number().int().min(-2).max(2).optional(),
+  end: z.boolean().optional(),
+  note: z.string().min(1),
+  when: z.string().optional(),
+});
+
 export const choiceSchema = z.strictObject({
   id,
   label: z.string().min(1),
@@ -33,6 +45,7 @@ export const choiceSchema = z.strictObject({
   canonical: z.boolean().optional(),
   requires: z.string().optional(),
   effects: z.array(effectSchema).default([]),
+  closeness: z.array(closenessSchema).optional(),
   setFlags: flagMap.optional(),
   next: z.string().min(1),
 });
@@ -112,6 +125,8 @@ export const sceneSchema = z.strictObject({
   branches: z.array(branchSchema).optional(),
   /** シーンに入ったときに適用する効果（付録A-15）。選択と関係なく起きる変化に使う。source に choice は使えない */
   effects: z.array(effectSchema).optional(),
+  /** シーンに入ったときの、人との距離の変化（付録B-9）。相手の行動による変化に使う */
+  closeness: z.array(closenessSchema).optional(),
   next: z.string().optional(),
 });
 
@@ -191,6 +206,10 @@ export const characterSchema = z.strictObject({
   initial: paramRecord,
   statRefs: z.array(statIdSchema),
   canonical: z.boolean(),
+  /** 人との距離（付録B-9）。主人公にとって近しい人と、はじめの近さ（0〜3）、登場する年齢 */
+  bonds: z
+    .array(z.strictObject({ id: z.string().min(1), initial: z.number().int().min(0).max(3), from: z.number().int(), when: z.string().optional() }))
+    .default([]),
 });
 
 export const conditionSchema = z.strictObject({
@@ -293,6 +312,7 @@ export type Resource = z.infer<typeof resourceSchema>;
 export type Config = z.infer<typeof configSchema>;
 export type Content = z.infer<typeof contentSchema>;
 export type Line = z.infer<typeof lineSchema>;
+export type Closeness = z.infer<typeof closenessSchema>;
 export type Stage = z.infer<typeof stageSchema>;
 export type CastMember = z.infer<typeof castSchema>;
 export type ResourceCategory = (typeof RESOURCE_CATEGORIES)[number];

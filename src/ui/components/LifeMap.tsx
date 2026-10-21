@@ -7,6 +7,7 @@ import { sceneSpec } from '../stage';
 import { chosenLines, mainStage } from '../review';
 import { PixelStage } from './PixelStage';
 import { RichText } from './RichText';
+import { BondRow } from './Bonds';
 
 type Status = 'done' | 'current' | 'future';
 
@@ -70,6 +71,7 @@ export function LifeMap({ run }: { run: RunState }) {
                   <RichText text={s} />
                 </p>
               ))}
+              {st !== 'future' && <BondRow run={run} age={ch.age} />}
               {skipped.length > 0 && <p class="sub">とばした場面：{skipped.map((e) => e.summary ?? '').join('／')}</p>}
               {st === 'current' && <p class="life-here">いま、ここ</p>}
             </div>

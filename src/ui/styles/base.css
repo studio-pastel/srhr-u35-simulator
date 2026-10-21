@@ -1320,3 +1320,114 @@ ul.plain {
 .peek .btn {
   width: 100%;
 }
+
+/* 人との距離（付録B-9）。点の数で近さを見せる。パラメーターの色とは分ける */
+.bond-dots {
+  display: inline-flex;
+  gap: 3px;
+  vertical-align: middle;
+}
+.bond-dots span {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  border: 1px solid var(--text-sub);
+}
+.bond-dots span.on {
+  background: var(--text-sub);
+}
+.bond-face .face-icon {
+  width: 28px;
+  height: 28px;
+}
+.bond-face.small .face-icon {
+  width: 22px;
+  height: 22px;
+  border-width: 1px;
+}
+.bond-notes,
+.bond-row,
+.bond-changes {
+  list-style: none;
+  margin: 6px 0 0;
+  padding: 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px 14px;
+  font-size: 13px;
+}
+.bond-notes li,
+.bond-row li,
+.bond-changes li {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+.bond-changes {
+  flex-direction: column;
+}
+.bond-word {
+  color: var(--text-sub);
+}
+.bond-why {
+  color: var(--text-sub);
+  font-size: 12px;
+}
+.bond-rings {
+  position: relative;
+  width: min(100%, 320px);
+  aspect-ratio: 1;
+  margin: 8px auto 4px;
+}
+.bond-rings .ring {
+  position: absolute;
+  border: 1px solid var(--line);
+  border-radius: 50%;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+}
+.bond-rings .r3 {
+  width: 44%;
+  height: 44%;
+}
+.bond-rings .r2 {
+  width: 72%;
+  height: 72%;
+}
+.bond-rings .r1 {
+  width: 98%;
+  height: 98%;
+}
+.bond-center,
+.bond-pin {
+  position: absolute;
+  transform: translate(-50%, -50%);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+.bond-center {
+  left: 50%;
+  top: 50%;
+}
+.bond-pin-name {
+  font-size: 11px;
+  line-height: 1.2;
+  background: var(--bg);
+  padding: 0 3px;
+  border-radius: 4px;
+}
+.bond-name,
+.bond-word {
+  white-space: nowrap;
+}
+.bond-notes li,
+.bond-changes li {
+  flex-wrap: wrap;
+}
+.bond-notes .bond-why {
+  flex-basis: 100%;
+  padding-left: 28px;
+  margin-top: -4px;
+}

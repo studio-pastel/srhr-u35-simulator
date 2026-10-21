@@ -84,6 +84,18 @@ export interface LedgerEntry {
   skipped?: boolean;
 }
 
+/** 人との距離の変化（付録B-9） */
+export interface BondEntry {
+  age: number;
+  eventId: string;
+  who: string;
+  from: number;
+  to: number;
+  ended?: boolean;
+  note: string;
+  skipped?: boolean;
+}
+
 export interface AppliedModifier {
   source: Source;
   op: 'set' | 'mul' | 'odds';
@@ -114,8 +126,8 @@ export interface ChanceLogEntry {
 export type ReplayChange = 'protagonist' | { condition: string; from: string; to: string };
 
 export interface RunState {
-  /** 4：とばしたイベント（skippedEvents）を追加。古い保存データは読み込まない */
-  version: 4;
+  /** 5：人との距離（bonds・bondLog）を追加。古い保存データは読み込まない */
+  version: 5;
   runId: string;
   seed: string;
   protagonist: CharacterId;
@@ -135,5 +147,8 @@ export interface RunState {
   /** 「この場面をとばす」を使ったイベント（付録B-17） */
   skippedEvents: string[];
   avatarSalts: Record<CharacterId, number>;
+  /** 人との距離（付録B-9）。いまの近さ（0〜3）と、関係が終わったか */
+  bonds: Record<string, { level: number; ended?: boolean }>;
+  bondLog: BondEntry[];
   replayOf?: { runId: string; changed: ReplayChange; sameSeed: boolean };
 }

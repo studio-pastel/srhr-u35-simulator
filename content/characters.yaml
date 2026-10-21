@@ -11,6 +11,12 @@
   initial: { body: 60, safety: 60, psychSafety: 60, options: 65, connection: 45, autonomy: 50 }
   statRefs: [S01, S14]
   canonical: true
+  # 人との距離（付録B-9）：近しい人、はじめの近さ（0〜3）、登場する年齢
+  bonds:
+    - { id: riko, initial: 2, from: 16 }
+    - { id: haruto, initial: 2, from: 17 }
+    - { id: coworker, initial: 1, from: 24 }
+    - { id: sou, initial: 2, from: 27 }
 - id: haruto
   name: ハルト
   profile: "男性。好きになるのは女性。家の中のことは、あまり人に話さない。"
@@ -21,6 +27,10 @@
   initial: { body: 70, safety: 55, psychSafety: 55, options: 70, connection: 40, autonomy: 60 }
   statRefs: [S04]
   canonical: true
+  bonds:
+    - { id: minami, initial: 2, from: 17 }
+    - { id: nao, initial: 2, from: 24 }
+    - { id: haruChild, initial: 2, from: 30 }
 - id: yu
   name: ユウ
   # 自認の言葉は物語の中で本人が選ぶ（§10.1、§11-6）。ここではラベルを使わない。
@@ -32,6 +42,9 @@
   initial: { body: 65, safety: 60, psychSafety: 60, options: 60, connection: 40, autonomy: 55 }
   statRefs: [S24]
   canonical: true
+  bonds:
+    - { id: yuMother, initial: 2, from: 16 }
+    - { id: aoi, initial: 1, from: 19 }
 - id: kei
   name: ケイ
   profile: "男性。好きになるのは女性。放課後は、たいてい弟と妹と一緒にいる。"
@@ -43,3 +56,8 @@
   initial: { body: 55, safety: 60, psychSafety: 60, options: 45, connection: 45, autonomy: 45 }
   statRefs: [S22, S23]
   canonical: true
+  bonds:
+    - { id: mio, initial: 2, from: 16 }
+    - { id: sora, initial: 2, from: 16 }
+    - { id: saki, initial: 2, from: 19 }
+    - { id: keiChild, initial: 2, from: 24, when: "flags.keiFather == true" }

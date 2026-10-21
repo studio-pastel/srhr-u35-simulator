@@ -381,3 +381,28 @@ describe('24歳のケイとたばこ（付録B-33）', () => {
     expect(declined.ledger.some((e) => e.eventId === 'E24-KEI-WORK' && e.param === 'body')).toBe(false);
   });
 });
+
+describe('人との距離（付録B-9）', () => {
+  it('ミナミの標準ルート：17歳でハルトが受けとめて近くなり、19歳か21歳で関係が終わる。リコは変わる', () => {
+    const s = playThrough(real, createRun(real, { protagonist: 'minami', seed: '0'.repeat(32) }), () => 0);
+    expect(s.version).toBe(5);
+    expect(s.bondLog).toContainEqual(expect.objectContaining({ age: 17, who: 'haruto', from: 2, to: 3 }));
+    expect(s.bonds.haruto!.ended).toBe(true);
+    // 関係が終わったあとは、それ以上変わらない
+    const afterEnd = s.bondLog.findIndex((e) => e.who === 'haruto' && e.ended);
+    expect(s.bondLog.slice(afterEnd + 1).some((e) => e.who === 'haruto')).toBe(false);
+    // 近さは 0〜3 に収まる
+    for (const b of Object.values(s.bonds)) expect(b.level).toBeGreaterThanOrEqual(0), expect(b.level).toBeLessThanOrEqual(3);
+  });
+
+  it('暴力の場面（束縛）では、ハルトとの近さは変わらない。パラメーターとは別に記録する', () => {
+    const s = playThrough(real, createRun(real, { protagonist: 'minami', seed: '0'.repeat(32) }), () => 0);
+    expect(s.bondLog.some((e) => e.eventId === 'E17-MH-CONTROL' && e.who === 'haruto')).toBe(false);
+    expect(s.ledger.every((e) => !('who' in e))).toBe(true);
+  });
+
+  it('相手の視点（そのころ）の選択では、主人公の距離は変わらない', () => {
+    const s = playThrough(real, createRun(real, { protagonist: 'minami', seed: '0'.repeat(32) }), () => 0);
+    expect(s.bondLog.some((e) => e.who === 'minami')).toBe(false);
+  });
+});

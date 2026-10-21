@@ -77,6 +77,8 @@ describe('ビルドを失敗させる条件（§12.1）', () => {
     ['統計カードの文に、表にない数字を書く', (r) => (r.stats[0].cardText = '日本では、女性の22.7%、男性の99.9%です。'), /数字 99\.9 が value/],
     ['統計カードの文の書き出し', (r) => (r.stats[0].cardText = '女性で22.7%です。'), /「日本では、」で始めて/],
     ['米国データの書き出し', (r) => (r.stats.find((s: any) => s.id === 'S25').cardText = '日本では、20%です。'), /国名（例：「米国では、」）で始めて/],
+    ['暴力の場面で、主人公どうしの近さを変える（付録B-9）', (r) => (mh(r, 'm-escalated').closeness = [{ who: 'haruto', delta: 1, note: 'x' }]), /暴力の場面では、haruto との近さを変えられません/],
+    ['近しい人にいない相手の距離を変える', (r) => (ks(r, 'noTrouble').closeness = [{ who: 'riko', delta: 1, note: 'x' }]), /riko は kei の近しい人/],
     ['シーンに入ったときの効果に choice', (r) => (ks(r, 'unaware').effects = [{ param: 'safety', sign: -1, size: 'S', source: 'choice', note: 'x' }]), /choice は使えません/],
     ['ルビの書き方の誤り', (r) => (ks(r, 'unaware').text = '{漢字かんじ}'), /ルビ/],
   ];

@@ -88,6 +88,8 @@ events:
             label: "「まずは、二人でもっと話そう」"
             next: talkMore
       - id: prepare
+        closeness:
+          - { who: sou, delta: 1, note: "「二人のこと」と言ってくれた" }
         lines:
           - { who: minami, text: "葉酸、飲み始めてみる。" }
           - { who: sou, text: "じゃあ、おれはお酒を減らそうかな。二人のことだし。" }
@@ -123,11 +125,15 @@ events:
             effects:
               - { param: body, sign: 1, size: S, source: choice, statRef: S42, note: "お酒を見直した" }
               - { param: connection, sign: 1, size: S, source: choice, note: "二人で準備した" }
+            closeness:
+              - { who: nao, delta: 1, note: "二人で準備した" }
             next: cutDown
           - id: herThing
             label: "「それは、ナオのことでしょ」"
             effects:
               - { param: connection, sign: -1, size: S, source: choice, note: "準備を相手に任せた" }
+            closeness:
+              - { who: nao, delta: -1, note: "準備を任せきりにした" }
             next: herThing
       - id: cutDown
         lines:
@@ -151,11 +157,15 @@ events:
             effects:
               - { param: connection, sign: 1, size: M, source: choice, note: "一緒に検査を受けた" }
               - { param: body, sign: 1, size: S, source: choice, note: "自分のからだを知った" }
+            closeness:
+              - { who: nao, delta: 1, note: "いっしょに検査を受けた" }
             next: together
           - id: leave
             label: "「ナオに任せるよ」"
             effects:
               - { param: connection, sign: -1, size: S, source: choice, note: "検査を相手に任せた" }
+            closeness:
+              - { who: nao, delta: -1, note: "検査を任せきりにした" }
             next: leave
       - id: together
         lines:
@@ -300,11 +310,15 @@ events:
             effects:
               - { param: connection, sign: 1, size: M, source: choice, note: "育児の時間を増やした" }
               - { param: options, sign: -1, size: S, source: society, statRef: S21, when: "cond.parentalLeave == 'hard'", note: "育児に理解の少ない職場" }
+            closeness:
+              - { who: keiChild, delta: 1, note: "参観日に行った" }
             next: time
           - id: work
             label: "「ごめん、仕事が抜けられない」"
             effects:
               - { param: connection, sign: -1, size: S, source: choice, note: "家族との時間が減った" }
+            closeness:
+              - { who: keiChild, delta: -1, note: "参観日に行けなかった" }
             next: work
       - id: time
         lines:

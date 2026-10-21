@@ -257,6 +257,8 @@ events:
             canonical: true
             effects:
               - { param: connection, sign: 1, size: M, source: choice, note: "パートナーと話し合った" }
+            closeness:
+              - { who: nao, delta: 1, note: "弱さを話せた" }
             next: talked
           - id: seek
             label: "子育ての相談先を探す"
@@ -289,6 +291,8 @@ events:
     status: draft
     scenes:
       - id: start
+        closeness:
+          - { who: yuMother, delta: 1, note: "会いに来てくれた" }
         effects:
           - { param: psychSafety, sign: -1, size: S, source: upbringing, when: "up.comingOutAnxiety == true", note: "家族の反応が気になる" }
         lines:
@@ -304,6 +308,8 @@ events:
             canonical: true
             effects:
               - { param: connection, sign: 1, size: M, source: choice, note: "家族に気持ちを伝えた" }
+            closeness:
+              - { who: aoi, delta: 1, note: "家族だと伝えた" }
             next: family
           - id: thanks
             label: "「来てくれて、ありがとう」"
@@ -344,6 +350,9 @@ events:
     status: draft
     scenes:
       - id: start
+        closeness:
+          - { who: mio, delta: 1, note: "覚えていてくれた" }
+          - { who: sora, delta: 1, note: "覚えていてくれた" }
         lines:
           - { who: narration, text: "年末、久しぶりにきょうだい3人が集まった。" }
           - { who: sora, text: "兄ちゃんが毎日、保育園に迎えに来てくれてたの、覚えてる。" }

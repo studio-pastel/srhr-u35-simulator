@@ -19,7 +19,8 @@ import {
 } from '../../engine/progression';
 import { breakdown, displayValue, paramsFrom } from '../../engine/effects';
 import { PARAM_KEYS } from '../../engine/constants';
-import { PARAM_LABELS, SOURCE_LABELS, type LedgerEntry, type RunState } from '../../engine/types';
+import { PARAM_LABELS, SOURCE_LABELS, type BondEntry, type LedgerEntry, type RunState } from '../../engine/types';
+import { BondNotes, ChapterBondChanges } from '../components/Bonds';
 import { Hud } from '../components/Hud';
 import { Modal } from '../components/Modal';
 import { FactorChart } from '../components/FactorChart';
@@ -56,6 +57,8 @@ interface HistEntry {
 interface Change {
   entries: LedgerEntry[];
   before: RunState['params'];
+  /** 人との距離の変化（付録B-9） */
+  bonds: BondEntry[];
 }
 
 export function Play() {
@@ -95,7 +98,8 @@ export function Play() {
     const sameEvent = next.position.eventId === run.position.eventId && next.position.viewpoint === run.position.viewpoint;
     setVisited(sameEvent && run.position.step === 'scene' ? [...visited, run.position.sceneId] : []);
     const fresh = next.ledger.slice(run.ledger.length).filter((e) => !e.skipped);
-    setChange(fresh.length && next.runId === run.runId ? { entries: fresh, before: run.params } : null);
+    const freshBonds = next.bondLog.slice(run.bondLog.length).filter((e) => !e.skipped);
+    setChange((fresh.length || freshBonds.length) && next.runId === run.runId ? { entries: fresh, before: run.params, bonds: freshBonds } : null);
     setLineIndex(0);
     setSkipped(null);
     setRun(next);
@@ -309,9 +313,12 @@ function SceneView(props: {
       <div class="stage-sticky">
         <div class={`stage-wrap${line.kind === 'fade' ? ' faded' : ''}`}>
           <PixelStage spec={spec} label={`${me.name}の場面`} animate={animate} />
-          {props.change && <ChangeCard entries={props.change.entries} before={props.change.before} animate={animate} onClose={props.closeChange} />}
+          {props.change && props.change.entries.length > 0 && (
+            <ChangeCard entries={props.change.entries} before={props.change.before} animate={animate} onClose={props.closeChange} />
+          )}
         </div>
         <StatusBar params={run.params} changed={changedParams} onOpen={props.openParams} />
+        {props.change && <BondNotes run={run} entries={props.change.bonds} />}
       </div>
       <div class="chat-log" aria-live="polite">
         {earlier.map((l, k) => (
@@ -574,6 +581,8 @@ function ChapterReview({ run, onNext }: { run: RunState; onNext: () => void }) {
           <FactorChart data={breakdown(run.ledger, (e) => e.age === age)} title={`${age}歳の章の要因分解`} hasActor={run.chanceLog.some((c) => c.age === age && c.actorLabel)} />
         </details>
       </div>
+
+      <ChapterBondChanges run={run} age={age} />
 
       <div class="panel">
         <h2 style={{ marginTop: 0 }}>そのころ、ほかの3人は</h2>

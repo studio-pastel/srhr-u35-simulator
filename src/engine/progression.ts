@@ -1,6 +1,6 @@
 // 章・イベント・シーンの進行（§6.2、§6.7）。UI に依存しない純粋なロジック。
 // 各操作は RunState を複製して新しい状態を返す。
-import type { Chapter, CharacterId, Choice, Content, GameEvent, Scene } from './schema';
+import type { Chapter, CharacterId, Choice, Closeness, Content, GameEvent, Scene } from './schema';
 import { CHARACTER_IDS } from './constants';
 import type { PeekTrack, RunState } from './types';
 import { check, type EvalContext } from './flags';
@@ -59,7 +59,7 @@ export function createRun(content: Content, opts: NewRunOptions): RunState {
   if (!first) throw new ProgressionError('章がひとつもありません');
   const salts = Object.fromEntries(CHARACTER_IDS.map((id) => [id, opts.avatarSalts?.[id] ?? 0])) as Record<CharacterId, number>;
   const state: RunState = {
-    version: 4,
+    version: 5,
     runId: opts.runId ?? newSeed().slice(0, 12),
     seed: opts.seed ?? newSeed(),
     protagonist: opts.protagonist,
@@ -74,6 +74,8 @@ export function createRun(content: Content, opts: NewRunOptions): RunState {
     skippedChapters: [],
     skippedEvents: [],
     avatarSalts: salts,
+    bonds: Object.fromEntries(ch.bonds.map((b) => [b.id, { level: b.initial }])),
+    bondLog: [],
   };
   if (opts.replayOf) state.replayOf = opts.replayOf;
   return state;
@@ -191,8 +193,37 @@ function startEvent(content: Content, s: RunState, ev: GameEvent, index: number)
  */
 function applySceneEntry(content: Content, s: RunState, ev: GameEvent): void {
   const scene = ev.scenes.find((x) => x.id === s.position.sceneId);
-  if (!scene?.effects?.length || !onProtagonistTrack(content, s)) return;
-  applyEffects(s, scene.effects, content.config, contextOf(content, s), origin(s));
+  if (!scene || !onProtagonistTrack(content, s)) return;
+  if (scene.effects?.length) applyEffects(s, scene.effects, content.config, contextOf(content, s), origin(s));
+  if (scene.closeness?.length) applyCloseness(content, s, scene.closeness);
+}
+
+/**
+ * 人との距離を変える（付録B-9）。主人公の近しい人（characters.yaml の bonds）だけが対象。
+ * 近さは 0〜3 に収める。関係が終わった人（end）は、それ以上変えない。
+ */
+export function applyCloseness(content: Content, s: RunState, list: Closeness[]): void {
+  const ctx = contextOf(content, s);
+  for (const c of list) {
+    if (!check(c.when, ctx)) continue;
+    const b = s.bonds[c.who];
+    if (!b || b.ended) continue;
+    const from = b.level;
+    const to = Math.max(0, Math.min(3, from + (c.delta ?? 0)));
+    if (to === from && !c.end) continue;
+    b.level = to;
+    if (c.end) b.ended = true;
+    s.bondLog.push({
+      age: s.position.age,
+      eventId: s.position.eventId,
+      who: c.who,
+      from,
+      to,
+      note: c.note,
+      ...(c.end ? { ended: true } : {}),
+      ...(s.position.skipping ? { skipped: true } : {}),
+    });
+  }
 }
 
 function endEvent(content: Content, s: RunState, ev: GameEvent): void {
@@ -361,7 +392,10 @@ export function autoStep(content: Content, s: RunState, override?: ChanceOverrid
 
 function applyChoice(content: Content, s: RunState, choice: Choice, override?: ChanceOverride): void {
   const ctx = contextOf(content, s);
-  if (onProtagonistTrack(content, s)) applyEffects(s, choice.effects, content.config, ctx, origin(s));
+  if (onProtagonistTrack(content, s)) {
+    applyEffects(s, choice.effects, content.config, ctx, origin(s));
+    if (choice.closeness?.length) applyCloseness(content, s, choice.closeness);
+  }
   s.choices[choiceKey(s.position.eventId, s.position.sceneId)] = choice.id;
   if (choice.setFlags) Object.assign(s.flags, choice.setFlags);
   moveTo(content, s, choice.next, override);

@@ -106,6 +106,8 @@ events:
             next: m-pressed
         next: m-respected
       - id: m-respected
+        closeness:
+          - { who: haruto, delta: 1, note: "気持ちを受けとめてくれた" }
         viewpoint: minami
         effects:
           - { param: psychSafety, sign: 1, size: S, source: others, note: "相手が受けとめた" }
@@ -123,6 +125,8 @@ events:
           - { who: minami, text: "ごめん。今日は、帰るね。" }
         next: END
       - id: m-talk
+        closeness:
+          - { who: haruto, delta: 1, note: "二人で話し合えた" }
         viewpoint: minami
         effects:
           - { param: psychSafety, sign: 1, size: S, source: others, note: "相手が確かめてくれた" }
@@ -138,6 +142,8 @@ events:
           - { who: minami, kind: inner, text: "（……前より、近くなった気がする）", face: smile }
         next: END
       - id: m-silent
+        closeness:
+          - { who: haruto, delta: 1, note: "様子に気づいてくれた" }
         viewpoint: minami
         effects:
           - { param: psychSafety, sign: 1, size: S, source: others, note: "相手が確かめてくれた" }
@@ -190,6 +196,8 @@ events:
               - { param: connection, sign: 1, size: M, source: choice, note: "気持ちを受けとめた" }
               - { param: autonomy, sign: 1, size: S, source: society, statRef: S06, when: "flags.knowsConsent == true", note: "同意を学んでいた" }
             setFlags: { harutoConsent17: respected }
+            closeness:
+              - { who: minami, delta: 1, note: "気持ちを受けとめた" }
             next: h-accept
           - id: press
             label: "「なんで？　ちょっとだけでも」"
@@ -324,6 +332,8 @@ events:
               - { param: safety, sign: 1, size: S, source: society, when: "flags.knowsHelplines == true", note: "相談先を知っている" }
               - { param: autonomy, sign: -1, size: S, source: society, statRef: S06, when: "cond.sexEducation == 'notTaught'", note: "学ぶ機会がなかった" }
             setFlags: { minamiResponse17: toldFriend }
+            closeness:
+              - { who: riko, delta: 1, note: "リコに話した" }
             next: m-friend
       - id: m-accept
         viewpoint: minami

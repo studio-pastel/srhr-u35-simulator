@@ -11,6 +11,7 @@ import { loadHistory, saveCompleted } from '../../engine/storage';
 import { DASHES, LineChart, type Series } from '../components/LineChart';
 import { FactorChart } from '../components/FactorChart';
 import { LifeMap } from '../components/LifeMap';
+import { BondRings } from '../components/Bonds';
 
 const OTHER_COLORS = ['var(--p-options)', 'var(--p-connection)', 'var(--p-autonomy)'];
 
@@ -72,6 +73,11 @@ export function OverallReview({ run, onRestart }: { run: RunState; onRestart: ()
       <div class="panel">
         <h2 style={{ marginTop: 0 }}>{me.name}の人生の地図</h2>
         <LifeMap run={run} />
+      </div>
+
+      <div class="panel">
+        <h2 style={{ marginTop: 0 }}>35歳の、まわりの人</h2>
+        <BondRings run={run} />
       </div>
 
       <div class="panel">

@@ -53,11 +53,16 @@ events:
             effects:
               - { param: connection, sign: 1, size: M, source: choice, note: "育児休業を取った" }
               - { param: options, sign: -1, size: S, source: society, statRef: S21, when: "cond.parentalLeave == 'hard'", note: "取りにくい職場" }
+            closeness:
+              - { who: haruChild, delta: 1, note: "育児休業を取った" }
+              - { who: nao, delta: 1, note: "二人で育てている" }
             next: took
           - id: skip
             label: "「今は、仕事を休めない」"
             effects:
               - { param: connection, sign: -1, size: S, source: choice, note: "育児の時間が少ない" }
+            closeness:
+              - { who: nao, delta: -1, note: "育児を任せきりにした" }
             next: skipped
       - id: took
         lines:
@@ -125,6 +130,8 @@ events:
             happens: { setFlags: { minamiLbw: true }, next: lbw }
             notHappens: { setFlags: { minamiLbw: false }, next: born }
       - id: lbw
+        closeness:
+          - { who: sou, delta: 1, note: "そばにいてくれた" }
         stage: { place: clinic, time: day, cast: [{ id: minami, x: 30 }, { id: sou, x: 62 }] }
         lines:
           - { who: narration, text: "生まれた子どもの体重は、2,500gに届かなかった。" }
@@ -133,6 +140,8 @@ events:
           - { who: narration, text: "出生体重は、母親一人の責任で決まるものではない。" }
         next: END
       - id: born
+        closeness:
+          - { who: sou, delta: 1, note: "いっしょに育てている" }
         lines:
           - { who: narration, text: "子どもが生まれた。慣れない毎日が始まる。" }
           - { who: sou, text: "交代で寝よう。おれ、夜の担当するから。" }
@@ -195,6 +204,8 @@ events:
             canonical: true
             effects:
               - { param: connection, sign: 1, size: S, source: choice, note: "制度を利用した" }
+            closeness:
+              - { who: aoi, delta: 1, note: "二人で宣誓した" }
             next: used
           - id: notUse
             label: "「今のままでも、いいかな」"
@@ -274,11 +285,15 @@ events:
               - { param: body, sign: 1, size: M, source: choice, statRef: S38, note: "禁煙を始めた" }
               - { param: connection, sign: 1, size: S, source: choice, note: "家族の話を受けとめた" }
             setFlags: { keiSmokes: false, keiQuit30: true }
+            closeness:
+              - { who: saki, delta: 1, note: "サキの話を受けとめた" }
             next: quitDone
           - id: brushOff
             label: "「外で吸ってるんだから、いいだろ」"
             effects:
               - { param: connection, sign: -1, size: S, source: choice, note: "家族の話を聞き流した" }
+            closeness:
+              - { who: saki, delta: -1, note: "サキの話を聞き流した" }
             next: brushOff
       - id: quitDone
         lines:
@@ -301,11 +316,15 @@ events:
             canonical: true
             effects:
               - { param: connection, sign: 1, size: M, source: choice, note: "家事と育児を分担した" }
+            closeness:
+              - { who: keiChild, delta: 1, note: "毎晩絵本を読んでいる" }
             next: shared
           - id: leave
             label: "「サキのほうが、うまいから」"
             effects:
               - { param: connection, sign: -1, size: S, source: choice, note: "家事を相手に任せた" }
+            closeness:
+              - { who: saki, delta: -1, note: "家のことを任せきりにした" }
             next: left
       - id: shared
         lines:

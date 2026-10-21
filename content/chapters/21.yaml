@@ -31,6 +31,9 @@ events:
     status: draft
     scenes:
       - id: start
+        closeness:
+          - { who: haruto, end: true, note: "別れた", when: "char == 'minami'" }
+          - { who: minami, end: true, note: "別れた", when: "char == 'haruto'" }
         lines:
           - { who: narration, text: "年末の飲み会。20人ほどが集まった。" }
           - { who: senpai, text: "とりあえず、みんな同じのでいいよね！" }
@@ -141,17 +144,23 @@ events:
             canonical: true
             effects:
               - { param: connection, sign: 1, size: M, source: choice, note: "サキの話を聞いた" }
+            closeness:
+              - { who: saki, delta: 1, note: "サキの話を聞いた" }
             next: listen
           - id: share
             label: "「費用も通院も、半分ずつにしよう」"
             effects:
               - { param: connection, sign: 1, size: M, source: choice, note: "費用と通院を分担した" }
               - { param: options, sign: -1, size: S, source: upbringing, statRef: S22, when: "up.economy == 'hardship'", note: "家計に余裕がない" }
+            closeness:
+              - { who: saki, delta: 1, note: "いっしょに背負った" }
             next: share
           - id: distance
             label: "連絡を返さなくなる"
             effects:
               - { param: connection, sign: -1, size: M, source: choice, note: "サキと距離を置いた" }
+            closeness:
+              - { who: saki, delta: -1, note: "連絡を返さなかった" }
             next: distance
       - id: listen
         lines:
@@ -381,6 +390,8 @@ events:
             effects:
               - { param: body, sign: 1, size: M, source: choice, statRef: S28, note: "検診と検査を受けた" }
               - { param: connection, sign: 1, size: S, source: choice, note: "からだのことを話せた" }
+            closeness:
+              - { who: aoi, delta: 1, note: "からだのことを話せた" }
             next: together
           - id: screening
             label: "「検診は、自分で予約してみる」"

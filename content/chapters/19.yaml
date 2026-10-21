@@ -111,6 +111,8 @@ events:
             effects:
               - { param: connection, sign: 1, size: M, source: choice, note: "友人に話した" }
             setFlags: { minamiResponse19: toldFriend }
+            closeness:
+              - { who: riko, delta: 1, note: "リコに話した" }
             next: m-friend
           - id: notYet
             label: "今は、誰にも話さない"
@@ -165,6 +167,8 @@ events:
             effects:
               - { param: autonomy, sign: 1, size: M, source: choice, note: "別れると自分で決めた" }
             setFlags: { minamiResponse19: brokeUp }
+            closeness:
+              - { who: haruto, end: true, note: "別れた" }
             next: m-tell
           - id: riko
             label: "リコに話してから、伝える"
@@ -172,6 +176,9 @@ events:
               - { param: autonomy, sign: 1, size: M, source: choice, note: "別れると自分で決めた" }
               - { param: connection, sign: 1, size: S, source: choice, note: "友人に話した" }
             setFlags: { minamiResponse19: brokeUpWithFriend }
+            closeness:
+              - { who: riko, delta: 1, note: "リコに話した" }
+              - { who: haruto, end: true, note: "別れた" }
             next: m-riko
       - id: m-tell
         viewpoint: minami
@@ -246,6 +253,8 @@ events:
             setFlags: { harutoRoute: continued }
             next: h-blame
       - id: h-reflect
+        closeness:
+          - { who: minami, end: true, note: "別れた" }
         viewpoint: haruto
         lines:
           - { who: haruto, kind: inner, text: "（あれは「心配」じゃない。ミナミを縛ってた。父さんと同じことだった）", face: sad }
@@ -303,12 +312,16 @@ events:
               - { param: autonomy, sign: 1, size: M, source: choice, note: "避妊を二人で決めた" }
               - { param: connection, sign: 1, size: M, source: choice, note: "相手の考えを聞いた" }
             setFlags: { method: condom }
+            closeness:
+              - { who: saki, delta: 1, note: "二人で避妊を決めた" }
             next: ask
           - id: condom
             label: "「毎回、コンドームを使おう」"
             effects:
               - { param: autonomy, sign: 1, size: M, source: choice, note: "避妊を二人で決めた" }
             setFlags: { method: condom }
+            closeness:
+              - { who: saki, delta: 1, note: "安心させられた" }
             next: condom
           - id: withdrawal
             label: "「外に出せば、大丈夫だよ」"
@@ -505,6 +518,8 @@ events:
             effects:
               - { param: connection, sign: 1, size: M, source: choice, note: "気持ちを伝えた" }
             setFlags: { yuOut19: true }
+            closeness:
+              - { who: aoi, delta: 1, note: "気持ちを伝え合った" }
             next: hand
           - id: think
             label: "「少し、考えさせてください」"
@@ -533,6 +548,8 @@ events:
               - { param: autonomy, sign: 1, size: S, source: choice, note: "気持ちを言えた" }
             next: handNotYet
       - id: handOk
+        closeness:
+          - { who: aoi, delta: 1, note: "確かめてくれた" }
         effects:
           - { param: psychSafety, sign: 1, size: S, source: others, note: "相手が確かめてくれた" }
         lines:
@@ -540,6 +557,8 @@ events:
           - { who: yu, kind: inner, text: "（聞いてくれるの、うれしいな）", face: smile }
         next: END
       - id: handNotYet
+        closeness:
+          - { who: aoi, delta: 1, note: "受けとめてくれた" }
         effects:
           - { param: psychSafety, sign: 1, size: S, source: others, note: "相手が受けとめた" }
         lines:

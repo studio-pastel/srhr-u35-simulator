@@ -46,6 +46,8 @@ events:
             effects:
               - { param: body, sign: 1, size: S, source: choice, statRef: S40, note: "食事を整えた" }
               - { param: connection, sign: 1, size: S, source: choice, note: "同期と話せた" }
+            closeness:
+              - { who: coworker, delta: 1, note: "いっしょにお昼を食べた" }
             next: canteen
           - id: prep
             label: "「週末に、作り置きしてみようかな」"
@@ -120,6 +122,8 @@ events:
             effects:
               - { param: connection, sign: 1, size: M, source: choice, note: "過去を打ち明けた" }
               - { param: autonomy, sign: 1, size: S, source: choice, note: "自分と向き合った" }
+            closeness:
+              - { who: nao, delta: 1, note: "過去を打ち明けた" }
             next: told
           - id: notTell
             label: "「まあ、いろいろあって」"
