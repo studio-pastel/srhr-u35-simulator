@@ -8,3 +8,4 @@ dist/
 .claude/
 test-results/
 playwright-report/
+srhr-check.zip

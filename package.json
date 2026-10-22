@@ -14,6 +14,7 @@
     "typecheck": "tsc --noEmit",
     "licenses": "tsx scripts/licenses.ts",
     "build": "npm run licenses && tsx scripts/validate-content.ts --production && tsc --noEmit && vite build",
+    "build:check": "npm run build && tsx scripts/mark-check.ts && cd dist && rm -f ../srhr-check.zip && zip -qr ../srhr-check.zip . -x '.DS_Store'",
     "preview": "vite preview",
     "e2e": "playwright test"
   },
