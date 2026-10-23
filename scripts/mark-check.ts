@@ -1,7 +1,8 @@
 // チェック用の限定公開ビルド（付録B-37）。npm run build のあとに dist/ を「検索エンジンに載らない」形にする。
 // - index.html に <meta name="robots" content="noindex, nofollow">
 // - robots.txt ですべてを拒否
-// - .htaccess に X-Robots-Tag と、ベーシック認証の書き方（コメント。パスワードは書かない）
+// - .htaccess に X-Robots-Tag
+// パスワード（ベーシック認証）はかけない（発注者の判断。付録B-37）
 // 本公開のときは、npm run build だけを使う（この処理を通さない）。
 import { readFileSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
@@ -26,13 +27,6 @@ if (!ht.includes('X-Robots-Tag'))
   Header always set X-Robots-Tag "noindex, nofollow"
 </IfModule>
 
-# パスワード（ベーシック認証）は、さくらのコントロールパネルの「アクセス制限」で設定するのがかんたん。
-# 自分で書く場合は、次の4行の先頭の # を外し、AuthUserFile にサーバー上の .htpasswd の絶対パスを書く。
-# .htpasswd は公開フォルダの外に置き、リポジトリには入れない。
-# AuthType Basic
-# AuthName "SRHR U35 SIMULATOR (check)"
-# AuthUserFile /home/（アカウント名）/.htpasswd
-# Require valid-user
 `,
   );
 
