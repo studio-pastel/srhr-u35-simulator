@@ -1,4 +1,13 @@
-# チェック用の限定公開（さくらインターネット）
+# チェック用の限定公開
+
+## GitHub Pages（いまの公開先。付録B-38）
+
+- リポジトリ：`srhr-u35-simulator`（公開）。main に送ると、GitHub Actions が自動でテスト・ビルドして公開し直す（.github/workflows/pages.yml）。
+- 公開先：`https://（アカウント名）.github.io/srhr-u35-simulator/`
+- GitHub Pages では `.htaccess` が効かないため、セキュリティの設定（CSP）と検索エンジン除けは、ページの中に書いている（`PAGES=1 npm run build:check`）。
+- 公開の状態は、リポジトリの「Actions」タブで見られる。
+
+## さくらインターネットにアップロードする場合
 
 チェックのための限定公開の手順。本公開の手順は SPEC.md §13 を見る。
 パスワードはかけない。検索エンジンに載らない設定だけを付ける（付録B-37）。URL を知っている人だけが見る想定。

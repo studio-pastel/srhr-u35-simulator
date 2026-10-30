@@ -16,6 +16,17 @@ if (!html.includes('name="robots"'))
 
 writeFileSync(join(dist, 'robots.txt'), 'User-agent: *\nDisallow: /\n');
 
+// GitHub Pages（付録B-38）：.htaccess が効かないため、セキュリティの設定（CSP など）をページの中に書く。
+// frame-ancestors はページの中では効かないため除く。
+if (process.env.PAGES === '1') {
+  const { SECURITY_HEADERS } = await import('./lib/security-headers');
+  const csp = SECURITY_HEADERS['Content-Security-Policy']!.replace(/;\s*frame-ancestors[^;]*/, '');
+  const page = readFileSync(indexPath, 'utf8');
+  if (!page.includes('Content-Security-Policy'))
+    writeFileSync(indexPath, page.replace('<meta charset="UTF-8" />', `<meta charset="UTF-8" />\n    <meta http-equiv="Content-Security-Policy" content="${csp}" />`));
+  writeFileSync(join(dist, '.nojekyll'), '');
+}
+
 const htPath = join(dist, '.htaccess');
 const ht = readFileSync(htPath, 'utf8');
 if (!ht.includes('X-Robots-Tag'))
