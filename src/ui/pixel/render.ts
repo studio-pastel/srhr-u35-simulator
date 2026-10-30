@@ -277,7 +277,22 @@ function background(place: Place, time: TimeOfDay): Grid {
 }
 
 // ── 人物 ──
+/** 2歳未満の赤ちゃん：おくるみに包まれ、となりの大人に抱かれている高さに描く */
+function baby(g: Grid, a: Actor) {
+  const y = 38 - (a.bob ?? 0);
+  ell(g, a.x, y, 4.5, 3.2, a.look.clothes[0], undefined);
+  rect(g, a.x - 4, y + 1, 9, 1, shade(a.look.clothes[0], -0.3));
+  ell(g, a.x - 3, y - 2, 2.6, 2.4, a.look.skin);
+  put(g, a.x - 4, y - 2, '#2b2b33');
+  put(g, a.x - 2, y - 2, '#2b2b33');
+  ell(g, a.x - 3, y - 4, 2.4, 1, a.look.hair, (_x, yy) => yy < y - 3.5);
+}
+
 function person(g: Grid, a: Actor) {
+  if (a.age < 2) {
+    baby(g, a);
+    return;
+  }
   const { look } = a;
   const face = a.face ?? 'normal';
   const child = a.age < 12;
@@ -323,7 +338,8 @@ function person(g: Grid, a: Actor) {
   const hx = cx + 0.5;
   const hy = top - hr - 1 + (face === 'sad' ? 1 : 0);
   ell(g, hx, hy, hr, hr + 0.5, look.skin);
-  const hc = look.hair;
+  // 50歳を過ぎた人は、年齢に合わせて髪を白っぽくする（体つきは35歳ごろで止まるため、年齢は髪で表す）
+  const hc = a.age >= 50 ? mix(look.hair, '#c9c5be', Math.min(0.85, 0.35 + (a.age - 50) / 40)) : look.hair;
   ell(g, hx, hy - 0.5, hr + 1, hr + 1, hc, (_x, y) => y < hy - 1.5);
   for (let x = Math.floor(hx - hr); x <= hx + hr; x++) if ((x * 7) % 3 !== 0) put(g, x, hy - 1, hc);
   const side = { short: 0, mid: 3, bob: 6, long: 13, tied: 0 }[look.hairStyle];

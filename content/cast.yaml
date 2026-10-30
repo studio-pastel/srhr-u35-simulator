@@ -45,7 +45,7 @@
   name: ユウの母
   role: ユウの母
   peerOffset: 30
-  look: { skin: "#efc4a0", hair: "#4a3226", hairStyle: short, clothes: ["#9c6644", "#9c6644", "#9c6644"], pants: "#4a4a5a" }
+  look: { skin: "#efc4a0", hair: "#4a3226", hairStyle: short, clothes: ["#6b5b95", "#6b5b95", "#6b5b95"], pants: "#4a4a5a" }
 - id: sora
   name: ソラ
   role: ケイの弟
@@ -92,12 +92,12 @@
   name: アオイ
   role: ユウのパートナー
   peerOffset: 1
-  look: { skin: "#e9bf9c", hair: "#2b2622", hairStyle: short, clothes: ["#3d5a80", "#3d5a80", "#5e8c61"], pants: "#4a4a5a" }
+  look: { skin: "#e9bf9c", hair: "#2b2622", hairStyle: short, clothes: ["#3d5a80", "#8d6e63", "#5e8c61"], pants: "#4a4a5a" }
 - id: sou
   name: ソウ
   role: ミナミのパートナー
   peerOffset: 2
-  look: { skin: "#e3b38f", hair: "#3a2c26", hairStyle: mid, clothes: ["#5e8c61", "#5e8c61", "#8d6e63"], pants: "#3a3f4a" }
+  look: { skin: "#e3b38f", hair: "#3a2c26", hairStyle: mid, clothes: ["#5e8c61", "#5e8c61", "#4c7a8a"], pants: "#3a3f4a" }
 - id: nao
   name: ナオ
   role: ハルトのパートナー
@@ -127,4 +127,4 @@
   name: ユキ
   role: ミナミの同期
   peerOffset: 0
-  look: { skin: "#f0c8a6", hair: "#2b2622", hairStyle: bob, clothes: ["#7a6a1f", "#5b6170", "#5b6170"], pants: "#2f3542" }
+  look: { skin: "#f0c8a6", hair: "#6a4632", hairStyle: long, clothes: ["#8a5a7a", "#8a5a7a", "#8a5a7a"], pants: "#2f3542" }

@@ -26,7 +26,7 @@ events:
     kind: fixed
     domains: [両立, ジェンダー規範]
     statCard: [S21, S20]
-    stage: { place: living, time: day, cast: [{ id: haruto, x: 26 }, { id: nao, x: 52 }, { id: haruChild, x: 72 }] }
+    stage: { place: living, time: day, cast: [{ id: haruto, x: 26 }, { id: nao, x: 54 }, { id: haruChild, x: 62 }] }
     summary: "子どもが生まれ、育児休業を取るかどうかを決めた。"
     status: draft
     scenes:
