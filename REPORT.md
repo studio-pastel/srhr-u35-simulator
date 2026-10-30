@@ -5,7 +5,9 @@
 - 発注者の判断で、チェック用の公開先を GitHub Pages にする（公開リポジトリ `srhr-u35-simulator`）。付録B-38。
 - `.github/workflows/pages.yml` を追加した。main に送るたびに、テスト（`npm test`）と `npm run build:check` を実行して公開し直す。
 - GitHub Pages では `.htaccess` が効かないため、`PAGES=1` のときは CSP をページの中に書くようにした。ローカルで、この形のまま画面が動き、コンソールのエラーが0件であることを確認した。
-- 残り：発注者が GitHub にログインしたあと、リポジトリを作って送り、Pages を有効にする。
+- 公開した（2026-10-30）：https://studio-pastel.github.io/srhr-u35-simulator/ （リポジトリ https://github.com/studio-pastel/srhr-u35-simulator ）
+  - 最初の実行は、GitHub Actions の実行環境が遅く、テストが5秒の時間制限を超えて失敗した。制限を60秒にして、2回目でテスト・ビルド・公開がすべて成功した。
+  - 公開されたページに、ページの中の CSP と noindex が付いていること、JS・CSS が読み込めることを確認した。
 
 ---
 
