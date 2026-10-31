@@ -1,6 +1,7 @@
 // コンテンツ（content/*.yaml）の zod スキーマ。ビルド時の検証とテストで共有する（§2.2）。
 import { z } from 'zod';
 
+import { ATTRACTIONS, BODIES, ECONOMIES, GENDERS } from './profile-values';
 import { AGES, CHARACTER_IDS, EFFECT_SIZES, PARAM_KEYS, SOURCES } from './constants';
 export { AGES, CHARACTER_IDS, EFFECT_SIZES, PARAM_KEYS, SOURCES };
 
@@ -87,6 +88,8 @@ export const lineSchema = z.strictObject({
   text: z.string().min(1),
   kind: z.enum(LINE_KINDS).optional(),
   face: z.enum(FACES).optional(),
+  /** 属性や状況で出し分ける（付録B-43） */
+  when: z.string().optional(),
 });
 
 /** 場面の舞台（付録B-1）。cast は画面に描く人物（左から順） */
@@ -112,7 +115,6 @@ const branchSchema = z.strictObject({ when: z.string(), next: z.string().min(1) 
 
 export const sceneSchema = z.strictObject({
   id,
-  viewpoint: characterId.optional(),
   speaker: z.string().optional(),
   /** 旧形式の地の文。新形式では lines を使う（どちらか一方は必須。検証で確認） */
   text: z.string().min(1).optional(),
@@ -138,17 +140,12 @@ export const eventSchema = z.strictObject({
   domains: z.array(z.string()),
   requires: z.string().optional(),
   triggerWarning: z.string().optional(),
-  /** 視点切替（付録A-2）。entry は各視点のシーン列の入口 */
-  viewpointSwitch: z
-    .strictObject({ from: characterId, to: characterId, entry: z.partialRecord(characterId, z.string()) })
-    .optional(),
   statCard: z.array(statIdSchema).optional(),
   /** イベント後に出す相談窓口のタグ（§10.6、付録A-8）。violence があると、場面のあとに支援カードを出す（付録B-20） */
   resources: z.array(z.string()).optional(),
   /** 支援カードに出す窓口の ID（2つほど）。省略時は resources のタグに当たる最初の2つ */
   support: z.array(z.string()).optional(),
   /** イベント開始時に、社会条件の選択肢の setFlags を反映する（付録A-5） */
-  applyConditionFlags: z.array(z.string()).optional(),
   /** イベントの舞台（付録B-1） */
   stage: stageSchema.optional(),
   /** 「この場面をとばす」を使ったときに出す、起きたことの1行（付録B-17） */
@@ -174,10 +171,23 @@ const paramRecord = z.strictObject({
   options: z.number(),
   connection: z.number(),
   autonomy: z.number(),
+  living: z.number(),
 });
 
 const hex = z.string().regex(/^#[0-9a-fA-F]{6}$/);
 /** 登場人物の見た目（付録B-1・B-5）。主人公4人と脇役。色や髪型はパステルが選ぶ */
+export const lookSchema = z.strictObject({
+  skin: hex,
+  hair: hex,
+  hairStyle: z.enum(['short', 'mid', 'bob', 'long', 'tied']),
+  clothes: z.tuple([hex, hex, hex]),
+  pants: hex,
+  /** 見分けやすくするための持ち物（付録B-36）。性別のステレオタイプに寄せない */
+  accessory: z.enum(['glasses', 'cap', 'headphones', 'beanie']).optional(),
+  /** 持ち物の色 */
+  accent: hex.optional(),
+});
+
 export const castSchema = z.strictObject({
   id: z.string().regex(/^[a-z][a-zA-Z0-9]*$/),
   name: z.string().min(1),
@@ -188,32 +198,34 @@ export const castSchema = z.strictObject({
   peerOffset: z.number().optional(),
   /** 主人公が何歳のときに生まれた子どもか。周回の年齢から計算して描く */
   bornAt: z.number().optional(),
-  look: z.strictObject({
-    skin: hex,
-    hair: hex,
-    hairStyle: z.enum(['short', 'mid', 'bob', 'long', 'tied']),
-    clothes: z.tuple([hex, hex, hex]),
-    pants: hex,
-    /** 見分けやすくするための持ち物（付録B-36）。性別のステレオタイプに寄せない */
-    accessory: z.enum(['glasses', 'cap', 'headphones', 'beanie']).optional(),
-    /** 持ち物の色 */
-    accent: hex.optional(),
-  }),
+  look: lookSchema,
 });
 
 export const characterSchema = z.strictObject({
   id: characterId,
   name: z.string().min(1),
-  profile: z.string().min(1),
-  upbringingSummary: z.string().min(1),
-  upbringing: z.record(ident, z.union([z.string(), z.boolean()])),
+  /** はじめのパラメーター。生育条件の分は profile.ts の initialOf で変える */
   initial: paramRecord,
   statRefs: z.array(statIdSchema),
-  canonical: z.boolean(),
-  /** 人との距離（付録B-9）。主人公にとって近しい人と、はじめの近さ（0〜3）、登場する年齢 */
+  /** 人との距離（付録B-9）。近しい人と、はじめの近さ（0〜3）、登場する年齢 */
   bonds: z
     .array(z.strictObject({ id: z.string().min(1), initial: z.number().int().min(0).max(3), from: z.number().int(), when: z.string().optional() }))
     .default([]),
+});
+
+/** 1クリックで選べる見本（付録B-43）。look は cast.yaml の同じ id を使う */
+export const presetSchema = z.strictObject({
+  id: z.string().min(1),
+  name: z.string().min(1),
+  blurb: z.string().min(1),
+  gender: z.enum(GENDERS),
+  body: z.enum(BODIES),
+  attractedTo: z.enum(ATTRACTIONS),
+  economy: z.enum(ECONOMIES),
+  singleParent: z.boolean(),
+  familyCare: z.boolean(),
+  witnessedDV: z.boolean(),
+  talkAboutSex: z.boolean(),
 });
 
 export const conditionSchema = z.strictObject({
@@ -293,6 +305,8 @@ export const contentSchema = z.strictObject({
   stats: z.array(statSchema),
   resources: z.array(resourceSchema),
   cast: z.array(castSchema),
+  /** 1クリックで選べる見本（付録B-43） */
+  presets: z.array(presetSchema),
   chapters: z.array(chapterSchema),
 });
 
@@ -319,4 +333,6 @@ export type Line = z.infer<typeof lineSchema>;
 export type Closeness = z.infer<typeof closenessSchema>;
 export type Stage = z.infer<typeof stageSchema>;
 export type CastMember = z.infer<typeof castSchema>;
+export type Look = z.infer<typeof lookSchema>;
+export type Preset = z.infer<typeof presetSchema>;
 export type ResourceCategory = (typeof RESOURCE_CATEGORIES)[number];

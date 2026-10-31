@@ -1,6 +1,7 @@
 // コンテンツ検証（§12.1）。npm run validate、ビルド、テストで共有する。
 import { contentSchema, CHARACTER_IDS } from './schema';
-import type { CharacterId, Closeness, Content, GameEvent, Scene } from './schema';
+import type { Closeness, Content, GameEvent, Scene } from './schema';
+import { ATTRACTIONS, BODIES, GENDERS, PROFILE_KEYS, type Profile } from './profile';
 import type { RunState } from './types';
 import { collectComparisons, collectRefs, FlagExprError, parseFlagExpr } from './flags';
 import { countChars, TEXT_LIMITS } from './limits';
@@ -13,7 +14,7 @@ import {
   createRun,
   currentEvent,
   currentScene,
-  advancePeek,
+  visibleLines,
   visibleChoices,
   type ChanceOverride,
 } from './progression';
@@ -36,10 +37,6 @@ export interface ValidateResult {
   content?: Content;
 }
 
-/** P7：これらのフラグは、ハルトの視点のシーンからだけ書き換えられる（§6.7） */
-import { HARUTO_ONLY_FLAGS } from './constants';
-export { HARUTO_ONLY_FLAGS };
-
 const ALL_AGES = [16, 17, 19, 21, 24, 27, 30, 35];
 
 export function validateContent(raw: unknown, opts: ValidateOptions): ValidateResult {
@@ -56,7 +53,7 @@ export function validateContent(raw: unknown, opts: ValidateOptions): ValidateRe
   const content = parsed.data;
   const stats = new Map(content.stats.map((s) => [s.id, s]));
   const conds = new Map(content.conditions.map((c) => [c.id, c]));
-  const upKeys = new Set(content.characters.flatMap((c) => Object.keys(c.upbringing)));
+  const upKeys = new Set<string>(PROFILE_KEYS);
 
   // ── 一意性 ──
   dupCheck(content.characters.map((c) => c.id), '人物ID', errors);
@@ -111,7 +108,7 @@ export function validateContent(raw: unknown, opts: ValidateOptions): ValidateRe
   }
 
   // ── 既知のフラグ ──
-  const knownFlags = new Set<string>();
+  const knownFlags = new Set<string>(['pregnancyPossible']);
   for (const c of content.conditions) for (const o of c.options) Object.keys(o.setFlags ?? {}).forEach((k) => knownFlags.add(k));
   for (const ev of allEvents)
     for (const sc of ev.scenes) {
@@ -153,7 +150,7 @@ export function validateContent(raw: unknown, opts: ValidateOptions): ValidateRe
   // ── 登場人物（付録B-1・B-5） ──
   dupCheck(content.cast.map((c) => c.id), '登場人物ID', errors);
   // self は「いま遊んでいる主人公」（全員が出るイベントで使う）
-  const castIds = new Set([...content.cast.map((c) => c.id), 'self']);
+  const castIds = new Set([...content.cast.map((c) => c.id), 'self', 'partner']);
   for (const id of CHARACTER_IDS) if (!castIds.has(id)) errors.push(`cast.yaml に主人公 ${id} の見た目がありません`);
   // 人との距離（付録B-9）：主人公ごとの近しい人
   const bondsOf = new Map(content.characters.map((c) => [c.id as string, new Set(c.bonds.map((b) => b.id))]));
@@ -177,7 +174,6 @@ export function validateContent(raw: unknown, opts: ValidateOptions): ValidateRe
       for (const rid of ev.support ?? []) if (!content.resources.some((r) => r.id === rid)) errors.push(`${ew}.support：存在しない相談先 ${rid}`);
       for (const tag of ev.resources ?? [])
         if (!(tag in content.config.resourceTags)) errors.push(`${ew}：相談窓口のタグ ${tag} が config.resourceTags にありません`);
-      for (const cid of ev.applyConditionFlags ?? []) if (!conds.has(cid)) errors.push(`${ew}：存在しない社会条件 ${cid}`);
       for (const c of ev.characters)
         if (!ch.intro[c]) errors.push(`${where}：${c} が出るイベントがあるのに intro.${c} がありません`);
       checkEvent(ev, { errors, warnings, expr, statRef, textCheck, castIds, bondsOf });
@@ -220,24 +216,12 @@ function checkEvent(ev: GameEvent, k: Checkers): void {
   if (sceneIds.has('END')) errors.push(`${ev.id}：シーンIDに END は使えません`);
   const sceneById = new Map(ev.scenes.map((s) => [s.id, s]));
 
-  const vs = ev.viewpointSwitch;
-  if (vs) {
-    for (const c of [vs.from, vs.to]) {
-      if (!ev.characters.includes(c)) errors.push(`${ev.id}：視点 ${c} が characters にありません`);
-      const entry = vs.entry[c];
-      if (!entry) errors.push(`${ev.id}：viewpointSwitch.entry.${c} がありません`);
-      else if (sceneById.get(entry)?.viewpoint !== c) errors.push(`${ev.id}：入口 ${entry} は ${c} の視点のシーンではありません`);
-    }
-  }
-
   const nextRef = (where: string, from: Scene, next: string) => {
     if (next === 'END') return;
-    const to = sceneById.get(next);
-    if (!to) {
+    if (!sceneById.get(next)) {
       errors.push(`${where}：存在しないシーン ${next} に進みます`);
       return;
     }
-    if (vs && to.viewpoint !== from.viewpoint) errors.push(`${where}：視点の違うシーン ${next} に進みます（視点ごとのシーン列は分ける）`);
   };
 
   const effectCheck = (where: string, effects: { note: string; when?: string; statRef?: string; sign: number; source?: string }[]) => {
@@ -250,38 +234,30 @@ function checkEvent(ev: GameEvent, k: Checkers): void {
     });
   };
 
-  const protectedFlags = (where: string, scene: Scene, flags: Record<string, unknown> | undefined) => {
-    for (const f of HARUTO_ONLY_FLAGS)
-      if (flags && f in flags && scene.viewpoint !== 'haruto')
-        errors.push(`${where}：${f} はハルトの視点のシーンからだけ書き換えられます（P7、§6.7）`);
-  };
-
   // 人との距離（付録B-9）。相手は、その場面の主人公の近しい人であること。
   // 暴力の場面では、イベントに出る主人公どうしの近さを変えない（束縛を「近い」と描かないため）。関係の終わり（end）だけは書ける
   const closenessCheck = (where: string, sc: Scene, list: Closeness[] | undefined) => {
     (list ?? []).forEach((c, i) => {
       const cw = `${where}.closeness[${i}]`;
-      const owners = sc.viewpoint ? [sc.viewpoint] : ev.characters;
+      const owners = ev.characters;
       if (!owners.some((o) => k.bondsOf.get(o)?.has(c.who))) errors.push(`${cw}：${c.who} は ${owners.join('・')} の近しい人（characters.yaml の bonds）にいません`);
       if (c.delta === undefined && !c.end) errors.push(`${cw}：delta か end のどちらかが必要です`);
       const n = countChars(c.note);
       if (n > TEXT_LIMITS.effectNote) errors.push(`${cw}：note「${c.note}」が ${n}字です（上限 ${TEXT_LIMITS.effectNote}字）`);
       k.expr(`${cw}.when`, c.when);
-      if ((ev.resources ?? []).includes('violence') && (ev.characters as string[]).includes(c.who) && !c.end)
+      if ((ev.resources ?? []).includes('violence') && c.who === 'partner' && !c.end)
         errors.push(`${cw}：暴力の場面では、${c.who} との近さを変えられません（関係の終わり end だけ書けます。付録B-9）`);
     });
   };
 
   for (const sc of ev.scenes) {
     const w = `${ev.id}/${sc.id}`;
-    if (vs && !sc.viewpoint) errors.push(`${w}：視点切替イベントのシーンには viewpoint が必要です`);
     if (!sc.text && !sc.lines?.length) errors.push(`${w}：text か lines のどちらかが必要です`);
     if (sc.text) k.textCheck(w, sc.text);
     sc.lines?.forEach((l, i) => {
       const lw = `${w}.lines[${i}]`;
       if (l.who !== 'narration' && !k.castIds.has(l.who)) errors.push(`${lw}：登場人物 ${l.who} が cast.yaml にありません`);
-      // 視点のあるシーンは、ほかの人物で遊ぶときにも「そのころ」で読まれる。self だと読む人によって人物が変わる
-      if (sc.viewpoint && l.who === 'self') errors.push(`${lw}：視点のあるシーンでは who: self を使わず、人物の ID を書きます`);
+      k.expr(`${lw}.when`, l.when);
       if (l.kind === 'fade' && l.who !== 'narration') errors.push(`${lw}：暗転（kind: fade）は who: narration で書きます`);
       const n = countChars(l.text);
       if (n > TEXT_LIMITS.line) warnings.push(`${lw}：吹き出しが ${n}字です（上限 ${TEXT_LIMITS.line}字）`);
@@ -323,17 +299,11 @@ function checkEvent(ev: GameEvent, k: Checkers): void {
       k.expr(`${cw}.requires`, c.requires);
       effectCheck(cw, c.effects);
       if (c.neutral && c.effects.some((e) => e.sign < 0)) errors.push(`${cw}：neutral（どちらも正解）の選択肢に負の効果があります（P6）`);
-      protectedFlags(cw, sc, c.setFlags);
       nextRef(cw, sc, c.next);
     }
     if (sc.chance) {
       const node = sc.chance;
       const nw = `${w}[${node.id}]`;
-      const harutoDecision = node.actorLabel?.startsWith('ハルト') ?? false;
-      if (harutoDecision)
-        node.modifiers.forEach((m, i) => {
-          if (/\bflags\./.test(m.when)) errors.push(`${nw}.modifiers[${i}]：ハルトの決定の確率に、選択（flags）を使えません（P7、付録B-12）`);
-        });
       k.statRef(`${nw}.base`, node.base.statRef, 'probability');
       node.modifiers.forEach((m, i) => {
         k.expr(`${nw}.modifiers[${i}].when`, m.when);
@@ -349,9 +319,6 @@ function checkEvent(ev: GameEvent, k: Checkers): void {
             errors.push(`${ow}.effects[${i}]：確率ノードの結果効果の要因は chance だけです（${e.source} と書かれています。§6.4-3）`);
         });
         effectCheck(ow, o.effects);
-        // ハルトの決定（付録B-12）は、ハルト以外の視点でもハルトのフラグを決めてよい。
-        // そのかわり、確率を変える要因に選択（flags）を使わない（P7：ミナミの選択でハルトの行動を変えない）
-        if (!harutoDecision) protectedFlags(ow, sc, o.setFlags);
         nextRef(ow, sc, o.next);
       }
     }
@@ -408,6 +375,7 @@ function actionsFor(content: Content, s: RunState): Action[] {
       const scene = currentScene(content, s);
       if (!scene) throw new Error(`シーンがありません：${pos.eventId}/${pos.sceneId}`);
       const out: Action[] = [];
+      if (visibleLines(content, s, scene).length === 0) throw new Error(`${pos.eventId}/${scene.id}：表示できる吹き出しがありません`);
       if (scene.choices?.length) {
         const vis = visibleChoices(content, s, scene);
         if (vis.length === 0) throw new Error(`${pos.eventId}/${scene.id}：表示できる選択肢がありません`);
@@ -419,8 +387,6 @@ function actionsFor(content: Content, s: RunState): Action[] {
     }
     case 'chance':
       return [{ label: '確率カード→', run: (x, o) => advanceChance(content, x, o) }];
-    case 'peek':
-      return [{ label: 'そのころ→', run: (x) => advancePeek(content, x) }];
     case 'review':
       return [{ label: `${pos.age}歳のふりかえり→`, run: (x) => advanceReview(content, x) }];
     case 'finished':
@@ -483,17 +449,40 @@ function flowKey(s: RunState, relevant: Set<string>): string {
   return JSON.stringify([s.position, f]);
 }
 
+/** 属性の全組み合わせ（家庭の条件は「すべてなし」と「すべてあり」の2通りで代表させる） */
+export function sampleProfiles(content: Content): Profile[] {
+  const look = content.cast.find((c) => c.id === 'me')?.look;
+  if (!look) return [];
+  const out: Profile[] = [];
+  for (const gender of GENDERS)
+    for (const body of BODIES)
+      for (const attractedTo of ATTRACTIONS)
+        for (const heavy of [false, true])
+          out.push({
+            name: 'テスト',
+            gender,
+            body,
+            attractedTo,
+            economy: heavy ? 'hardship' : 'middle',
+            singleParent: heavy,
+            familyCare: heavy,
+            witnessedDV: heavy,
+            talkAboutSex: !heavy,
+            look,
+          });
+  return out;
+}
+
 /**
- * 各主人公 × 社会条件の全組み合わせ × 全選択 × 確率の両方の結果で、
+ * 各属性 × 社会条件の全組み合わせ × 全選択 × 確率の両方の結果で、
  * 最初の章から最後の章のふりかえりまで到達できることを確かめる。
  */
 export function reachability(content: Content, errors: string[], limit = 500_000): void {
   const relevant = flowFlags(content);
-  for (const ch of content.characters) {
+  for (const profile of sampleProfiles(content)) {
     for (const conditions of conditionCombinations(content)) {
-      const start = createRun(content, { protagonist: ch.id, seed: '0'.repeat(32) });
-      start.conditions = conditions;
-      const label = `到達性：${ch.id}（${JSON.stringify(conditions)}）`;
+      const start = createRun(content, { profile, seed: '0'.repeat(32), conditions: conditions as Record<string, string> });
+      const label = `到達性：${profile.gender}/${profile.body}/${profile.attractedTo}/${profile.economy}（${JSON.stringify(conditions)}）`;
       const visited = new Set<string>();
       const stack: { s: RunState; path: string[] }[] = [{ s: start, path: [] }];
       let finished = false;

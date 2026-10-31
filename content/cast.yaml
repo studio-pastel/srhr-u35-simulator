@@ -7,6 +7,10 @@
 # accessory：見分けやすくするための持ち物（glasses／cap／headphones／beanie。付録B-36）。accent はその色
 
 # ── 主人公 ──
+# me は既定の見た目。実際はプレイヤーが選んだ見た目を使う。下の4人は「見本」の見た目（付録B-43）
+- id: me
+  name: あなた
+  look: { skin: "#f2c9a8", hair: "#3a2a22", hairStyle: mid, clothes: ["#4f86c6", "#4f86c6", "#4f86c6"], pants: "#2f3b52" }
 - id: minami
   name: ミナミ
   look: { skin: "#f2c9a8", hair: "#3a2a22", hairStyle: bob, clothes: ["#4f86c6", "#5b6170", "#8a6d5a"], pants: "#2f3b52", accessory: glasses, accent: "#3a2f45" }
@@ -42,8 +46,8 @@
   age: 52
   look: { skin: "#e2b28e", hair: "#8a8a8a", hairStyle: bob, clothes: ["#3e4a5c", "#3e4a5c", "#3e4a5c"], pants: "#2f3542" }
 - id: yuMother
-  name: ユウの母
-  role: ユウの母
+  name: お母さん
+  role: 主人公の母
   peerOffset: 30
   look: { skin: "#efc4a0", hair: "#4a3226", hairStyle: short, clothes: ["#6b5b95", "#6b5b95", "#6b5b95"], pants: "#4a4a5a" }
 - id: sora

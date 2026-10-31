@@ -1,48 +1,200 @@
-// 7.2 主人公を選ぶ。4人を、それぞれの16歳の暮らしの場所に立つドット絵で見せる（付録B-1）。
-// 特定の属性を強調する見出しは付けない。
-import { useEffect, useRef } from 'preact/hooks';
+// 主人公を組み立てる（付録B-43）。見本から1クリックで選ぶか、属性を1つずつ選ぶ。
+// 名前は個人情報を聞かないよう、自由入力にせず一覧から選ぶ。選んだ内容は端末の外に送らない。
+import { useEffect, useRef, useState } from 'preact/hooks';
 import { navigate, useApp } from '../app';
 import { createRun } from '../../engine/progression';
-import type { CharacterId } from '../../engine/schema';
-import { mainStage } from '../review';
+import type { Look, Preset } from '../../engine/schema';
+import {
+  ATTRACTION_LABELS,
+  ATTRACTIONS,
+  BODIES,
+  BODY_LABELS,
+  defaultBody,
+  GENDER_LABELS,
+  GENDERS,
+  type Profile,
+} from '../../engine/profile';
 import { PixelStage } from '../components/PixelStage';
 
+const NAMES = ['アオ', 'リン', 'カナタ', 'ヒカル', 'ナギ', 'マコト'];
+const SKINS = ['#f2c9a8', '#e8b896', '#d9a27f', '#b98258'];
+const HAIRS = ['#1f1f24', '#3a2a22', '#6a4632', '#9c6644'];
+const CLOTHES = ['#4f86c6', '#6b8e4e', '#d9a23b', '#c0563a', '#6b5b95', '#4a5a6a'];
+const STYLES: { id: Look['hairStyle']; label: string }[] = [
+  { id: 'short', label: 'ショート' },
+  { id: 'mid', label: 'ミディアム' },
+  { id: 'bob', label: 'ボブ' },
+  { id: 'long', label: 'ロング' },
+  { id: 'tied', label: '結ぶ' },
+];
+const ITEMS: { id: Look['accessory'] | 'none'; label: string; accent?: string }[] = [
+  { id: 'none', label: 'なし' },
+  { id: 'glasses', label: 'メガネ', accent: '#3a2f45' },
+  { id: 'cap', label: 'キャップ', accent: '#d9a23b' },
+  { id: 'headphones', label: 'ヘッドホン', accent: '#c0563a' },
+  { id: 'beanie', label: 'ニット帽', accent: '#2a7f86' },
+];
+
+const firstProfile = (): Profile => ({
+  name: NAMES[0]!,
+  gender: 'nonbinary',
+  body: 'cannot',
+  attractedTo: 'unsure',
+  economy: 'middle',
+  singleParent: false,
+  familyCare: false,
+  witnessedDV: false,
+  talkAboutSex: true,
+  look: { skin: SKINS[0]!, hair: HAIRS[1]!, hairStyle: 'mid', clothes: [CLOTHES[0]!, CLOTHES[0]!, CLOTHES[0]!], pants: '#2f3b52' },
+});
+
+function Radios<T extends string>(props: { legend: string; note?: string; value: T; options: readonly { id: T; label: string }[]; onChange: (v: T) => void }) {
+  return (
+    <fieldset class="builder-group">
+      <legend>{props.legend}</legend>
+      {props.note && <p class="sub">{props.note}</p>}
+      <div class="builder-options">
+        {props.options.map((o) => (
+          <label key={o.id} class={`builder-pill${props.value === o.id ? ' on' : ''}`}>
+            <input type="radio" name={props.legend} checked={props.value === o.id} onChange={() => props.onChange(o.id)} />
+            {o.label}
+          </label>
+        ))}
+      </div>
+    </fieldset>
+  );
+}
+
+function Check(props: { label: string; checked: boolean; onChange: (v: boolean) => void }) {
+  return (
+    <label class={`builder-pill${props.checked ? ' on' : ''}`}>
+      <input type="checkbox" checked={props.checked} onChange={(e) => props.onChange((e.target as HTMLInputElement).checked)} />
+      {props.label}
+    </label>
+  );
+}
+
+function Colors(props: { legend: string; value: string; colors: string[]; onChange: (c: string) => void }) {
+  return (
+    <fieldset class="builder-group">
+      <legend>{props.legend}</legend>
+      <div class="builder-options">
+        {props.colors.map((c, i) => (
+          <label key={c} class={`builder-color${props.value === c ? ' on' : ''}`}>
+            <input type="radio" name={props.legend} checked={props.value === c} onChange={() => props.onChange(c)} aria-label={`${props.legend} ${i + 1}`} />
+            <span style={{ background: c }} />
+          </label>
+        ))}
+      </div>
+    </fieldset>
+  );
+}
+
+const pick = <T extends string>(o: Record<T, string>, ids: readonly T[]) => ids.map((id) => ({ id, label: o[id] }));
+
+/** 属性を選ぶフォーム。2周目で「属性だけ変える」ときにも使う */
+export function ProfileBuilder({ initial, startLabel, onStart }: { initial?: Profile; startLabel: string; onStart: (p: Profile) => void }) {
+  const { content, animate } = useApp();
+  const [p, setP] = useState<Profile>(initial ?? firstProfile);
+  const set = (patch: Partial<Profile>) => setP({ ...p, ...patch });
+  const setLook = (patch: Partial<Look>) => set({ look: { ...p.look, ...patch } });
+
+  const usePreset = (x: Preset) => {
+    const look = content.cast.find((c) => c.id === x.id)!.look;
+    const { id: _id, blurb: _blurb, ...rest } = x;
+    setP({ ...rest, look });
+  };
+  const names = NAMES.includes(p.name) ? NAMES : [p.name, ...NAMES];
+  const item = p.look.accessory ?? 'none';
+
+  return (
+    <div class="builder">
+      <section>
+        <h2>見本から選ぶ</h2>
+        <div class="builder-presets">
+          {content.presets.map((x) => (
+            <button key={x.id} type="button" class={`preset${p.name === x.name ? ' on' : ''}`} onClick={() => usePreset(x)}>
+              <PixelStage spec={{ place: 'gate', time: 'day', actors: [{ look: content.cast.find((c) => c.id === x.id)!.look, age: 16, x: 48 }] }} label={x.name} animate={false} />
+              <strong>{x.name}</strong>
+              <span class="sub">{x.blurb}</span>
+            </button>
+          ))}
+        </div>
+      </section>
+
+      <div class="builder-main">
+        <div class="builder-preview">
+          <PixelStage spec={{ place: 'classroom', time: 'day', actors: [{ look: p.look, age: 16, x: 48 }] }} label={`${p.name}、16歳`} animate={animate} />
+          <p class="builder-name">{p.name}、16歳</p>
+          <button type="button" class="btn primary" onClick={() => onStart(p)}>
+            {startLabel}
+          </button>
+        </div>
+
+        <div class="builder-form">
+          <h2>自分で組み立てる</h2>
+          <Radios legend="性自認" value={p.gender} options={pick(GENDER_LABELS, GENDERS)} onChange={(gender) => set({ gender, body: defaultBody(gender) })} />
+          <Radios legend="からだ" note="妊娠や月経の場面に関わります。" value={p.body} options={pick(BODY_LABELS, BODIES)} onChange={(body) => set({ body })} />
+          <Radios legend="好きになる人" value={p.attractedTo} options={pick(ATTRACTION_LABELS, ATTRACTIONS)} onChange={(attractedTo) => set({ attractedTo })} />
+          <Radios
+            legend="家計"
+            value={p.economy}
+            options={[
+              { id: 'middle', label: 'ふつう' },
+              { id: 'hardship', label: '苦しい' },
+            ]}
+            onChange={(economy) => set({ economy })}
+          />
+          <fieldset class="builder-group">
+            <legend>家庭のこと（あてはまるものを選ぶ）</legend>
+            <div class="builder-options">
+              <Check label="ひとり親の家庭" checked={p.singleParent} onChange={(singleParent) => set({ singleParent })} />
+              <Check label="きょうだいの世話をしている" checked={p.familyCare} onChange={(familyCare) => set({ familyCare })} />
+              <Check label="親のあいだの暴力を見て育った" checked={p.witnessedDV} onChange={(witnessedDV) => set({ witnessedDV })} />
+              <Check label="家で性やからだの話ができる" checked={p.talkAboutSex} onChange={(talkAboutSex) => set({ talkAboutSex })} />
+            </div>
+          </fieldset>
+
+          <h2>見た目</h2>
+          <Radios legend="名前" value={p.name} options={names.map((n) => ({ id: n, label: n }))} onChange={(name) => set({ name })} />
+          <Radios legend="髪型" value={p.look.hairStyle} options={STYLES} onChange={(hairStyle) => setLook({ hairStyle })} />
+          <Colors legend="肌の色" value={p.look.skin} colors={SKINS} onChange={(skin) => setLook({ skin })} />
+          <Colors legend="髪の色" value={p.look.hair} colors={HAIRS} onChange={(hair) => setLook({ hair })} />
+          <Colors legend="服の色" value={p.look.clothes[0]} colors={CLOTHES} onChange={(c) => setLook({ clothes: [c, c, c] })} />
+          <Radios
+            legend="持ち物"
+            value={item as string}
+            options={ITEMS.map((i) => ({ id: i.id as string, label: i.label }))}
+            onChange={(id) => {
+              const it = ITEMS.find((i) => i.id === id)!;
+              const { accessory: _a, accent: _b, ...rest } = p.look;
+              set({ look: it.id === 'none' ? rest : { ...rest, accessory: it.id as Look['accessory'], accent: it.accent! } });
+            }}
+          />
+          <p class="sub">選んだ内容は、この端末の中だけに保存します。どこにも送りません。</p>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 export function Select() {
-  const { content, pending, setRun, animate } = useApp();
+  const { content, pending, setRun } = useApp();
   const h = useRef<HTMLHeadingElement>(null);
   useEffect(() => h.current?.focus(), []);
-
-  const start = (id: CharacterId) => {
-    setRun(createRun(content, { protagonist: id, seed: pending.seed }));
-    navigate('play');
-  };
-
   return (
     <>
       <h1 tabIndex={-1} ref={h}>
-        誰の人生を生きる？
+        どんな人生を生きる？
       </h1>
-      <p class="sub">同じ高校に通う、16歳の4人です。</p>
-      <div class="char-grid">
-        {content.characters.map((c) => {
-          const look = content.cast.find((m) => m.id === c.id)!.look;
-          const stage = mainStage(content, c.id, 16);
-          const spec = { place: stage?.place ?? 'classroom', time: stage?.time ?? 'day', actors: [{ look, age: 16, x: 48 }] };
-          return (
-            <section class="panel char-card2" key={c.id} aria-labelledby={`ch-${c.id}`}>
-              <PixelStage spec={spec} label={`${c.name}、16歳`} animate={animate} />
-              <h2 id={`ch-${c.id}`}>{c.name}</h2>
-              <p style={{ margin: '0 0 4px' }}>{c.profile}</p>
-              <p class="sub" style={{ margin: 0 }}>
-                {c.upbringingSummary}
-              </p>
-              <button type="button" class="btn primary" onClick={() => start(c.id)}>
-                {c.name}で始める
-              </button>
-            </section>
-          );
-        })}
-      </div>
+      <p class="sub">あなたの分身を組み立てましょう。あとから、属性だけを変えてもう一度たどることもできます。</p>
+      <ProfileBuilder
+        startLabel="この人で始める"
+        onStart={(profile) => {
+          setRun(createRun(content, { profile, seed: pending.seed }));
+          navigate('play');
+        }}
+      />
     </>
   );
 }

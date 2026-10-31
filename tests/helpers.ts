@@ -6,7 +6,6 @@ import {
   advanceChance,
   advanceReview,
   advanceScene,
-  advancePeek,
   beginChapter,
   choose,
   currentScene,
@@ -14,7 +13,24 @@ import {
   type ChanceOverride,
 } from '../src/engine/progression';
 import { PARAM_KEYS } from '../src/engine/schema';
-import { getCharacter } from '../src/engine/progression';
+import type { Profile } from '../src/engine/profile';
+
+/** テスト用の属性。overrides で変える */
+export function makeProfile(overrides: Partial<Profile> = {}): Profile {
+  return {
+    name: 'テスト',
+    gender: 'woman',
+    body: 'canBePregnant',
+    attractedTo: 'men',
+    economy: 'middle',
+    singleParent: false,
+    familyCare: false,
+    witnessedDV: false,
+    talkAboutSex: true,
+    look: { skin: '#f2c9a8', hair: '#3a2a22', hairStyle: 'mid', clothes: ['#4f86c6', '#4f86c6', '#4f86c6'], pants: '#2f3b52' },
+    ...overrides,
+  };
+}
 
 export function rawContent(): Record<string, unknown> {
   return loadRawContent();
@@ -28,7 +44,7 @@ export function realContent(): Content {
 
 /** 不変条件（§6.3）：初期値 ＋ ledger の delta の合計 ＝ params の内部値 */
 export function invariantHolds(content: Content, s: RunState): boolean {
-  const init = getCharacter(content, s.protagonist).initial;
+  const init = s.initial;
   return PARAM_KEYS.every((k) => init[k] + s.ledger.filter((e) => e.param === k).reduce((a, e) => a + e.delta, 0) === s.params[k]);
 }
 
@@ -59,9 +75,6 @@ export function playThrough(
       }
       case 'chance':
         s = advanceChance(content, s, opts.override);
-        break;
-      case 'peek':
-        s = advancePeek(content, s);
         break;
       case 'review':
         s = advanceReview(content, s);

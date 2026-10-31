@@ -12,7 +12,7 @@ export interface Series {
 }
 
 /** 6種類の線種：実線、破線、点線、一点鎖線、二点鎖線、長破線 */
-export const DASHES = ['', '6 4', '1.5 3', '8 3 1.5 3', '8 3 1.5 3 1.5 3', '12 4'];
+export const DASHES = ['', '6 4', '1.5 3', '8 3 1.5 3', '8 3 1.5 3 1.5 3', '12 4', '3 3'];
 
 export function LineChart({
   title,

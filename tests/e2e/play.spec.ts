@@ -24,12 +24,13 @@ async function blockExternal(page: Page) {
 async function onboard(page: Page) {
   await page.getByRole('button', { name: 'はじめる' }).click();
   await page.getByRole('button', { name: '次へ' }).click();
-  await page.getByRole('button', { name: '主人公を選ぶ' }).click();
+  await page.getByRole('button', { name: '主人公を組み立てる' }).click();
 }
 
 async function start(page: Page, name: string) {
   await page.goto('/#/select');
-  await page.getByRole('button', { name: `${name}で始める` }).click();
+  await page.locator('.preset', { hasText: name }).click();
+  await page.getByRole('button', { name: 'この人で始める' }).click();
 }
 
 /**
@@ -43,7 +44,7 @@ async function playToEnd(page: Page): Promise<string[]> {
     for (let i = 0; i < 1500; i++) {
       const main = document.querySelector('main')!;
       const h1 = main.querySelector('h1')?.textContent ?? '';
-      if (h1.includes('16歳から35歳まで')) return { ok: true, reviews };
+      if (h1.includes('試作はここまで') || h1.includes('16歳から35歳まで')) return { ok: true, reviews };
       const m = h1.match(/(\d+)歳のふりかえり/);
       if (m && reviews.at(-1) !== m[1]) reviews.push(m[1]!);
       // 選択肢 → 吹き出し → そのほかのボタン（はじめる・次へ・物語にもどる など）の順に押す
@@ -66,13 +67,13 @@ test.beforeEach(async ({ page }) => {
 });
 
 for (const name of ['ミナミ', 'ハルト', 'ユウ', 'ケイ']) {
-  test(`${name}で16歳から35歳まで通しでプレイできる（CSP の下でエラーなし）`, async ({ page }) => {
+  test(`見本の${name}で最後まで通しでプレイできる（CSP の下でエラーなし）`, async ({ page }) => {
     const errors = watchErrors(page);
     await start(page, name);
     await expect(page.locator('main h1')).toContainText('16歳');
     const reviews = await playToEnd(page);
-    expect(reviews).toEqual(['16', '17', '19', '21', '24', '27', '30', '35']);
-    await expect(page.getByRole('heading', { name: '4人の軌跡を重ねる' })).toBeVisible();
+    expect(reviews).toEqual(['16', '17']);
+    await expect(page.getByRole('heading', { name: '変化の理由' })).toBeVisible();
     expect(errors).toEqual([]);
   });
 }
@@ -81,7 +82,8 @@ test('「すぐに閉じる」で exitUrl に移動し、ブラウザの「戻�
   // トップページから、画面の操作だけで進む（サイト内の移動では履歴を増やさない）
   await page.goto('/');
   await onboard(page);
-  await page.getByRole('button', { name: 'ユウで始める' }).click();
+  await page.locator('.preset', { hasText: 'ユウ' }).click();
+  await page.getByRole('button', { name: 'この人で始める' }).click();
   await page.getByRole('button', { name: 'はじめる' }).click();
   await page.getByRole('link', { name: /私も相談したいことがある/ }).click();
   await page.getByRole('link', { name: '物語にもどる' }).click();
@@ -96,9 +98,10 @@ test('ブラウザの「戻る」でサイトを離れても、同じタブで�
   await page.goto('https://www.google.co.jp/search?q=before');
   await page.goto('/');
   await onboard(page);
-  await page.getByRole('button', { name: 'ケイで始める' }).click();
+  await page.locator('.preset', { hasText: 'ケイ' }).click();
+  await page.getByRole('button', { name: 'この人で始める' }).click();
   await page.getByRole('button', { name: 'はじめる' }).click();
-  for (let i = 0; i < 3; i++) await page.locator('main button.next-tap').first().click();
+  for (let i = 0; i < 2; i++) await page.locator('main button.next-tap').first().click();
   const saved = await page.evaluate(() => sessionStorage.getItem('srhr.v1.run'));
   expect(saved).not.toBeNull();
 
@@ -128,10 +131,10 @@ test('Esc キーでも「すぐに閉じる」が動き、進行状況が消え�
 
 test('キーボードだけで1章を終えられる', async ({ page }) => {
   await page.goto('/#/select');
-  // 「ミナミで始める」までタブで移動して Enter
-  for (let i = 0; i < 30; i++) {
+  // 「この人で始める」までタブで移動して Enter
+  for (let i = 0; i < 40; i++) {
     await page.keyboard.press('Tab');
-    if ((await page.evaluate(() => document.activeElement?.textContent?.trim())) === 'ミナミで始める') break;
+    if ((await page.evaluate(() => document.activeElement?.textContent?.trim())) === 'この人で始める') break;
   }
   await page.keyboard.press('Enter');
   // 並列で動かすと遅くなるため、回数に余裕を持たせる
@@ -179,54 +182,22 @@ test('幅360pxで横スクロールが出ない', async ({ page }) => {
   }
 });
 
-test('相手の視点は「そのころ、〇〇は……」から、のぞいたときだけ読める（付録B-11）', async ({ page }) => {
-  await start(page, 'ミナミ');
-  // 17歳の最初のイベント（するかどうか）を終えて「そのころ」が出るまで進める
-  const reached = await page.evaluate(async () => {
-    const wait = () => new Promise((r) => setTimeout(r, 20));
-    for (let i = 0; i < 600; i++) {
-      const main = document.querySelector('main')!;
-      if (main.querySelector('.peek')) return true;
-      const b =
-        main.querySelector<HTMLButtonElement>('.choices button.btn') ??
-        main.querySelector<HTMLButtonElement>('button.next-tap') ??
-        main.querySelector<HTMLButtonElement>('button.btn:not(.small):not([disabled])');
-      b?.click();
-      await wait();
-    }
-    return false;
-  });
-  expect(reached).toBe(true);
-  await expect(page.getByRole('heading', { level: 1 })).toHaveText('そのころ、ハルトは……');
-  // のぞくまでは、相手の会話は出ない
-  await expect(page.locator('.peek .chat-log')).toHaveCount(0);
-  await page.getByRole('button', { name: 'ハルトの側を、のぞいてみる' }).click();
-  await expect(page.locator('.peek .chat-log')).toContainText('ハルト（心の声）');
-  await expect(page.locator('.peek .choices')).toHaveCount(0); // 相手の視点に選択肢はない
-  await page.getByRole('button', { name: '先へ進む' }).click();
-  await expect(page.locator('.peek')).toHaveCount(0);
-});
-
-test('ミナミで遊ぶと、19歳のハルトの行動は「ハルトの決定（統計にもとづく）」の確率カードで決まる（付録B-12）', async ({ page }) => {
-  await start(page, 'ミナミ');
-  const reached = await page.evaluate(async () => {
-    const wait = () => new Promise((r) => setTimeout(r, 20));
-    for (let i = 0; i < 1500; i++) {
-      const main = document.querySelector('main')!;
-      if (main.innerText.includes('ハルトの決定（統計にもとづく）')) return true;
-      const b =
-        main.querySelector<HTMLButtonElement>('.choices button.btn') ??
-        main.querySelector<HTMLButtonElement>('button.next-tap') ??
-        main.querySelector<HTMLButtonElement>('button.btn:not(.small):not([disabled])');
-      b?.click();
-      await wait();
-    }
-    return false;
-  });
-  expect(reached).toBe(true);
-  const card = page.locator('article.panel');
-  await expect(card).toContainText('ハルトの暴力が、身体的・性的なものに進む確率');
-  await expect(card).toContainText('基本の確率23%');
-  await expect(card).toContainText('オッズ比1.92');
-  await expect(card).toContainText('オッズ比0.75');
+test('属性を自分で組み立てて始められ、属性だけ変えて2周目を遊べる（付録B-43）', async ({ page }) => {
+  const errors = watchErrors(page);
+  await page.goto('/#/select');
+  await page.getByLabel('トランスジェンダー女性').check();
+  await page.getByLabel('性別を問わない').check();
+  await page.getByLabel('苦しい').check();
+  await page.getByLabel('リン', { exact: true }).check();
+  await page.getByRole('button', { name: 'この人で始める' }).click();
+  await expect(page.locator('main h1')).toContainText('16歳');
+  await playToEnd(page);
+  await page.getByRole('button', { name: '2周目へ' }).click();
+  await page.getByRole('group', { name: '性自認' }).getByLabel('女性', { exact: true }).check();
+  await page.getByRole('button', { name: 'この属性で、もう一度' }).click();
+  await expect(page.locator('main h1')).toContainText('16歳');
+  await playToEnd(page);
+  await page.getByRole('button', { name: '前の周回と比べる' }).click();
+  await expect(page.getByRole('heading', { name: '2つの周回を比べる' })).toBeVisible();
+  expect(errors).toEqual([]);
 });

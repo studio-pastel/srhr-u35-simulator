@@ -22,7 +22,7 @@
         knowsWithdrawalUnreliable: false
         knowsHelplines: false
   defaultOption: taught
-  affects: [minami, haruto, yu, kei]
+  affects: [me]
 - id: ecAccess
   label: "緊急避妊薬の入手"
   options:
@@ -35,7 +35,7 @@
       statRefs: [S11]
       verified: true
   defaultOption: otc2026
-  affects: [kei]
+  affects: []
 - id: parentalLeave
   label: "職場の育児休業"
   options:
@@ -48,7 +48,7 @@
       statRefs: [S21]
       verified: false
   defaultOption: hard
-  affects: [haruto, kei]
+  affects: []
 - id: partnership
   label: "自治体のパートナーシップ制度"
   description: "既定では、24歳でユウが住む場所によって決まる（付録A-17）。2周目では「制度あり／制度なし」に固定して比べられる"
@@ -66,4 +66,4 @@
       statRefs: [S29]
       verified: false
   defaultOption: byResidence
-  affects: [yu]
+  affects: []

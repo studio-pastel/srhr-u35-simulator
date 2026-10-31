@@ -25,6 +25,7 @@
   --p-options: #2a9d8f;
   --p-connection: #c0563a;
   --p-autonomy: #7a6a1f;
+  --p-living: #8a4f7d;
 
   --font: system-ui, -apple-system, 'Hiragino Sans', 'Noto Sans JP', 'Yu Gothic UI', sans-serif;
   --fs-body: 16px;
@@ -59,5 +60,6 @@
     --p-options: #5cc8b9;
     --p-connection: #f08a6c;
     --p-autonomy: #e0c35a;
+    --p-living: #d9a0cc;
   }
 }

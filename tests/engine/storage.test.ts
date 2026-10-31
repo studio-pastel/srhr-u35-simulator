@@ -1,7 +1,7 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { clearAll, clearSession, isPersistent, loadRun, loadSettings, saveRun, setPersistent } from '../../src/engine/storage';
 import { createRun } from '../../src/engine/progression';
-import { realContent } from '../helpers';
+import { makeProfile, realContent } from '../helpers';
 
 class MemStorage {
   m = new Map<string, string>();
@@ -36,7 +36,7 @@ describe('保存（§6.9）', () => {
         throw new Error('blocked');
       },
     });
-    const run = createRun(content, { protagonist: 'yu' });
+    const run = createRun(content, { profile: makeProfile() });
     expect(() => saveRun(run)).not.toThrow();
     expect(loadRun()).toBeNull();
     expect(loadSettings().ruby).toBe(true);
@@ -49,7 +49,7 @@ describe('保存（§6.9）', () => {
     const ls = new MemStorage();
     vi.stubGlobal('sessionStorage', ss);
     vi.stubGlobal('localStorage', ls);
-    const run = createRun(content, { protagonist: 'kei' });
+    const run = createRun(content, { profile: makeProfile() });
     saveRun(run);
     expect(ss.m.size).toBe(1);
     expect(ls.m.size).toBe(0);

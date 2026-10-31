@@ -1531,3 +1531,117 @@ ul.plain {
     overflow: visible;
   }
 }
+
+/* ── 主人公を組み立てる（付録B-43） ── */
+.builder h2 {
+  margin: 16px 0 8px;
+  font-size: var(--fs-h2);
+}
+.builder-presets {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+}
+.preset {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 8px;
+  text-align: left;
+  font: inherit;
+  color: var(--text);
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  cursor: pointer;
+}
+.preset.on,
+.builder-pill.on {
+  border-color: var(--accent);
+  box-shadow: inset 0 0 0 1px var(--accent);
+}
+.builder-main {
+  display: grid;
+  gap: 16px;
+}
+.builder-preview {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.builder-name {
+  margin: 0;
+  text-align: center;
+  font-weight: 700;
+}
+.builder-group {
+  border: 0;
+  padding: 0;
+  margin: 0 0 12px;
+}
+.builder-group legend {
+  padding: 0;
+  font-weight: 700;
+  margin-bottom: 4px;
+}
+.builder-group .sub {
+  margin: 0 0 4px;
+}
+.builder-options {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+.builder-pill {
+  display: inline-flex;
+  align-items: center;
+  min-height: 40px;
+  padding: 4px 12px;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  background: var(--surface);
+  cursor: pointer;
+}
+.builder-pill input,
+.builder-color input {
+  position: absolute;
+  opacity: 0;
+  width: 1px;
+  height: 1px;
+}
+.builder-pill:focus-within,
+.builder-color:focus-within {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+.builder-color {
+  position: relative;
+  display: inline-block;
+  padding: 3px;
+  border: 2px solid transparent;
+  border-radius: 50%;
+  cursor: pointer;
+}
+.builder-color.on {
+  border-color: var(--accent);
+}
+.builder-color span {
+  display: block;
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  border: 1px solid var(--line);
+}
+@media (min-width: 900px) {
+  .builder-presets {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+  .builder-main {
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1.3fr);
+    align-items: start;
+  }
+  .builder-preview {
+    position: sticky;
+    top: 72px;
+  }
+}

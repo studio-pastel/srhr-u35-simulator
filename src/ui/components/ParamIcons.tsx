@@ -18,6 +18,8 @@ const PATHS: Record<ParamKey, string> = {
   connection: 'M9 15a4 4 0 1 1 0-6M15 9a4 4 0 1 1 0 6M8 12h8',
   // 自己決定：方位磁針
   autonomy: 'M12 3a9 9 0 1 1 0 18a9 9 0 0 1 0-18zM15 9l-2 5l-4 1l2-5z',
+  // くらし：家
+  living: 'M4 11l8-7l8 7M6 10v10h12V10M10 20v-6h4v6',
 };
 
 export function ParamIcon({ param, size = 18 }: { param: ParamKey; size?: number }) {

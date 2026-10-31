@@ -1,9 +1,9 @@
 // ふりかえりと人生の地図のための集計（付録B-7・B-23）。
-import type { CharacterId, Content, Stage } from '../engine/schema';
+import type { Content, Stage } from '../engine/schema';
 import type { RunState } from '../engine/types';
 import { getChapter } from '../engine/progression';
 
-/** その章で、主人公が選んだセリフや行動（選択肢のラベル）。主人公の視点のものだけ */
+/** その章で、主人公が選んだセリフや行動（選択肢のラベル） */
 export function chosenLines(content: Content, run: RunState, age: number): string[] {
   const ch = getChapter(content, age);
   const out: string[] = [];
@@ -11,7 +11,6 @@ export function chosenLines(content: Content, run: RunState, age: number): strin
     if (!run.completedEvents.includes(ev.id) || run.skippedEvents.includes(ev.id)) continue;
     for (const sc of ev.scenes) {
       if (!sc.choices?.length) continue;
-      if (sc.viewpoint && sc.viewpoint !== run.protagonist) continue;
       const picked = run.choices[`${ev.id}/${sc.id}`];
       const c = sc.choices.find((x) => x.id === picked);
       if (c) out.push(c.label);
@@ -20,14 +19,12 @@ export function chosenLines(content: Content, run: RunState, age: number): strin
   return out;
 }
 
-/** その章で主人公がいる場所（自分のイベントの舞台を優先） */
-export function mainStage(content: Content, protagonist: CharacterId, age: number): Stage | undefined {
+/** その章で主人公がいる場所（その周回で起きたイベントの舞台を優先） */
+export function mainStage(content: Content, run: RunState, age: number): Stage | undefined {
   const ch = content.chapters.find((c) => c.age === age);
   if (!ch) return undefined;
-  const own = ch.events.find((e) => e.characters.includes(protagonist) && e.characters.length === 1 && e.stage);
-  const any = ch.events.find((e) => e.characters.includes(protagonist) && e.stage);
-  // 舞台の人物はそのまま（パートナーや子どもも一緒に描く）
-  return (own ?? any)?.stage;
+  const done = ch.events.find((e) => run.completedEvents.includes(e.id) && e.stage);
+  return (done ?? ch.events.find((e) => e.stage))?.stage;
 }
 
 /** その章で、パラメーターの増減の大きいもの（理由つき） */

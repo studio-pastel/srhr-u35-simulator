@@ -4,7 +4,7 @@ import { useApp } from '../app';
 import { check } from '../../engine/flags';
 import { contextOf, getCharacter } from '../../engine/progression';
 import type { BondEntry, RunState } from '../../engine/types';
-import { ageOf } from '../stage';
+import { ageOf, lookOf } from '../stage';
 import { FaceIcon } from './Faces';
 
 export interface BondView {
@@ -19,7 +19,7 @@ export interface BondView {
 
 /** ある年齢の章の終わりの、近しい人との距離 */
 export function bondsAt(content: ReturnType<typeof useApp>['content'], run: RunState, age: number): BondView[] {
-  const me = getCharacter(content, run.protagonist);
+  const me = getCharacter(content, 'me');
   const ctx = contextOf(content, run);
   const out: BondView[] = [];
   for (const b of me.bonds) {
@@ -55,11 +55,11 @@ export function BondDots({ level }: { level: number }) {
 
 function Face({ run, id, small }: { run: RunState; id: string; small?: boolean }) {
   const { content } = useApp();
-  const m = content.cast.find((c) => c.id === id);
-  if (!m) return null;
+  const look = lookOf(content, run, id);
+  if (!look) return null;
   return (
     <span class={small ? 'bond-face small' : 'bond-face'}>
-      <FaceIcon look={m.look} age={ageOf(content, run, id)} />
+      <FaceIcon look={look} age={ageOf(content, run, id)} />
     </span>
   );
 }
@@ -132,8 +132,8 @@ export function ChapterBondChanges({ run, age }: { run: RunState; age: number })
 /** 全体のふりかえり：自分を中心にした同心円。内側ほど近い */
 export function BondRings({ run }: { run: RunState }) {
   const { content } = useApp();
-  const me = getCharacter(content, run.protagonist);
-  const all = bondsAt(content, run, 35);
+  const me = { name: run.profile.name };
+  const all = bondsAt(content, run, run.position.age);
   const active = all.filter((b) => !b.ended);
   const ended = all.filter((b) => b.ended);
   const radius = (level: number) => [46, 46, 32, 18][level]!; // 近さ 0・1 は外側の円、2 は中、3 は内側（％）
@@ -142,12 +142,12 @@ export function BondRings({ run }: { run: RunState }) {
   for (const b of active) byLevel.set(b.level, [...(byLevel.get(b.level) ?? []), b]);
   return (
     <div>
-      <div class="bond-rings" role="img" aria-label={`${me.name}の35歳のまわりの人。${active.map((b) => `${b.name}：近さ${b.level}`).join('、')}`}>
+      <div class="bond-rings" role="img" aria-label={`${me.name}のまわりの人。${active.map((b) => `${b.name}：近さ${b.level}`).join('、')}`}>
         <span class="ring r3" />
         <span class="ring r2" />
         <span class="ring r1" />
         <span class="bond-center">
-          <Face run={run} id={run.protagonist} />
+          <Face run={run} id="me" />
         </span>
         {[...byLevel.entries()].flatMap(([level, list]) =>
           list.map((b, i) => {

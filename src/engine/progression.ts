@@ -2,7 +2,8 @@
 // 各操作は RunState を複製して新しい状態を返す。
 import type { Chapter, CharacterId, Choice, Closeness, Content, GameEvent, Scene } from './schema';
 import { CHARACTER_IDS } from './constants';
-import type { PeekTrack, RunState } from './types';
+import type { RunState } from './types';
+import { initialOf, pregnancyPossible, upOf, type Profile } from './profile';
 import { check, type EvalContext } from './flags';
 import { applyEffects } from './effects';
 import { resolveChance } from './chance';
@@ -31,9 +32,10 @@ export function getCharacter(content: Content, id: CharacterId) {
 
 export function contextOf(content: Content, state: RunState): EvalContext {
   return {
-    flags: state.flags,
+    // pregnancyPossible は属性とパートナーから決まる（付録B-43）
+    flags: { ...state.flags, pregnancyPossible: pregnancyPossible(state.profile, state.flags.partnerId) },
     cond: state.conditions,
-    up: getCharacter(content, state.protagonist).upbringing,
+    up: upOf(state.profile),
     char: state.protagonist,
   };
 }
@@ -45,35 +47,39 @@ export function defaultConditions(content: Content): Record<string, string> {
 }
 
 export interface NewRunOptions {
-  protagonist: CharacterId;
+  profile: Profile;
   seed?: string;
   conditions?: Record<string, string>;
-  avatarSalts?: Partial<Record<CharacterId, number>>;
   replayOf?: RunState['replayOf'];
   runId?: string;
 }
 
 export function createRun(content: Content, opts: NewRunOptions): RunState {
-  const ch = getCharacter(content, opts.protagonist);
+  const ch = getCharacter(content, 'me');
   const first = sortedChapters(content)[0];
   if (!first) throw new ProgressionError('章がひとつもありません');
-  const salts = Object.fromEntries(CHARACTER_IDS.map((id) => [id, opts.avatarSalts?.[id] ?? 0])) as Record<CharacterId, number>;
+  const conditions = { ...defaultConditions(content), ...opts.conditions };
+  // 社会条件が決めるフラグは、最初から反映する（学校で学んだかどうかなど）
+  const flags: Record<string, unknown> = {};
+  for (const c of content.conditions) Object.assign(flags, c.options.find((o) => o.id === conditions[c.id])?.setFlags);
+  const initial = initialOf(ch.initial, opts.profile);
   const state: RunState = {
-    version: 5,
+    version: 6,
     runId: opts.runId ?? newSeed().slice(0, 12),
     seed: opts.seed ?? newSeed(),
-    protagonist: opts.protagonist,
-    conditions: { ...defaultConditions(content), ...opts.conditions },
-    flags: {},
-    params: { ...ch.initial },
+    protagonist: 'me',
+    profile: opts.profile,
+    initial,
+    conditions,
+    flags,
+    params: { ...initial },
     ledger: [],
     chanceLog: [],
-    position: { age: first.age, eventId: '', sceneId: '', viewpoint: opts.protagonist, step: 'chapterTop', eventIndex: 0 },
+    position: { age: first.age, eventId: '', sceneId: '', step: 'chapterTop', eventIndex: 0 },
     completedEvents: [],
     choices: {},
     skippedChapters: [],
     skippedEvents: [],
-    avatarSalts: salts,
     bonds: Object.fromEntries(ch.bonds.map((b) => [b.id, { level: b.initial }])),
     bondLog: [],
   };
@@ -121,22 +127,20 @@ export function visibleChoices(content: Content, state: RunState, scene: Scene):
   return (scene.choices ?? []).filter((c) => check(c.requires, ctx));
 }
 
+/** 属性や状況に合う吹き出しだけを返す（付録B-43） */
+export function visibleLines(content: Content, state: RunState, scene: Scene) {
+  const ctx = contextOf(content, state);
+  return (scene.lines ?? []).filter((l) => check(l.when, ctx));
+}
+
 export const choiceKey = (eventId: string, sceneId: string) => `${eventId}/${sceneId}`;
 
 /** 標準ルートの選択：表示される canonical の最初の1つ。なければ表示される最初の1つ */
 export function canonicalChoice(content: Content, state: RunState, scene: Scene): Choice {
   const vis = visibleChoices(content, state, scene);
-  // 標準ルートの計算（§6.8）では、プレイヤーが同じ場面で選んだ選択を優先する（付録A-19）
-  const pinned = state.pinnedChoices?.[choiceKey(state.position.eventId, scene.id)];
-  const c = (pinned && vis.find((x) => x.id === pinned)) || vis.find((x) => x.canonical) || vis[0];
+  const c = vis.find((x) => x.canonical) || vis[0];
   if (!c) throw new ProgressionError(`表示できる選択肢がありません：${state.position.eventId}/${scene.id}`);
   return c;
-}
-
-/** いま読んでいる視点が主人公のものか（主人公以外の視点ではパラメーターを動かさない。§6.7） */
-export function onProtagonistTrack(content: Content, state: RunState): boolean {
-  const ev = currentEvent(content, state);
-  return !ev?.viewpointSwitch || state.position.viewpoint === state.protagonist;
 }
 
 function origin(state: RunState) {
@@ -153,47 +157,26 @@ function enterNextEvent(content: Content, s: RunState, fromIndex: number): void 
       return;
     }
   }
-  s.position = { ...s.position, eventId: '', sceneId: '', step: 'review', eventIndex: ch.events.length, viewpoint: s.protagonist };
-  delete s.position.tracks;
-  delete s.position.tracksDone;
+  s.position = { ...s.position, eventId: '', sceneId: '', step: 'review', eventIndex: ch.events.length };
   delete s.position.pendingNext;
-  delete s.position.peek;
 }
 
 function startEvent(content: Content, s: RunState, ev: GameEvent, index: number): void {
-  for (const condId of ev.applyConditionFlags ?? []) {
-    const cond = content.conditions.find((c) => c.id === condId);
-    const opt = cond?.options.find((o) => o.id === s.conditions[condId]);
-    if (opt?.setFlags) Object.assign(s.flags, opt.setFlags);
-  }
   const pos = s.position;
   pos.eventId = ev.id;
   pos.eventIndex = index;
   pos.step = 'scene';
-  pos.viewpoint = s.protagonist;
   delete pos.pendingNext;
-  if (ev.viewpointSwitch) {
-    pos.tracks = { ...ev.viewpointSwitch.entry };
-    pos.tracksDone = {};
-    const entry = ev.viewpointSwitch.entry[s.protagonist];
-    if (!entry) throw new ProgressionError(`${ev.id}：主人公の視点の入口がありません`);
-    pos.sceneId = entry;
-  } else {
-    delete pos.tracks;
-    delete pos.tracksDone;
-    pos.sceneId = ev.scenes[0]!.id;
-  }
+  pos.sceneId = ev.scenes[0]!.id;
   applySceneEntry(content, s, ev);
 }
 
 /**
  * シーンに入ったときの効果（付録A-15）。選択と関係なく起きる変化（他者の行為など）に使う。
- * 主人公の視点のシーンだけに適用する。視点を切り替えて戻ったときには再び適用しない
- * （呼ぶのは、イベントの開始と next による移動のときだけ）。
  */
 function applySceneEntry(content: Content, s: RunState, ev: GameEvent): void {
   const scene = ev.scenes.find((x) => x.id === s.position.sceneId);
-  if (!scene || !onProtagonistTrack(content, s)) return;
+  if (!scene) return;
   if (scene.effects?.length) applyEffects(s, scene.effects, content.config, contextOf(content, s), origin(s));
   if (scene.closeness?.length) applyCloseness(content, s, scene.closeness);
 }
@@ -228,10 +211,6 @@ export function applyCloseness(content: Content, s: RunState, list: Closeness[])
 
 function endEvent(content: Content, s: RunState, ev: GameEvent): void {
   s.completedEvents.push(ev.id);
-  delete s.position.tracks;
-  delete s.position.tracksDone;
-  delete s.position.peek;
-  s.position.viewpoint = s.protagonist;
   // 相談先は、画面の下の「私も相談したいことがある」からだけ案内する（付録B-39）。統計は章のふりかえりで出す（付録B-4）
   // とばしたのはこのイベントだけなので、次のイベントの効果には「とばした」を付けない
   if (s.position.skippingEvent) {
@@ -241,49 +220,6 @@ function endEvent(content: Content, s: RunState, ev: GameEvent): void {
   enterNextEvent(content, s, s.position.eventIndex + 1);
 }
 
-/**
- * 主人公以外の視点を、canonical の選択で最後まで進める（効果は付けず、フラグだけ反映）。
- * 進んだ場面の並びを返す。「そのころ、〇〇は……」で読めるようにするため（付録B-11）
- */
-function finishOtherTracks(content: Content, s: RunState, ev: GameEvent, override?: ChanceOverride): PeekTrack[] {
-  const tracks = s.position.tracks ?? {};
-  const out: PeekTrack[] = [];
-  for (const vp of Object.keys(tracks) as CharacterId[]) {
-    if (vp === s.protagonist || s.position.tracksDone?.[vp]) continue;
-    const saved = { viewpoint: s.position.viewpoint, sceneId: s.position.sceneId };
-    const path: PeekTrack['scenes'] = [];
-    s.position.viewpoint = vp;
-    s.position.sceneId = tracks[vp]!;
-    let guard = 0;
-    while (s.position.sceneId !== 'END') {
-      if (++guard > 500) throw new ProgressionError(`${ev.id}：${vp} の視点が終わりません`);
-      const scene = ev.scenes.find((x) => x.id === s.position.sceneId);
-      if (!scene) throw new ProgressionError(`${ev.id}：シーンがありません ${s.position.sceneId}`);
-      s.position.sceneId = stepOffTrack(content, s, scene, override);
-      const choiceId = scene.choices?.length ? s.choices[choiceKey(s.position.eventId, scene.id)] : undefined;
-      path.push(choiceId ? { sceneId: scene.id, choiceId } : { sceneId: scene.id });
-    }
-    s.position.tracksDone = { ...s.position.tracksDone, [vp]: true };
-    s.position.viewpoint = saved.viewpoint;
-    s.position.sceneId = saved.sceneId;
-    out.push({ viewpoint: vp, scenes: path });
-  }
-  return out;
-}
-
-function stepOffTrack(content: Content, s: RunState, scene: Scene, override?: ChanceOverride): string {
-  if (scene.choices?.length) {
-    const c = canonicalChoice(content, s, scene);
-    s.choices[choiceKey(s.position.eventId, scene.id)] = c.id;
-    if (c.setFlags) Object.assign(s.flags, c.setFlags);
-    return c.next;
-  }
-  if (scene.chance) {
-    return doChance(content, s, scene, override);
-  }
-  return nextOf(content, s, scene);
-}
-
 function nextOf(content: Content, s: RunState, scene: Scene): string {
   const ctx = contextOf(content, s);
   for (const b of scene.branches ?? []) if (check(b.when, ctx)) return b.next;
@@ -291,27 +227,11 @@ function nextOf(content: Content, s: RunState, scene: Scene): string {
   return scene.next;
 }
 
-function moveTo(content: Content, s: RunState, next: string, override?: ChanceOverride): void {
+function moveTo(content: Content, s: RunState, next: string): void {
   const ev = currentEvent(content, s)!;
-  const pos = s.position;
   if (next !== 'END') {
-    pos.sceneId = next;
-    if (pos.tracks) pos.tracks[pos.viewpoint] = next;
+    s.position.sceneId = next;
     applySceneEntry(content, s, ev);
-    return;
-  }
-  if (!ev.viewpointSwitch) {
-    endEvent(content, s, ev);
-    return;
-  }
-  // 主人公の場面が終わったら、相手の視点を canonical で進め、「そのころ、〇〇は……」を出す（付録B-11）。
-  // 相手の視点はプレイヤーが選ばない（相手の選択は、その人物で遊ぶときに選ぶ）
-  pos.tracksDone = { ...pos.tracksDone, [pos.viewpoint]: true };
-  if (pos.tracks) pos.tracks[pos.viewpoint] = 'END';
-  const peek = finishOtherTracks(content, s, ev, override);
-  if (!pos.skipping && peek.some((p) => p.scenes.length > 0)) {
-    pos.step = 'peek';
-    pos.peek = peek;
     return;
   }
   endEvent(content, s, ev);
@@ -324,7 +244,6 @@ function doChance(content: Content, s: RunState, scene: Scene, override?: Chance
   const r = resolveChance(node, ctx, s.seed);
   const forced = override?.(node.id);
   if (forced !== undefined) r.happened = forced;
-  const onTrack = onProtagonistTrack(content, s);
   s.chanceLog.push({
     nodeId: node.id,
     label: node.label,
@@ -337,10 +256,9 @@ function doChance(content: Content, s: RunState, scene: Scene, override?: Chance
     u: r.u,
     happened: r.happened,
     ...(node.actorLabel ? { actorLabel: node.actorLabel } : {}),
-    ...(onTrack ? {} : { offTrack: true }),
   });
   const outcome = r.happened ? node.outcomes.happens : node.outcomes.notHappens;
-  if (onTrack) applyEffects(s, outcome.effects, content.config, ctx, origin(s), 'chance');
+  applyEffects(s, outcome.effects, content.config, ctx, origin(s), 'chance');
   if (outcome.setFlags) Object.assign(s.flags, outcome.setFlags);
   return outcome.next;
 }
@@ -376,11 +294,9 @@ export function autoStep(content: Content, s: RunState, override?: ChanceOverrid
     else if (scene.chance) {
       pos.pendingNext = doChance(content, s, scene, override);
       pos.step = 'chance';
-    } else moveTo(content, s, nextOf(content, s, scene), override);
+    } else moveTo(content, s, nextOf(content, s, scene));
   } else if (pos.step === 'chance') {
     finishChanceStep(content, s, override);
-  } else if (pos.step === 'peek') {
-    endEvent(content, s, currentEvent(content, s)!);
   } else {
     throw new ProgressionError(`自動進行できない段階です：${pos.step}`);
   }
@@ -388,13 +304,11 @@ export function autoStep(content: Content, s: RunState, override?: ChanceOverrid
 
 function applyChoice(content: Content, s: RunState, choice: Choice, override?: ChanceOverride): void {
   const ctx = contextOf(content, s);
-  if (onProtagonistTrack(content, s)) {
-    applyEffects(s, choice.effects, content.config, ctx, origin(s));
-    if (choice.closeness?.length) applyCloseness(content, s, choice.closeness);
-  }
+  applyEffects(s, choice.effects, content.config, ctx, origin(s));
+  if (choice.closeness?.length) applyCloseness(content, s, choice.closeness);
   s.choices[choiceKey(s.position.eventId, s.position.sceneId)] = choice.id;
   if (choice.setFlags) Object.assign(s.flags, choice.setFlags);
-  moveTo(content, s, choice.next, override);
+  moveTo(content, s, choice.next);
 }
 
 export function choose(content: Content, state: RunState, choiceId: string, override?: ChanceOverride): RunState {
@@ -417,7 +331,7 @@ export function advanceScene(content: Content, state: RunState, override?: Chanc
     s.position.pendingNext = doChance(content, s, scene, override);
     s.position.step = 'chance';
   } else {
-    moveTo(content, s, nextOf(content, s, scene), override);
+    moveTo(content, s, nextOf(content, s, scene));
   }
   return s;
 }
@@ -427,7 +341,7 @@ function finishChanceStep(content: Content, s: RunState, override?: ChanceOverri
   if (!next) throw new ProgressionError('確率カードの次がありません');
   delete s.position.pendingNext;
   s.position.step = 'scene';
-  moveTo(content, s, next, override);
+  moveTo(content, s, next);
 }
 
 export function advanceChance(content: Content, state: RunState, override?: ChanceOverride): RunState {
@@ -437,21 +351,13 @@ export function advanceChance(content: Content, state: RunState, override?: Chan
   return s;
 }
 
-/** 「そのころ、〇〇は……」から先へ進む（のぞいたかどうかは状態に残さない） */
-export function advancePeek(content: Content, state: RunState): RunState {
-  if (state.position.step !== 'peek') throw new ProgressionError('「そのころ」の段階ではありません');
-  const s = clone(state);
-  endEvent(content, s, currentEvent(content, s)!);
-  return s;
-}
-
 /** 章のふりかえりから次の章へ。次の章がなければ finished */
 export function advanceReview(content: Content, state: RunState): RunState {
   if (state.position.step !== 'review') throw new ProgressionError('ふりかえりではありません');
   const s = clone(state);
   const next = sortedChapters(content).find((c) => c.age > s.position.age);
   if (next) {
-    s.position = { age: next.age, eventId: '', sceneId: '', viewpoint: s.protagonist, step: 'chapterTop', eventIndex: 0 };
+    s.position = { age: next.age, eventId: '', sceneId: '', step: 'chapterTop', eventIndex: 0 };
   } else {
     s.position = { ...s.position, step: 'finished' };
   }

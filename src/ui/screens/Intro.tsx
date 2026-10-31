@@ -3,7 +3,7 @@
 import { useEffect, useRef, useState } from 'preact/hooks';
 import { navigate, useApp } from '../app';
 import { isPersistent } from '../../engine/storage';
-import { CHARACTER_IDS, SOURCES } from '../../engine/constants';
+import { SOURCES } from '../../engine/constants';
 import { SOURCE_LABELS } from '../../engine/types';
 import type { SceneSpec } from '../pixel/render';
 import { PixelStage } from '../components/PixelStage';
@@ -20,7 +20,7 @@ export function Intro() {
   const title: SceneSpec = {
     place: 'gate',
     time: 'dusk',
-    actors: CHARACTER_IDS.map((id, i) => ({ look: look(id), age: 16, x: 18 + i * 20, face: 'normal' as const })),
+    actors: content.presets.map((p) => p.id).map((id, i) => ({ look: look(id), age: 16, x: 18 + i * 20, face: 'normal' as const })),
   };
   // あそびかた：一人が、相手の言葉を聞いている
   const talk: SceneSpec = {
@@ -43,7 +43,7 @@ export function Intro() {
           <p class="ob-tagline">
             16歳から35歳まで。
             <br />
-            4人の人生を、生きてみる。
+            あなたの人生を、組み立てて生きてみる。
           </p>
           {canResume && (
             <button type="button" class="btn primary" onClick={() => navigate('play')}>
@@ -80,7 +80,7 @@ export function Intro() {
           </div>
           <div class="ob-card">
             <h2>20年を、ふりかえる</h2>
-            <ol class="life-strip" aria-label="8つの章">
+            <ol class="life-strip" aria-label="章">
               {[...content.chapters]
                 .sort((a, b) => a.age - b.age)
                 .map((c) => (
@@ -89,7 +89,7 @@ export function Intro() {
                   </li>
                 ))}
             </ol>
-            <p>16歳から35歳まで、8つの章。点数や「よい結末」はありません。</p>
+            <p>16歳から35歳まで。点数や「よい結末」はありません。いまは試作で、17歳までです。</p>
           </div>
           <button type="button" class="btn primary" onClick={() => setStep(2)}>
             次へ
@@ -114,7 +114,7 @@ export function Intro() {
             </li>
             <li>
               <span class="ob-key">保存</span>
-              <span>{isPersistent() ? 'この端末に保存しています。' : 'タブを閉じると消えます。'}名前などの個人情報は聞きません。</span>
+              <span>{isPersistent() ? 'この端末に保存しています。' : 'タブを閉じると消えます。'}本名などの個人情報は聞きません。</span>
             </li>
             <li>
               <span class="ob-key">話せる場所</span>
@@ -122,7 +122,7 @@ export function Intro() {
             </li>
           </ul>
           <button type="button" class="btn primary" onClick={() => navigate('select')}>
-            主人公を選ぶ
+            主人公を組み立てる
           </button>
           <button type="button" class="tool" onClick={() => setStep(1)}>
             ◀ 戻る

@@ -20,6 +20,7 @@ export type {
   Content,
 } from './schema';
 import type { CharacterId, ParamKey, Source, StatId } from './schema';
+import type { Profile } from './profile';
 
 export const PARAM_LABELS: Record<ParamKey, string> = {
   body: 'からだ',
@@ -28,6 +29,7 @@ export const PARAM_LABELS: Record<ParamKey, string> = {
   options: '選択肢の幅',
   connection: 'つながり',
   autonomy: '自己決定',
+  living: 'くらし',
 };
 
 export const SOURCE_LABELS: Record<Source, string> = {
@@ -41,28 +43,15 @@ export const SOURCE_LABELS: Record<Source, string> = {
 export type Params = Record<ParamKey, number>;
 
 /** 進行の段階。UI はこれを見て画面を切り替える */
-export type Step = 'chapterTop' | 'scene' | 'chance' | 'peek' | 'review' | 'finished';
-
-/** 相手の視点で進んだ場面（付録B-11）。選択肢のある場面は、選ばれた選択肢も残す */
-export interface PeekTrack {
-  viewpoint: CharacterId;
-  scenes: { sceneId: string; choiceId?: string }[];
-}
+export type Step = 'chapterTop' | 'scene' | 'chance' | 'review' | 'finished';
 
 export interface Position {
   age: number;
   eventId: string;
   sceneId: string;
-  viewpoint: CharacterId;
   step: Step;
   /** 章の events 配列の中の位置 */
   eventIndex: number;
-  /** 視点切替イベントで、各視点のシーン列がどこまで進んだか */
-  tracks?: Partial<Record<CharacterId, string>>;
-  /** 読み終えた視点 */
-  tracksDone?: Partial<Record<CharacterId, boolean>>;
-  /** 「そのころ、〇〇は……」で読める、相手の視点の場面の並び（付録B-11） */
-  peek?: PeekTrack[];
   /** 確率カードの後に進むシーン */
   pendingNext?: string;
   /** 「この章を読まずに進む」または「この場面をとばす」で自動進行している */
@@ -119,15 +108,13 @@ export interface ChanceLogEntry {
   u: number;
   happened: boolean;
   actorLabel?: string;
-  /** 主人公以外の視点で解決した（効果は付かない） */
-  offTrack?: boolean;
 }
 
-export type ReplayChange = 'protagonist' | { condition: string; from: string; to: string };
+export type ReplayChange = 'profile' | { condition: string; from: string; to: string };
 
 export interface RunState {
-  /** 5：人との距離（bonds・bondLog）を追加。古い保存データは読み込まない */
-  version: 5;
+  /** 6：主人公1人と属性（profile）に変更。古い保存データは読み込まない */
+  version: 6;
   runId: string;
   seed: string;
   protagonist: CharacterId;
@@ -141,12 +128,13 @@ export interface RunState {
   completedEvents: string[];
   /** 選んだ選択肢（`イベントID/シーンID` → 選択肢ID）。主人公以外の視点や自動選択も含む */
   choices: Record<string, string>;
-  /** 標準ルートの計算用：この選択を canonical より優先する（付録A-19） */
-  pinnedChoices?: Record<string, string>;
   skippedChapters: number[];
   /** 「この場面をとばす」を使ったイベント（付録B-17） */
   skippedEvents: string[];
-  avatarSalts: Record<CharacterId, number>;
+  /** 主人公の属性（付録B-43） */
+  profile: Profile;
+  /** はじめのパラメーター（属性で変わる） */
+  initial: Params;
   /** 人との距離（付録B-9）。いまの近さ（0〜3）と、関係が終わったか */
   bonds: Record<string, { level: number; ended?: boolean }>;
   bondLog: BondEntry[];

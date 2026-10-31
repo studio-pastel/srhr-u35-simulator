@@ -4,7 +4,7 @@ import { navigate, useApp } from '../app';
 import { PARAM_KEYS } from '../../engine/constants';
 import type { Source } from '../../engine/schema';
 import { PARAM_LABELS, SOURCE_LABELS, type RunState } from '../../engine/types';
-import { getCharacter, sortedChapters } from '../../engine/progression';
+import { sortedChapters } from '../../engine/progression';
 import { compareRuns } from '../../engine/replay';
 import { trajectory } from '../../engine/standard';
 import { loadHistory } from '../../engine/storage';
@@ -15,7 +15,7 @@ import { AGE_LABELS } from './OverallReview';
 const sign = (n: number) => (n > 0 ? `+${n}` : `${n}`);
 
 function runName(content: ReturnType<typeof useApp>['content'], r: RunState, tag: string): string {
-  return `${tag}（${getCharacter(content, r.protagonist).name}）`;
+  return `${tag}（${r.profile.name}）`;
 }
 
 export function CompareScreen() {

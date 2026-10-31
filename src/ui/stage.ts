@@ -1,9 +1,9 @@
 // 場面の舞台と吹き出しを、コンテンツから組み立てる（付録B-1・B-2）。
 import type { Content, GameEvent, Scene, Stage } from '../engine/schema';
 import type { RunState } from '../engine/types';
-import { contextOf, getCharacter } from '../engine/progression';
+import { contextOf, visibleLines } from '../engine/progression';
 import { check } from '../engine/flags';
-import type { Actor, Face, Place, SceneSpec } from './pixel/render';
+import type { Actor, Face, Look, Place, SceneSpec } from './pixel/render';
 
 export interface ShownLine {
   who: string;
@@ -34,26 +34,41 @@ function positions(n: number): number[] {
   return Array.from({ length: n }, (_, i) => 12 + i * Math.floor(76 / (n - 1)));
 }
 
+/** self は主人公、partner はこの周回のパートナーを指す（付録B-43） */
+export function resolveWho(run: RunState, id: string): string {
+  if (id === 'self') return 'me';
+  if (id === 'partner') return typeof run.flags.partnerId === 'string' ? run.flags.partnerId : '';
+  return id;
+}
+
+/** 人物の見た目。主人公はプレイヤーが選んだ見た目を使う */
+export function lookOf(content: Content, run: RunState, id: string): Look | undefined {
+  if (id === 'me') return run.profile.look as Look;
+  return content.cast.find((c) => c.id === id)?.look as Look | undefined;
+}
+
+export function nameOf(content: Content, run: RunState, id: string): string {
+  if (id === 'me') return run.profile.name;
+  return content.cast.find((c) => c.id === id)?.name ?? id;
+}
+
 export function sceneSpec(content: Content, run: RunState, stage: Stage | undefined, line?: ShownLine): SceneSpec {
   const age = run.position.age;
   if (!stage) {
-    const look = content.cast.find((c) => c.id === run.protagonist)!.look;
-    return { place: fallbackPlace(age), time: 'day', actors: [{ look, age, x: 34, face: line?.who === run.protagonist ? line.face : undefined }] };
+    return { place: fallbackPlace(age), time: 'day', actors: [{ look: run.profile.look as Look, age, x: 34, face: line?.who === 'me' ? line.face : undefined }] };
   }
   const ctx = contextOf(content, run);
   const cast = stage.cast.filter((c) => check(c.when, ctx));
   const xs = positions(cast.length);
   const actors: Actor[] = cast.flatMap((c, i) => {
-    const id = c.id === 'self' ? run.protagonist : c.id;
-    const member = content.cast.find((m) => m.id === id);
-    if (!member) return [];
-    const isMain = ['minami', 'haruto', 'yu', 'kei'].includes(member.id);
-    // パートナーは主人公と一緒に年をとり、子どもは生まれた年から数える
-    const npcAge = member.peerOffset !== undefined ? age + member.peerOffset : member.bornAt !== undefined ? age - member.bornAt : (member.age ?? 30);
-    if (!isMain && npcAge < 0) return [];
-    const lineWho = line?.who === 'self' ? run.protagonist : line?.who;
-    const face = line && lineWho === id && line.face ? line.face : c.face;
-    return [{ look: member.look, age: isMain ? age : Math.max(1, npcAge), x: c.x ?? xs[i]!, face, pose: c.pose }];
+    const id = resolveWho(run, c.id);
+    const look = lookOf(content, run, id);
+    if (!look) return [];
+    const isMe = id === 'me';
+    const a = isMe ? age : ageOf(content, run, id);
+    if (!isMe && a < 0) return [];
+    const face = line && line.who === id && line.face ? line.face : c.face;
+    return [{ look, age: isMe ? age : Math.max(1, a), x: c.x ?? xs[i]!, face, pose: c.pose }];
   });
   return { place: stage.place, time: stage.time, actors };
 }
@@ -61,7 +76,7 @@ export function sceneSpec(content: Content, run: RunState, stage: Stage | undefi
 /** 人物の年齢：主人公は周回の年齢、パートナーは一緒に年をとり、子どもは生まれた年から数える */
 export function ageOf(content: Content, run: RunState, id: string): number {
   const age = run.position.age;
-  if (['minami', 'haruto', 'yu', 'kei'].includes(id)) return age;
+  if (id === 'me') return age;
   const m = content.cast.find((c) => c.id === id);
   if (!m) return age;
   if (m.peerOffset !== undefined) return age + m.peerOffset;
@@ -69,20 +84,13 @@ export function ageOf(content: Content, run: RunState, id: string): number {
   return m.age ?? 30;
 }
 
-/** 新形式は lines をそのまま、旧形式は地の文を「。」で区切って吹き出しにする */
+/** 属性や状況に合う吹き出しを、名前を付けて返す */
 export function linesOf(content: Content, run: RunState, scene: Scene): ShownLine[] {
-  if (scene.lines?.length) {
-    return scene.lines.map((l) => {
-      const who = l.who === 'self' ? run.protagonist : l.who;
-      const member = content.cast.find((c) => c.id === who);
-      const kind = l.kind ?? (l.who === 'narration' ? 'narration' : 'say');
-      const base = l.who === 'narration' ? '' : (member?.name ?? l.who);
-      const name = kind === 'inner' ? `${base}（心の声）` : kind === 'message' ? `${base}（メッセージ）` : base;
-      return { who, name, text: l.text, kind, face: l.face };
-    });
-  }
-  const who = scene.viewpoint ?? run.protagonist;
-  const name = scene.speaker ?? getCharacter(content, who).name;
-  const parts = (scene.text ?? '').split(/(?<=。|」)/).map((t) => t.trim()).filter(Boolean);
-  return parts.map((text) => ({ who, name, text, kind: 'narration' as const }));
+  return visibleLines(content, run, scene).map((l) => {
+    const who = resolveWho(run, l.who);
+    const kind = l.kind ?? (l.who === 'narration' ? 'narration' : 'say');
+    const base = l.who === 'narration' ? '' : nameOf(content, run, who);
+    const name = kind === 'inner' ? `${base}（心の声）` : kind === 'message' ? `${base}（メッセージ）` : base;
+    return { who, name, text: l.text, kind, face: l.face };
+  });
 }

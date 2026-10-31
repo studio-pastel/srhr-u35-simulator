@@ -2,7 +2,7 @@
 // 過ぎた章は、その年齢の姿・場所・自分が言ったことを見せ、まだ来ていない章は伏せる。
 import { useApp } from '../app';
 import type { RunState } from '../../engine/types';
-import { getCharacter, sortedChapters } from '../../engine/progression';
+import { sortedChapters } from '../../engine/progression';
 import { sceneSpec } from '../stage';
 import { chosenLines, mainStage } from '../review';
 import { PixelStage } from './PixelStage';
@@ -38,7 +38,7 @@ export function LifeStrip({ run }: { run: RunState }) {
 /** 縦に並べた地図。各章の姿と、自分が言ったこと */
 export function LifeMap({ run }: { run: RunState }) {
   const { content, animate } = useApp();
-  const me = getCharacter(content, run.protagonist);
+  const me = { name: run.profile.name };
   return (
     <ol class="life-map" aria-label={`${me.name}の人生の地図`}>
       {sortedChapters(content).map((ch) => {
@@ -46,7 +46,7 @@ export function LifeMap({ run }: { run: RunState }) {
         const said = st === 'future' ? [] : chosenLines(content, run, ch.age);
         const skipped = ch.events.filter((e) => run.skippedEvents.includes(e.id));
         const ageRun = { ...run, position: { ...run.position, age: ch.age } };
-        const spec = sceneSpec(content, ageRun, mainStage(content, run.protagonist, ch.age));
+        const spec = sceneSpec(content, ageRun, mainStage(content, run, ch.age));
         return (
           <li key={ch.age} class={`life-node ${st}`}>
             <div class="life-age num">{ch.age}歳</div>
@@ -63,7 +63,7 @@ export function LifeMap({ run }: { run: RunState }) {
               <p class="life-stage">{st === 'future' ? 'まだ来ていない' : ch.season}</p>
               {st !== 'future' && (
                 <p class="life-news">
-                  <RichText text={ch.intro[run.protagonist] ?? ''} />
+                  <RichText text={ch.intro.me ?? ''} />
                 </p>
               )}
               {said.map((s, i) => (

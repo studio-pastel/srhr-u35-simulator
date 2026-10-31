@@ -1,10 +1,9 @@
 // 7.9 2周目を選ぶ
 import { useEffect, useRef, useState } from 'preact/hooks';
 import { navigate, useApp } from '../app';
-import { CHARACTER_IDS } from '../../engine/constants';
-import { getCharacter } from '../../engine/progression';
 import { startReplay, switchableConditions, type ReplayRequest } from '../../engine/replay';
 import { loadHistory } from '../../engine/storage';
+import { ProfileBuilder } from './Select';
 
 export function ReplayScreen() {
   const { content, run, setRun } = useApp();
@@ -28,12 +27,12 @@ export function ReplayScreen() {
     );
   }
 
-  const me = getCharacter(content, prev.protagonist);
+  const me = { name: prev.profile.name };
   const start = (req: ReplayRequest) => {
     setRun(startReplay(content, prev, req));
     navigate('play');
   };
-  const conds = switchableConditions(content, prev.protagonist);
+  const conds = switchableConditions(content);
 
   return (
     <>
@@ -42,13 +41,9 @@ export function ReplayScreen() {
       </h1>
 
       <section class="panel">
-        <h2 style={{ marginTop: 0 }}>別の主人公で遊ぶ</h2>
-        <p class="sub">同じ同級生の、別の人生をたどります。</p>
-        {CHARACTER_IDS.filter((id) => id !== prev.protagonist).map((id) => (
-          <button key={id} type="button" class="btn" onClick={() => start({ kind: 'protagonist', protagonist: id })}>
-            {getCharacter(content, id).name}で遊ぶ
-          </button>
-        ))}
+        <h2 style={{ marginTop: 0 }}>属性だけ変えて、もう一度</h2>
+        <p class="sub">確率で決まる出来事の「出た値」は、前の周回と同じにします。同じ選択をしても結果が変わるところが、属性による差です。終わったあとで、前の周回と比べられます。</p>
+        <ProfileBuilder initial={prev.profile} startLabel="この属性で、もう一度" onStart={(profile) => start({ kind: 'profile', profile })} />
       </section>
 
       <section class="panel">

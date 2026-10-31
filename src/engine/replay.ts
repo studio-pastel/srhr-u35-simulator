@@ -1,38 +1,38 @@
 // 2周目と比較（§6.5、§7.9、§7.10）。
 import { PARAM_KEYS } from './constants';
-import type { CharacterId, Content, ParamKey, SocialCondition, Source } from './schema';
+import type { Content, ParamKey, SocialCondition, Source } from './schema';
+import type { Profile } from './profile';
 import type { ChanceLogEntry, RunState } from './types';
 import { breakdown, type Breakdown } from './effects';
 import { createRun, sortedChapters } from './progression';
 import { trajectory } from './standard';
 import { newSeed } from './rng';
 
-/** その主人公で切り替えられる社会条件（§7.9：その主人公に効く条件だけ） */
-export function switchableConditions(content: Content, protagonist: CharacterId): SocialCondition[] {
-  return content.conditions.filter((c) => c.affects.includes(protagonist));
+/** 切り替えられる社会条件（§7.9） */
+export function switchableConditions(content: Content): SocialCondition[] {
+  return content.conditions.filter((c) => c.affects.length > 0);
 }
 
 export type ReplayRequest =
-  | { kind: 'protagonist'; protagonist: CharacterId }
+  | { kind: 'profile'; profile: Profile }
   | { kind: 'condition'; condition: string; to: string; sameSeed: boolean };
 
-/** 2周目を始める。「同じ偶然で」はシードとアバターのソルトを引き継ぐ（§6.5、§16.3） */
+/** 2周目を始める。「同じ偶然で」はシードを引き継ぐ（§6.5）。属性を変えるときも同じ偶然で比べる（付録B-43） */
 export function startReplay(content: Content, prev: RunState, req: ReplayRequest): RunState {
-  if (req.kind === 'protagonist') {
+  if (req.kind === 'profile') {
     return createRun(content, {
-      protagonist: req.protagonist,
-      seed: newSeed(),
+      profile: req.profile,
+      seed: prev.seed,
       conditions: prev.conditions,
-      replayOf: { runId: prev.runId, changed: 'protagonist', sameSeed: false },
+      replayOf: { runId: prev.runId, changed: 'profile', sameSeed: true },
     });
   }
   const cond = content.conditions.find((c) => c.id === req.condition);
   if (!cond || !cond.options.some((o) => o.id === req.to)) throw new Error(`社会条件を切り替えられません：${req.condition}=${req.to}`);
   const from = prev.conditions[req.condition] ?? '';
   return createRun(content, {
-    protagonist: prev.protagonist,
+    profile: prev.profile,
     seed: req.sameSeed ? prev.seed : newSeed(),
-    avatarSalts: req.sameSeed ? prev.avatarSalts : undefined,
     conditions: { ...prev.conditions, [req.condition]: req.to },
     replayOf: { runId: prev.runId, changed: { condition: req.condition, from, to: req.to }, sameSeed: req.sameSeed },
   });

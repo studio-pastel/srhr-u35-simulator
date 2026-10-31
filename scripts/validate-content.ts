@@ -12,7 +12,7 @@ try {
   console.error(`✗ ${(err as Error).message}`);
   process.exit(1);
 }
-const r = validateContent(raw, { production, allowUnverified, requireAllChapters: true });
+const r = validateContent(raw, { production, allowUnverified });
 
 const mode = production ? (allowUnverified ? '本番（ALLOW_UNVERIFIED=1：プレビュー用）' : '本番') : '開発';
 console.log(`コンテンツ検証（${mode}）`);
