@@ -41,20 +41,33 @@ events:
           - when: "cond.sexEducation == 'taught'"
             next: taught
         next: notTaught
+      # 授業の内容を1行ずつ読ませない（付録B-42）。知識は、あとの章で必要になった場面で、心の声として思い出す
       - id: taught
         lines:
-          - { who: sato, text: "今日は、避妊、性的同意、デートDV、相談窓口の話をします。" }
-          - { who: sato, text: "どれも、自分と相手を大切にするための知識です。" }
-          - { who: sato, text: "「外に出せば大丈夫」は、確実な避妊法ではありません。" }
-          - { who: sato, text: "同意は、いつでも取り消せます。" }
-          - { who: sato, text: "相手の行動を縛ることも、暴力になりえます。" }
-          - { who: narration, text: "配られたカードには、相談窓口の番号が並んでいた。" }
-          - { who: self, kind: inner, text: "（……このカード、とっておこうかな）" }
+          - { who: sato, text: "今日は、ちょっと照れる話をします。みんな、ニヤニヤしないように。" }
+          - { who: narration, text: "教室のあちこちで、くすくす笑いが起きた。" }
+          - { who: narration, text: "配られたカードには、相談窓口の番号が並んでいる。" }
+        choices:
+          - id: keep
+            label: "カードを、筆箱にしまう"
+            canonical: true
+            next: keep
+          - id: laugh
+            label: "となりと顔を見合わせて、笑う"
+            next: laugh
+      - id: keep
+        lines:
+          - { who: self, kind: inner, text: "（使うことなんて、ないと思うけど）" }
+        next: END
+      - id: laugh
+        lines:
+          - { who: sato, text: "笑ってもいいよ。でも、いつか思い出してね。" }
+          - { who: self, kind: inner, text: "（……いつかって、いつだろう）" }
         next: END
       - id: notTaught
         lines:
           - { who: sato, text: "では、ここは各自で読んでおいてください。" }
-          - { who: narration, text: "避妊や同意の話は出ないまま、授業が終わった。" }
+          - { who: narration, text: "そのページだけ開かれないまま、授業が終わった。" }
           - { who: self, kind: inner, text: "（聞いてみたいこと、あったんだけどな）", face: anxious }
         next: END
 

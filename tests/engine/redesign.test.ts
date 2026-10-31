@@ -28,22 +28,15 @@ describe('この場面をとばす（付録B-17）', () => {
     expect(own.length).toBeGreaterThan(0);
     expect(own.every((e) => e.skipped)).toBe(true);
     expect(s.flags.keiToldTeacher).toBe(true); // canonical は「担任に事情を話す」
-    expect(s.position.step).toBe('review'); // 暴力の場面ではないので、支援カードを出さずに章末へ
+    expect(s.position.step).toBe('review'); 
   });
 
-  it('暴力の場面をとばしても、支援カード（statCards）で止まる（付録B-20）', () => {
+  it('暴力の場面をとばしても、途中で止まらず次へ進む（相談先は画面の下からだけ。付録B-39）', () => {
     const s = skipEvent(real, toOwnEvent('haruto', 'E16-HARUTO-HOME'));
-    expect(s.position.step).toBe('statCards');
-    expect(s.position.eventId).toBe('E16-HARUTO-HOME');
+    expect(s.completedEvents).toContain('E16-HARUTO-HOME');
+    expect(s.position.eventId).not.toBe('E16-HARUTO-HOME');
     // 場面に入った時点の「他者の行為」は、とばしても重ねて記録されない
     expect(s.ledger.filter((e) => e.source === 'others' && e.eventId === 'E16-HARUTO-HOME')).toHaveLength(1);
-  });
-
-  it('暴力の場面を読んだあとも、支援カードで止まる。それ以外の場面のあとは止まらない', () => {
-    const steps: string[] = [];
-    playThrough(real, createRun(real, { protagonist: 'haruto', seed: SEED }), () => 0, { onStep: (x) => steps.push(`${x.position.eventId}:${x.position.step}`) });
-    expect(steps).toContain('E16-HARUTO-HOME:statCards');
-    expect(steps).not.toContain('E16-ALL-SEXED:statCards');
   });
 });
 

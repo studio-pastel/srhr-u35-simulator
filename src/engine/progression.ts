@@ -232,13 +232,11 @@ function endEvent(content: Content, s: RunState, ev: GameEvent): void {
   delete s.position.tracksDone;
   delete s.position.peek;
   s.position.viewpoint = s.protagonist;
-  // 暴力の場面のあとは、とばした場合も含めて、必ず支援のカードを出す（付録B-20）。
-  // 統計カードは章のふりかえりでまとめて出す（付録B-4）。読まずに進んだ章（旧形式）では出さない
-  if (!s.position.skipping || s.position.skippingEvent) {
-    if ((ev.resources ?? []).includes('violence')) {
-      s.position.step = 'statCards';
-      return;
-    }
+  // 相談先は、画面の下の「私も相談したいことがある」からだけ案内する（付録B-39）。統計は章のふりかえりで出す（付録B-4）
+  // とばしたのはこのイベントだけなので、次のイベントの効果には「とばした」を付けない
+  if (s.position.skippingEvent) {
+    delete s.position.skipping;
+    delete s.position.skippingEvent;
   }
   enterNextEvent(content, s, s.position.eventIndex + 1);
 }
@@ -383,8 +381,6 @@ export function autoStep(content: Content, s: RunState, override?: ChanceOverrid
     finishChanceStep(content, s, override);
   } else if (pos.step === 'peek') {
     endEvent(content, s, currentEvent(content, s)!);
-  } else if (pos.step === 'statCards') {
-    enterNextEvent(content, s, pos.eventIndex + 1);
   } else {
     throw new ProgressionError(`自動進行できない段階です：${pos.step}`);
   }
@@ -449,13 +445,6 @@ export function advancePeek(content: Content, state: RunState): RunState {
   return s;
 }
 
-export function advanceStatCards(content: Content, state: RunState): RunState {
-  if (state.position.step !== 'statCards') throw new ProgressionError('統計カードではありません');
-  const s = clone(state);
-  enterNextEvent(content, s, s.position.eventIndex + 1);
-  return s;
-}
-
 /** 章のふりかえりから次の章へ。次の章がなければ finished */
 export function advanceReview(content: Content, state: RunState): RunState {
   if (state.position.step !== 'review') throw new ProgressionError('ふりかえりではありません');
@@ -472,7 +461,6 @@ export function advanceReview(content: Content, state: RunState): RunState {
 /**
  * 「この場面をとばす」（付録B-17）。いまのイベントの残りを canonical の選択で進める。
  * 効果は本来の要因のまま skipped 付きで記録し、とばしたイベントを skippedEvents に残す。
- * 暴力の場面なら、支援のカード（statCards）で止まる。
  */
 export function skipEvent(content: Content, state: RunState): RunState {
   const pos = state.position;

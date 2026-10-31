@@ -6,7 +6,6 @@ import {
   advanceReview,
   advanceScene,
   advancePeek,
-  advanceStatCards,
   beginChapter,
   chapterResourceTags,
   choose,
@@ -266,8 +265,6 @@ function playStep(s: RunState): RunState {
     }
     case 'peek':
       return advancePeek(real, s);
-    case 'statCards':
-      return advanceStatCards(real, s);
     case 'review':
       return advanceReview(real, s);
     default:

@@ -1,5 +1,5 @@
-// 6つのパラメーターのアイコン（自作の SVG）と、いつも小さく出すステータス、変化カード（付録B-28）。
-import { useEffect, useState } from 'preact/hooks';
+// 6つのパラメーターのアイコン（自作の SVG）と、いつも出すステータス（付録B-28・B-40）。
+import { useEffect, useRef, useState } from 'preact/hooks';
 import { PARAM_KEYS } from '../../engine/constants';
 import type { ParamKey } from '../../engine/schema';
 import { PARAM_LABELS, SOURCE_LABELS, type LedgerEntry, type Params } from '../../engine/types';
@@ -28,21 +28,55 @@ export function ParamIcon({ param, size = 18 }: { param: ParamKey; size?: number
   );
 }
 
-/** 場面の下にいつも出す、6つのアイコンと小さなゲージ。変化したものは光らせる */
-export function StatusBar({ params, changed, onOpen }: { params: Params; changed: ParamKey[]; onOpen: () => void }) {
+/** 数字を、もとの値から新しい値へ数え上げる */
+function CountUp({ value, animate }: { value: number; animate: boolean }) {
+  const [shown, setShown] = useState(value);
+  const prev = useRef(value);
+  useEffect(() => {
+    const from = prev.current;
+    prev.current = value;
+    if (!animate || from === value) {
+      setShown(value);
+      return;
+    }
+    const steps = 18;
+    let i = 0;
+    const id = setInterval(() => {
+      i += 1;
+      setShown(Math.round(from + ((value - from) * i) / steps));
+      if (i >= steps) clearInterval(id);
+    }, 35);
+    return () => clearInterval(id);
+  }, [value, animate]);
+  return <span class="status-value num">{shown}</span>;
+}
+
+/**
+ * 場面の下にいつも出す6つのパラメーター（付録B-40）。名前・数字・ゲージを常に見せる。
+ * 動いたときは、増減の数字が飛び出し、数字が数え上がり、ゲージが伸び縮みする。
+ */
+export function StatusBar({ params, change, animate, onOpen }: { params: Params; change: { entries: LedgerEntry[]; stamp: number } | null; animate: boolean; onOpen: () => void }) {
   return (
     <button type="button" class="status-bar" onClick={onOpen} aria-label="パラメーターと記録を開く">
       {PARAM_KEYS.map((k) => {
         const v = displayValue(params[k]).value;
+        const delta = (change?.entries ?? []).filter((e) => e.param === k).reduce((a, e) => a + e.delta, 0);
+        const dir = delta > 0 ? 'up' : delta < 0 ? 'down' : '';
         return (
-          <span key={k} class={`status-item${changed.includes(k) ? ' changed' : ''}`}>
-            <ParamIcon param={k} size={16} />
+          <span key={`${k}-${delta ? change!.stamp : 0}`} class={`status-item ${dir}`}>
+            <span class="status-head">
+              <ParamIcon param={k} size={16} />
+              <span class="status-name">{PARAM_LABELS[k]}</span>
+              <CountUp value={v} animate={animate} />
+            </span>
             <span class="status-gauge" aria-hidden="true">
               <span style={{ width: `${v}%` }} />
             </span>
-            <span class="sr-only">
-              {PARAM_LABELS[k]} {v}
-            </span>
+            {delta !== 0 && (
+              <span class={`status-float ${dir} num`} aria-hidden="true">
+                {delta > 0 ? `+${delta}` : delta}
+              </span>
+            )}
           </span>
         );
       })}
@@ -50,46 +84,19 @@ export function StatusBar({ params, changed, onOpen }: { params: Params; changed
   );
 }
 
-/** 選んだ直後に出す変化カード。もとの値から新しい値へゲージが伸び縮みし、理由を添える */
-export function ChangeCard({ entries, before, animate, onClose }: { entries: LedgerEntry[]; before: Params; animate: boolean; onClose: () => void }) {
-  const byParam = new Map<ParamKey, LedgerEntry[]>();
-  for (const e of entries) byParam.set(e.param, [...(byParam.get(e.param) ?? []), e]);
-  const [grown, setGrown] = useState(!animate);
-  useEffect(() => {
-    if (!animate) return;
-    const t = setTimeout(() => setGrown(true), 60);
-    return () => clearTimeout(t);
-  }, []);
+/** 変化の理由。絵をふさがず、ステータスのすぐ下に出す */
+export function ChangeNotes({ entries }: { entries: LedgerEntry[] }) {
+  if (entries.length === 0) return null;
   return (
-    <div class="change-card" role="status" aria-live="polite">
-      {[...byParam.entries()].map(([k, list]) => {
-        const delta = list.reduce((a, e) => a + e.delta, 0);
-        const from = displayValue(before[k]).value;
-        const to = displayValue(before[k] + delta).value;
-        return (
-          <div key={k} class={`change-row ${delta >= 0 ? 'up' : 'down'}`}>
-            <div class="change-head">
-              <ParamIcon param={k} size={20} />
-              <span class="change-label">{PARAM_LABELS[k]}</span>
-              <span class="change-gauge" aria-hidden="true">
-                <span class="change-fill" style={{ width: `${grown ? to : from}%` }} />
-                <span class="change-mark" style={{ left: `${from}%` }} />
-              </span>
-              <span class="change-delta num">{delta > 0 ? `+${delta}` : delta}</span>
-            </div>
-            <p class="change-reasons">
-              {list.map((e, i) => (
-                <span key={i} class={`reason f-${e.source}`}>
-                  {e.note}（{SOURCE_LABELS[e.source]}）
-                </span>
-              ))}
-            </p>
-          </div>
-        );
-      })}
-      <button type="button" class="change-ok" onClick={onClose}>
-        閉じる
-      </button>
-    </div>
+    <ul class="change-notes" role="status" aria-live="polite">
+      {entries.map((e, i) => (
+        <li key={i} class={`reason f-${e.source}`}>
+          <strong class="num">
+            {PARAM_LABELS[e.param]} {e.delta > 0 ? `+${e.delta}` : e.delta}
+          </strong>{' '}
+          {e.note}（{SOURCE_LABELS[e.source]}）
+        </li>
+      ))}
+    </ul>
   );
 }

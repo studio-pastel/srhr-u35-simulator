@@ -41,7 +41,7 @@ export const SOURCE_LABELS: Record<Source, string> = {
 export type Params = Record<ParamKey, number>;
 
 /** 進行の段階。UI はこれを見て画面を切り替える */
-export type Step = 'chapterTop' | 'scene' | 'chance' | 'peek' | 'statCards' | 'review' | 'finished';
+export type Step = 'chapterTop' | 'scene' | 'chance' | 'peek' | 'review' | 'finished';
 
 /** 相手の視点で進んだ場面（付録B-11）。選択肢のある場面は、選ばれた選択肢も残す */
 export interface PeekTrack {

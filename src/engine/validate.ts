@@ -8,7 +8,6 @@ import {
   advanceChance,
   advanceReview,
   advanceScene,
-  advanceStatCards,
   beginChapter,
   choose,
   createRun,
@@ -422,8 +421,6 @@ function actionsFor(content: Content, s: RunState): Action[] {
       return [{ label: '確率カード→', run: (x, o) => advanceChance(content, x, o) }];
     case 'peek':
       return [{ label: 'そのころ→', run: (x) => advancePeek(content, x) }];
-    case 'statCards':
-      return [{ label: '統計カード→', run: (x) => advanceStatCards(content, x) }];
     case 'review':
       return [{ label: `${pos.age}歳のふりかえり→`, run: (x) => advanceReview(content, x) }];
     case 'finished':

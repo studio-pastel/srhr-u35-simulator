@@ -1,12 +1,11 @@
 // プレイ画面（付録B）：幕間、会話中心の場面、確率カード、暴力の場面のあとの支援カード、章のふりかえり。
-import { useEffect, useMemo, useRef, useState } from 'preact/hooks';
+import { useEffect, useRef, useState } from 'preact/hooks';
 import { navigate, useApp } from '../app';
 import {
   advanceChance,
   advancePeek,
   advanceReview,
   advanceScene,
-  advanceStatCards,
   beginChapter,
   choose,
   currentEvent,
@@ -24,17 +23,15 @@ import { BondNotes, ChapterBondChanges } from '../components/Bonds';
 import { Hud } from '../components/Hud';
 import { Modal } from '../components/Modal';
 import { FactorChart } from '../components/FactorChart';
-import { ProbabilityCard, ResourceList, StatCard } from '../components/Cards';
+import { ProbabilityCard, StatCard } from '../components/Cards';
 import { RichText, plainText } from '../components/RichText';
 import { PixelStage } from '../components/PixelStage';
 import { OverallReview } from './OverallReview';
 import { ageOf, linesOf, sceneSpec, stageOf, type ShownLine } from '../stage';
 import { FaceIcon } from '../components/Faces';
-import { ChangeCard, StatusBar } from '../components/ParamIcons';
+import { ChangeNotes, StatusBar } from '../components/ParamIcons';
 import { LifeMap, LifeStrip } from '../components/LifeMap';
 import { chapterHighlights, chosenLines, mainStage } from '../review';
-import { standardRoutes } from '../../engine/standard';
-import { CHARACTER_IDS } from '../../engine/constants';
 
 /** 画面が変わったら見出しにフォーカスを移す（§9） */
 function useFocusHeading(key: string) {
@@ -59,6 +56,8 @@ interface Change {
   before: RunState['params'];
   /** 人との距離の変化（付録B-9） */
   bonds: BondEntry[];
+  /** 同じ増減が続いても、アニメーションを出し直すための番号 */
+  stamp: number;
 }
 
 export function Play() {
@@ -99,7 +98,7 @@ export function Play() {
     setVisited(sameEvent && run.position.step === 'scene' ? [...visited, run.position.sceneId] : []);
     const fresh = next.ledger.slice(run.ledger.length).filter((e) => !e.skipped);
     const freshBonds = next.bondLog.slice(run.bondLog.length).filter((e) => !e.skipped);
-    setChange((fresh.length || freshBonds.length) && next.runId === run.runId ? { entries: fresh, before: run.params, bonds: freshBonds } : null);
+    setChange((fresh.length || freshBonds.length) && next.runId === run.runId ? { entries: fresh, before: run.params, bonds: freshBonds, stamp: next.ledger.length + next.bondLog.length } : null);
     setLineIndex(0);
     setSkipped(null);
     setRun(next);
@@ -149,7 +148,7 @@ export function Play() {
           />
         </Modal>
       )}
-      {skipped && step !== 'statCards' && (
+      {skipped && (
         <p class="skipped-note" role="status">
           とばした場面：{skipped}
         </p>
@@ -176,7 +175,6 @@ export function Play() {
       )}
       {step === 'chance' && <ChanceView run={run} go={go} back={back} canBack={canBackState} />}
       {step === 'peek' && <PeekView run={run} onNext={() => go(advancePeek(content, run), false)} />}
-      {step === 'statCards' && <SupportCard run={run} skippedSummary={skipped} onNext={() => go(advanceStatCards(content, run), false)} />}
       {step === 'review' && <ChapterReview run={run} onNext={() => go(advanceReview(content, run), false)} />}
       {step === 'finished' && <OverallReview run={run} onRestart={() => setRun(null)} />}
     </>
@@ -303,7 +301,9 @@ function SceneView(props: {
     if (choices.length > 0) return;
     go(advanceScene(content, run), false);
   };
-  const changedParams = props.change ? [...new Set(props.change.entries.map((e) => e.param))] : [];
+  // パラメーターが動いた瞬間に、絵にも反応を出す（下がると揺れ、上がると光る）
+  const net = props.change ? props.change.entries.reduce((a, e) => a + e.delta, 0) : 0;
+  const impact = net < 0 ? 'down' : net > 0 ? 'up' : null;
 
   return (
     <section class="scene" key={`${pos.eventId}/${pos.viewpoint}`}>
@@ -311,13 +311,11 @@ function SceneView(props: {
         場面
       </h2>
       <div class="stage-sticky">
-        <div class={`stage-wrap${line.kind === 'fade' ? ' faded' : ''}`}>
+        <div class={`stage-wrap${line.kind === 'fade' ? ' faded' : ''}${impact ? ` hit-${impact}` : ''}`} key={impact ? props.change!.stamp : 'still'}>
           <PixelStage spec={spec} label={`${me.name}の場面`} animate={animate} />
-          {props.change && props.change.entries.length > 0 && (
-            <ChangeCard entries={props.change.entries} before={props.change.before} animate={animate} onClose={props.closeChange} />
-          )}
         </div>
-        <StatusBar params={run.params} changed={changedParams} onOpen={props.openParams} />
+        <StatusBar params={run.params} change={props.change} animate={animate} onOpen={props.openParams} />
+        {props.change && <ChangeNotes entries={props.change.entries} />}
         {props.change && <BondNotes run={run} entries={props.change.bonds} />}
       </div>
       <div class="chat-log" aria-live="polite">
@@ -448,34 +446,6 @@ function ChanceView({ run, go, back, canBack }: { run: RunState; go: (s: RunStat
   );
 }
 
-// ── 暴力の場面のあとの支援カード（付録B-20） ──
-function SupportCard({ run, skippedSummary, onNext }: { run: RunState; skippedSummary: string | null; onNext: () => void }) {
-  const { content } = useApp();
-  const ev = currentEvent(content, run)!;
-  const h = useFocusHeading(`support-${ev.id}`);
-  const picked = ev.support?.length
-    ? ev.support.flatMap((id) => content.resources.filter((r) => r.id === id))
-    : content.resources.filter((r) => r.tags.some((t) => (ev.resources ?? []).includes(t))).slice(0, 2);
-  return (
-    <section class="fade-in">
-      {skippedSummary && <p class="skipped-note">とばした場面：{skippedSummary}</p>}
-      <div class="panel support-card">
-        <h1 tabIndex={-1} ref={h} style={{ marginTop: 0, fontSize: 20 }}>
-          話せる場所があります
-        </h1>
-        <p>ひとりで抱えなくて大丈夫です。気になることがあったら、話を聞いてくれる窓口があります。</p>
-        <ResourceList items={picked} />
-        <p style={{ margin: 0 }}>
-          <a href="#/support">ほかの相談先を見る ›</a>
-        </p>
-      </div>
-      <button type="button" class="btn primary" onClick={onNext}>
-        物語にもどる
-      </button>
-    </section>
-  );
-}
-
 // ── 章のふりかえり（§7.7、付録B-4：統計カードは必ずここで出す） ──
 function ParamChanges({ run, age }: { run: RunState; age: number }) {
   const { content } = useApp();
@@ -532,8 +502,6 @@ function ChapterReview({ run, onNext }: { run: RunState; onNext: () => void }) {
   const face = psych < 0 ? ('sad' as const) : psych > 0 ? ('relieved' as const) : ('normal' as const);
   const stage = mainStage(content, run.protagonist, age);
   const spec = sceneSpec(content, run, stage ? { ...stage, cast: stage.cast.map((c) => (c.id === run.protagonist || c.id === 'self' ? { ...c, face } : c)) } : undefined);
-  // そのころ、ほかの3人は（標準ルート。付録A-19）
-  const routes = useMemo(() => standardRoutes(content, run), [run.runId, age]);
   return (
     <section class="fade-in review">
       <LifeStrip run={run} />
@@ -545,6 +513,7 @@ function ChapterReview({ run, onNext }: { run: RunState; onNext: () => void }) {
         {chapter.season}
       </p>
 
+      <div class="review-grid">
       <div class="panel">
         <h2 style={{ marginTop: 0 }}>あなたが選んだこと</h2>
         {said.length === 0 && <p class="sub">この章では、選ぶ場面はありませんでした。</p>}
@@ -583,36 +552,16 @@ function ChapterReview({ run, onNext }: { run: RunState; onNext: () => void }) {
       </div>
 
       <ChapterBondChanges run={run} age={age} />
-
-      <div class="panel">
-        <h2 style={{ marginTop: 0 }}>そのころ、ほかの3人は</h2>
-        <ul class="plain">
-          {CHARACTER_IDS.filter((id) => id !== run.protagonist).map((id) => {
-            const r = routes[id];
-            const quote = r ? chosenLines(content, r, age)[0] : undefined;
-            return (
-              <li key={id} class="review-other">
-                <p class="review-other-name">{getCharacter(content, id).name}</p>
-                <p style={{ margin: 0 }}>
-                  <RichText text={chapter.intro[id] ?? ''} />
-                </p>
-                {quote && (
-                  <p class="review-said small">
-                    <RichText text={quote} />
-                  </p>
-                )}
-              </li>
-            );
-          })}
-        </ul>
       </div>
 
       {stats.length > 0 && (
         <>
           <h2>この章に関係するデータ</h2>
-          {stats.map((s) => (
-            <StatCard key={s.id} stat={s} />
-          ))}
+          <div class="review-grid">
+            {stats.map((s) => (
+              <StatCard key={s.id} stat={s} />
+            ))}
+          </div>
         </>
       )}
       <button type="button" class="btn primary" onClick={onNext}>

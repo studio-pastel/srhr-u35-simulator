@@ -203,12 +203,12 @@ export function App() {
           {route === 'intro' && <Intro />}
           {route === 'select' && <Select />}
           {route === 'play' && <Play />}
-          {route === 'support' && <SupportScreen />}
-          {route === 'sources' && <SourcesScreen />}
-          {route === 'settings' && <SettingsScreen />}
-          {route === 'about' && <AboutScreen />}
-          {route === 'replay' && <ReplayScreen />}
-          {route === 'compare' && <CompareScreen />}
+          {route === 'support' && <div class="text-page"><SupportScreen /></div>}
+          {route === 'sources' && <div class="text-page"><SourcesScreen /></div>}
+          {route === 'settings' && <div class="text-page"><SettingsScreen /></div>}
+          {route === 'about' && <div class="text-page"><AboutScreen /></div>}
+          {route === 'replay' && <div class="text-page"><ReplayScreen /></div>}
+          {route === 'compare' && <div class="text-page"><CompareScreen /></div>}
           {route === 'dev' && import.meta.env.DEV && <DevPreview />}
         </main>
         {route !== 'support' && (

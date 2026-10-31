@@ -7,7 +7,6 @@ import {
   advanceReview,
   advanceScene,
   advancePeek,
-  advanceStatCards,
   beginChapter,
   choose,
   currentScene,
@@ -63,9 +62,6 @@ export function playThrough(
         break;
       case 'peek':
         s = advancePeek(content, s);
-        break;
-      case 'statCards':
-        s = advanceStatCards(content, s);
         break;
       case 'review':
         s = advanceReview(content, s);
