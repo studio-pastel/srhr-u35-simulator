@@ -2,14 +2,13 @@
 import type { Params } from './types';
 import type { Look, ParamKey } from './schema';
 import { uniformFor } from './rng';
-import { ATTRACTIONS, BODIES, ECONOMIES, GENDERS, LIKES } from './profile-values';
-export { ATTRACTIONS, BODIES, ECONOMIES, GENDERS, LIKES };
+import { ATTRACTIONS, BODIES, ECONOMIES, GENDERS } from './profile-values';
+export { ATTRACTIONS, BODIES, ECONOMIES, GENDERS };
 
 export type Gender = (typeof GENDERS)[number];
 export type Body = (typeof BODIES)[number];
 export type Attraction = (typeof ATTRACTIONS)[number];
 export type Economy = (typeof ECONOMIES)[number];
-export type Like = (typeof LIKES)[number];
 
 export const GENDER_LABELS: Record<Gender, string> = {
   woman: '女性',
@@ -40,13 +39,11 @@ export interface Profile {
   familyCare: boolean;
   witnessedDV: boolean;
   talkAboutSex: boolean;
-  /** 8歳のころに夢中になったもの。プロローグで選ぶ。パラメーターには関わらない */
-  likes?: Like;
   look: Look;
 }
 
 /** 条件式の up.〇〇 で読める属性 */
-export const PROFILE_KEYS = ['gender', 'body', 'attractedTo', 'economy', 'singleParent', 'familyCare', 'witnessedDV', 'talkAboutSex', 'likes'] as const;
+export const PROFILE_KEYS = ['gender', 'body', 'attractedTo', 'economy', 'singleParent', 'familyCare', 'witnessedDV', 'talkAboutSex'] as const;
 
 export function upOf(p: Profile): Record<string, unknown> {
   return Object.fromEntries(PROFILE_KEYS.map((k) => [k, p[k]]));
@@ -88,7 +85,7 @@ export function initialOf(base: Params, p: Profile): Params {
   return out;
 }
 
-export const NAMES = ['アオ', 'リン', 'カナタ', 'ヒカル', 'ナギ', 'マコト'];
+export const NAMES = ['ヒカル', 'マコト', 'チヒロ', 'カオル', 'ミズキ', 'ツカサ'];
 export const SKINS = ['#f2c9a8', '#e8b896', '#d9a27f', '#b98258'];
 export const HAIRS = ['#1f1f24', '#3a2a22', '#6a4632', '#9c6644'];
 export const CLOTHES = ['#4f86c6', '#6b8e4e', '#d9a23b', '#c0563a', '#6b5b95', '#4a5a6a'];

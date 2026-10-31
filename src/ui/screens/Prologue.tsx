@@ -21,7 +21,7 @@ function homeWords(p: Profile): string[] {
 }
 
 export function Prologue() {
-  const { run, content, setRun, animate } = useApp();
+  const { run, content, animate } = useApp();
   const [pageIndex, setPageIndex] = useState(0);
   const [lineIndex, setLineIndex] = useState(0);
   const h = useRef<HTMLHeadingElement>(null);
@@ -127,27 +127,9 @@ export function Prologue() {
         ))}
         <div ref={endRef} />
       </div>
-      {atLast && page.likes ? (
-        <div role="group" aria-label="選択肢" class="choices">
-          {page.likes.map((c) => (
-            <button
-              key={c.id}
-              type="button"
-              class="btn choice"
-              onClick={() => {
-                setRun({ ...run, profile: { ...p, likes: c.id } });
-                nextPage();
-              }}
-            >
-              {c.label}
-            </button>
-          ))}
-        </div>
-      ) : (
-        <button type="button" class="next-tap" onClick={() => (atLast ? nextPage() : setLineIndex(i + 1))}>
-          ▼ 次へ
-        </button>
-      )}
+      <button type="button" class="next-tap" onClick={() => (atLast ? nextPage() : setLineIndex(i + 1))}>
+        ▼ 次へ
+      </button>
       <div class="scene-tools">
         <button type="button" class="tool" onClick={() => setPageIndex(pages.length)}>
           15歳までとばす

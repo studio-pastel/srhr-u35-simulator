@@ -24,7 +24,7 @@ events:
     scenes:
       - id: start
         lines:
-          - { who: narration, text: "昼休み。友だちのリコが、身を乗り出してきた。" }
+          - { who: narration, text: "昼休み。友だちのルイが、身を乗り出してきた。" }
           - { who: riko, text: "ねえ、好きな人いないの？　みんな言ってるよ。" }
           - { who: self, kind: inner, text: "（クラスのソウとは、最近よく話す。話してると楽しい）", when: "up.attractedTo == 'men'" }
           - { who: self, kind: inner, text: "（クラスのサキとは、最近よく話す。話してると楽しい）", when: "up.attractedTo == 'women'" }
@@ -80,7 +80,7 @@ events:
           - { who: self, kind: inner, text: "（なんだ、そんな感じでいいのか）", face: relieved }
         next: END
 
-  # ───────── トランスジェンダー・ノンバイナリー：制服（監修で確認する） ─────────
+  # ───────── トランスジェンダー・ノンバイナリー：制服 ─────────
   - id: E16-UNIFORM
     age: 16
     characters: [me]

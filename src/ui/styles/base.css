@@ -110,17 +110,19 @@ main:focus {
   margin-right: 6px;
 }
 
-/* 「すぐに閉じる」：どの画面でも同じ位置、最も高いコントラスト（§16.2） */
-.exit-btn {
+/* ホームに戻る（付録B-46） */
+.home-btn {
   flex: none;
-  background: var(--exit);
-  color: var(--exit-text);
-  border: 0;
+  margin-left: auto;
+  background: var(--surface, transparent);
+  color: var(--text);
+  border: 1px solid var(--text-sub);
   border-radius: 999px;
-  padding: 10px 16px;
-  font-weight: 700;
-  font-size: 15px;
   min-height: 44px;
+  padding: 0 18px;
+  font: inherit;
+  font-size: 14px;
+  font-weight: 700;
   cursor: pointer;
 }
 
@@ -1517,8 +1519,12 @@ ul.plain {
     max-width: 640px;
     margin-inline: auto;
   }
-  .ob-grid {
+  .ob-grid,
+  .home-themes {
     grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+  .home-explain {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 }
 
@@ -1716,4 +1722,55 @@ ul.plain {
 .prologue-reasons {
   margin-top: 8px;
   font-size: 14px;
+}
+
+/* トップページ（付録B-46） */
+.home-catch {
+  font-size: 22px;
+  font-weight: 700;
+  line-height: 1.5;
+  margin: 12px 0 4px;
+}
+
+.home-themes,
+.home-explain {
+  display: grid;
+  gap: 12px;
+  margin-top: 24px;
+}
+
+.home-theme h2,
+.home-explain h2 {
+  margin-top: 0;
+}
+
+.home-play {
+  font-weight: 700;
+}
+
+.stat-tile {
+  border-top: 1px solid var(--line, #ddd);
+  padding: 12px 0 0;
+  margin-top: 12px;
+}
+
+.stat-big {
+  display: block;
+  font-size: 34px;
+  font-weight: 800;
+  line-height: 1.2;
+}
+
+.stat-tile p {
+  margin: 4px 0 0;
+}
+
+.stat-source {
+  font-size: 12px;
+  color: var(--text-sub);
+}
+
+.home-cta {
+  text-align: center;
+  margin-top: 24px;
 }

@@ -12,10 +12,10 @@
   name: あなた
   look: { skin: "#f2c9a8", hair: "#3a2a22", hairStyle: mid, clothes: ["#4f86c6", "#4f86c6", "#4f86c6"], pants: "#2f3b52" }
 - id: minami
-  name: ミナミ
+  name: ナツキ
   look: { skin: "#f2c9a8", hair: "#3a2a22", hairStyle: bob, clothes: ["#4f86c6", "#5b6170", "#8a6d5a"], pants: "#2f3b52", accessory: glasses, accent: "#3a2f45" }
 - id: haruto
-  name: ハルト
+  name: ハル
   look: { skin: "#e8b896", hair: "#1f1f24", hairStyle: short, clothes: ["#6b8e4e", "#3e4a5c", "#5a6b48"], pants: "#3b3b3b", accessory: cap, accent: "#d9a23b" }
 - id: yu
   name: ユウ
@@ -26,7 +26,7 @@
 
 # ── 脇役（16歳）。名前は仮（付録B-5。REPORT.md で確認を受ける） ──
 - id: riko
-  name: リコ
+  name: ルイ
   role: ミナミの友だち
   age: 16
   look: { skin: "#eec3a0", hair: "#2b2622", hairStyle: tied, clothes: ["#7a9e3b", "#7a9e3b", "#7a9e3b"], pants: "#3a3f4a" }
@@ -61,7 +61,7 @@
   peerOffset: -11
   look: { skin: "#dca782", hair: "#2a2320", hairStyle: short, clothes: ["#e0a526", "#e0a526", "#e0a526"], pants: "#3d5a80" }
 - id: mio
-  name: ミオ
+  name: アサヒ
   role: ケイの妹
   peerOffset: -7
   look: { skin: "#dca782", hair: "#2a2320", hairStyle: long, clothes: ["#2a9d8f", "#2a9d8f", "#2a9d8f"], pants: "#34404f" }
@@ -123,7 +123,7 @@
   bornAt: 22
   look: { skin: "#e3b08c", hair: "#2a2320", hairStyle: short, clothes: ["#2a9d8f", "#2a9d8f", "#2a9d8f"], pants: "#34404f" }
 - id: minamiChild
-  name: ミナミの子ども
+  name: ナツキの子ども
   role: ミナミとソウの子ども
   bornAt: 30
   look: { skin: "#f2c9a8", hair: "#3a2a22", hairStyle: short, clothes: ["#e0a526", "#e0a526", "#e0a526"], pants: "#5b6170" }

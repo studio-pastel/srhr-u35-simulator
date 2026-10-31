@@ -182,10 +182,6 @@ events:
           - { who: tamura, text: "願書の性別欄のことは……まあ、そのとき考えよう。", when: "up.gender == 'nonbinary'" }
           - { who: self, kind: inner, text: "（……自分の話を、聞いてくれてない気がする）", face: anxious }
           - { who: self, kind: inner, text: "（それに、うちの家計で、学費はどうするんだろう）", when: "up.economy == 'hardship'" }
-          - { who: self, kind: inner, text: "（小さいころから、絵を描くのが好きだったのにな）", when: "up.likes == 'draw'" }
-          - { who: self, kind: inner, text: "（走ることは、進路の話には出てこないのかな）", when: "up.likes == 'run'" }
-          - { who: self, kind: inner, text: "（作ったゲームの話なんて、先生にはできないな）", when: "up.likes == 'game'" }
-          - { who: self, kind: inner, text: "（本を読むのが好きだって、言えばよかったのかな）", when: "up.likes == 'read'" }
         choices:
           - id: say
             label: "「自分で考えて、決めたいです」"
@@ -355,7 +351,7 @@ events:
     characters: [me]
     kind: chance
     domains: [メンタルヘルス, 選べない出来事]
-    statCard: [S54]
+    statCard: [S54, S57]
     stage: { place: bedroom, time: day, cast: [{ id: self, x: 34 }] }
     summary: "秋になった。朝、起きるのがつらい日があった。"
     status: draft
@@ -365,12 +361,14 @@ events:
           - { who: narration, text: "夏が終わり、秋になった。" }
         chance:
           id: CH-MIND
-          label: "うつ病を経験する確率（生涯）"
-          # 生涯の割合を、物語の中の1回の判定として使う（解釈）。性自認別の値はないため、割合の近い値を当てはめる（監修で確認する）
-          base: { value: 0.066, statRef: S54 }
+          label: "この1年のあいだに、うつ病を経験する確率"
+          # S54 の12か月有病率（成人の調査。高校生の値は確認できなかった）を、1年に1回の判定に使う。
+          # トランスジェンダー・ノンバイナリーは、全体の値に、S57 の「気分・不安障害にあてはまる可能性」の比（37.5÷13.3）を掛ける（解釈。付録B-46）
+          base: { value: 0.021, statRef: S54 }
           modifiers:
-            - { when: "up.gender == 'woman' || up.gender == 'transWoman'", op: set, value: 0.091, source: society, statRef: S54, note: "女性の割合" }
-            - { when: "up.gender == 'man' || up.gender == 'transMan'", op: set, value: 0.037, source: society, statRef: S54, note: "男性の割合" }
+            - { when: "up.gender == 'woman'", op: set, value: 0.03, source: society, statRef: S54, note: "女性の割合" }
+            - { when: "up.gender == 'man'", op: set, value: 0.01, source: society, statRef: S54, note: "男性の割合" }
+            - { when: "up.gender == 'transWoman' || up.gender == 'transMan' || up.gender == 'nonbinary'", op: mul, value: 2.82, source: society, statRef: S57, note: "性別を理由にした困難" }
           outcomes:
             happens:
               effects:
@@ -428,7 +426,7 @@ events:
         chance:
           id: CH-HARM
           label: "16〜19歳で、性交を伴う性暴力にあう確率"
-          # S33 の性自認別の値。トランスジェンダーの人の値はないため、女性・男性の値を当てはめる（監修で確認する）
+          # S33 は性自認で集計している（女性、男性、Xジェンダー・ノンバイナリー）。トランスジェンダーの人は、自認する性別の値を使う（付録B-46）
           base: { value: 0.075, statRef: S33 }
           modifiers:
             - { when: "up.gender == 'woman' || up.gender == 'transWoman'", op: set, value: 0.027, source: society, statRef: S33, note: "女性の割合" }

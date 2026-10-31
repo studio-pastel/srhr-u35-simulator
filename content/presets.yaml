@@ -1,7 +1,7 @@
 # 1クリックで選べる見本（付録B-43）。id は cast.yaml の見た目と同じ。選んだあとも画面で変えられる。
 # 物語の中に友だちとしては登場しない。
 - id: minami
-  name: ミナミ
+  name: ナツキ
   blurb: "女性。好きになるのは男性。家で、からだの話をしたことがない。"
   gender: woman
   body: canBePregnant
@@ -12,7 +12,7 @@
   witnessedDV: false
   talkAboutSex: false
 - id: haruto
-  name: ハルト
+  name: ハル
   blurb: "男性。好きになるのは女性。親のあいだの暴力を見て育った。"
   gender: man
   body: cannot

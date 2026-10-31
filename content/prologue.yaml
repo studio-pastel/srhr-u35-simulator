@@ -1,6 +1,5 @@
 # 生まれてから15歳まで（付録B-45）。Claude Code の下書き。パラメーターは動かさない。
 # %name% は主人公の名前に置きかわる。up.〇〇 の条件で文を出し分ける。
-# 性自認の文はトランスジェンダーの当事者の監修で確認する。
 status: draft
 pages:
   - id: birth
@@ -35,22 +34,6 @@ pages:
       - { text: "ランドセルは、いとこのお下がり。少し色があせている。", when: "up.economy == 'hardship'" }
       - { text: "ぴかぴかのランドセルが、背中で少し重い。", when: "up.economy == 'middle'" }
       - { text: "（友だち、できるかな）", kind: inner }
-  - id: likes
-    age: 8
-    title: "夢中になったもの"
-    stage:
-      place: classroom
-      time: dusk
-      cast:
-        - { id: self, x: 44, face: smile }
-    lines:
-      - { text: "放課後になると、時間を忘れた。" }
-      - { text: "（これをしてるときが、いちばん自分らしい）", kind: inner }
-    likes:
-      - { id: draw, label: "絵を描くこと" }
-      - { id: run, label: "思いきり走ること" }
-      - { id: game, label: "ゲームを作って遊ぶこと" }
-      - { id: read, label: "図書室で本を読むこと" }
   - id: home
     age: 12
     title: "変わっていくもの"
@@ -94,8 +77,4 @@ pages:
       - { text: "（好きになるのに、相手の性別はあまり関係ないみたいだ）", kind: inner, when: "up.attractedTo == 'any'" }
       - { text: "（友だちの恋の話に、いまひとつ入っていけない）", kind: inner, when: "up.attractedTo == 'none'" }
       - { text: "（「好き」って何なのか、まだよくわからない）", kind: inner, when: "up.attractedTo == 'unsure'" }
-      - { text: "（絵を描く時間だけは、ずっと変わらない）", kind: inner, when: "up.likes == 'draw'" }
-      - { text: "（走っているときだけは、何も考えなくていい）", kind: inner, when: "up.likes == 'run'" }
-      - { text: "（作りかけのゲーム、今夜は少し進めよう）", kind: inner, when: "up.likes == 'game'" }
-      - { text: "（読みかけの本の続きが、今も気になっている）", kind: inner, when: "up.likes == 'read'" }
       - { text: "春が来れば、高校生になる。" }

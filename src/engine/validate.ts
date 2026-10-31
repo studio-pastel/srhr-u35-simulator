@@ -195,6 +195,14 @@ export function validateContent(raw: unknown, opts: ValidateOptions): ValidateRe
     });
   }
 
+  // ── トップページ（付録B-46）：確かめた統計の数字だけを大きく出す ──
+  for (const t of content.home.themes)
+    for (const x of t.stats) {
+      statRef('home', x.id, 'card');
+      const s = stats.get(x.id);
+      if (s) for (const n of numbersIn(x.big)) if (!numbersIn(s.value).includes(n)) errors.push(`home：${x.big} の ${n} は ${x.id} の value にありません`);
+    }
+
   if (opts.requireAllChapters) {
     for (const a of ALL_AGES) if (!content.chapters.some((c) => c.age === a)) errors.push(`${a}歳の章がありません`);
   }

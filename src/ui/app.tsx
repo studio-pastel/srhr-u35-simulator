@@ -46,7 +46,7 @@ function routeFromHash(): Route {
 
 /**
  * サイト内の移動。履歴を増やさない（location.replace）。
- * 履歴が残ると、「すぐに閉じる」のあとでブラウザの「戻る」を押したときに、このサイトに戻れてしまうため（§8.1）。
+ * 履歴が残ると、Esc キーで退出したあとでブラウザの「戻る」を押したときに、このサイトに戻れてしまうため（§8.1）。
  */
 export function navigate(r: Route): void {
   const path = Object.entries(ROUTES).find(([, v]) => v === r)?.[0] ?? '/';
@@ -57,7 +57,7 @@ function replaceHash(path: string): void {
   location.replace(`#${path}`);
 }
 
-/** すぐに閉じる（§8.1）：sessionStorage の進行状況を消し、replace で移動する（「戻る」で戻れない） */
+/** Esc キーの退出（付録B-46）：sessionStorage の進行状況を消し、replace で移動する（「戻る」で戻れない） */
 export function quickExit(): void {
   clearSession();
   location.replace(content.config.exitUrl);
@@ -183,9 +183,11 @@ export function App() {
         </a>
         <header class="topbar">
           <div class="topbar-title">{title}</div>
-          <button type="button" class="exit-btn" onClick={quickExit}>
-            すぐに閉じる
-          </button>
+          {route !== 'intro' && (
+            <button type="button" class="home-btn" onClick={() => navigate('intro')}>
+              ホーム
+            </button>
+          )}
         </header>
         <main id="main" tabIndex={-1}>
           {route === 'intro' && <Intro />}
@@ -210,7 +212,7 @@ export function App() {
             <a href="#/sources">出典</a>
             <a href="#/settings">設定</a>
             <a href="#/about">このサイトについて</a>
-            <a href="#/">はじめに</a>
+            <a href="#/">ホーム</a>
           </nav>
           <p style={{ margin: 0 }}>© 2026 {content.config.publisher}</p>
         </footer>

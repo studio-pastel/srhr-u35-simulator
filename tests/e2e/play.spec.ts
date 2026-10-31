@@ -31,7 +31,7 @@ async function fixSeed(page: Page, n: number) {
 
 /** 最初の画面から始めて、生まれてから15歳までをとばし、16歳の幕間へ */
 async function begin(page: Page) {
-  await page.getByRole('button', { name: 'はじめる' }).click();
+  await page.getByRole('button', { name: 'はじめる' }).first().click();
   await page.getByRole('button', { name: '15歳までとばす' }).click();
   await page.getByRole('button', { name: '16歳へ' }).click();
 }
@@ -87,14 +87,14 @@ for (const n of [1, 2, 3, 4]) {
   });
 }
 
-test('「すぐに閉じる」で exitUrl に移動し、ブラウザの「戻る」で戻れない', async ({ page }) => {
+test('Esc キーで exitUrl に移動し、ブラウザの「戻る」で戻れない', async ({ page }) => {
   // トップページから、画面の操作だけで進む（サイト内の移動では履歴を増やさない）
   await page.goto('/');
   await begin(page);
   await page.getByRole('button', { name: 'はじめる' }).click();
   await page.getByRole('link', { name: /私も相談したいことがある/ }).click();
   await page.getByRole('link', { name: '物語にもどる' }).click();
-  await page.getByRole('button', { name: 'すぐに閉じる' }).click();
+  await page.keyboard.press('Escape');
   await page.waitForURL(EXIT_URL);
   await page.goBack().catch(() => undefined);
   expect(page.url()).not.toContain('localhost:4173');
@@ -121,10 +121,10 @@ test('ブラウザの「戻る」でサイトを離れても、同じタブで�
 
   // URL を入れ直して開いても（同じタブなら）、「続きから遊ぶ」が出る
   await page.goto('/');
-  await expect(page.getByRole('button', { name: '続きから遊ぶ' })).toBeVisible();
+  await expect(page.getByRole('button', { name: '続きから遊ぶ' }).first()).toBeVisible();
 });
 
-test('Esc キーでも「すぐに閉じる」が動き、進行状況が消える', async ({ page }) => {
+test('Esc キーで退出すると、進行状況が消える', async ({ page }) => {
   await start(page);
   await page.getByRole('button', { name: 'はじめる' }).click();
   expect(await page.evaluate(() => sessionStorage.getItem('srhr.v1.run'))).not.toBeNull();
@@ -208,17 +208,26 @@ test('最初の画面の「はじめる」から、生まれた日を通って16
   const errors = watchErrors(page);
   await fixSeed(page, 5);
   await page.goto('/');
-  await expect(page.locator('main')).toContainText('安心して遊ぶために');
-  await page.getByRole('button', { name: 'はじめる' }).click();
+  await expect(page.locator('main')).toContainText('SRHRとは');
+  await expect(page.locator('main')).toContainText('プレコンセプションケアとは');
+  await expect(page.locator('.stat-big').first()).toBeVisible();
+  await page.getByRole('button', { name: 'はじめる' }).first().click();
   await expect(page.locator('main h1')).toContainText('生まれた日');
   await expect(page.locator('.topbar-me')).toContainText('私（');
   for (let i = 0; i < 80 && !(await page.getByRole('button', { name: '16歳へ' }).isVisible()); i++) {
-    const choice = page.locator('.choices button').first();
-    if (await choice.isVisible()) await choice.click();
-    else await page.locator('button.next-tap').click();
+    await page.locator('button.next-tap').click();
   }
   await expect(page.locator('main h1')).toContainText('15歳');
   await page.getByRole('button', { name: '16歳へ' }).click();
   await expect(page.locator('.topbar-me')).toContainText('16歳');
   expect(errors).toEqual([]);
+});
+
+test('ホームのボタンで最初の画面に戻り、続きから遊べる（付録B-46）', async ({ page }) => {
+  await start(page);
+  await page.getByRole('button', { name: 'ホーム' }).click();
+  await expect(page.locator('h1.ob-logo')).toBeVisible();
+  await expect(page.getByRole('button', { name: 'ホーム' })).toHaveCount(0);
+  await page.getByRole('button', { name: '続きから遊ぶ' }).first().click();
+  await expect(page.locator('main h1')).toContainText('16歳');
 });

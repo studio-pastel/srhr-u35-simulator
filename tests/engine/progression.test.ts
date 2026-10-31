@@ -102,10 +102,10 @@ describe('するかどうか（付録B-30）', () => {
 describe('自分で選べない出来事（付録B-43）', () => {
   const node = (s: RunState, id: string) => s.chanceLog.find((c) => c.nodeId === id)!;
   const play = (gender: Profile['gender'], force?: boolean) => playThrough(real, run({ gender }), () => 0, { override: () => force });
-  it('うつ病の確率は S54 の値で、性自認によって変わる。選択では変わらない', () => {
-    expect(node(play('woman'), 'CH-MIND').finalP).toBe(0.091);
-    expect(node(play('man'), 'CH-MIND').finalP).toBe(0.037);
-    expect(node(play('nonbinary'), 'CH-MIND').finalP).toBe(0.066);
+  it('うつ病の確率は S54 の12か月の値で、トランスジェンダーとノンバイナリーには S57 の比を掛ける（付録B-46）', () => {
+    expect(node(play('woman'), 'CH-MIND').finalP).toBe(0.03);
+    expect(node(play('man'), 'CH-MIND').finalP).toBe(0.01);
+    for (const g of ['transWoman', 'transMan', 'nonbinary'] as const) expect(node(play(g), 'CH-MIND').finalP).toBeCloseTo(0.021 * 2.82, 5);
   });
   it('性暴力は、どの性自認でも確率がある（付録B-43）', () => {
     for (const gender of GENDERS) expect(node(play(gender), 'CH-HARM').finalP).toBeGreaterThan(0);

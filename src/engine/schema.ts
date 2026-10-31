@@ -1,7 +1,7 @@
 // コンテンツ（content/*.yaml）の zod スキーマ。ビルド時の検証とテストで共有する（§2.2）。
 import { z } from 'zod';
 
-import { ATTRACTIONS, BODIES, ECONOMIES, GENDERS, LIKES } from './profile-values';
+import { ATTRACTIONS, BODIES, ECONOMIES, GENDERS } from './profile-values';
 import { AGES, CHARACTER_IDS, EFFECT_SIZES, PARAM_KEYS, SOURCES } from './constants';
 export { AGES, CHARACTER_IDS, EFFECT_SIZES, PARAM_KEYS, SOURCES };
 
@@ -244,8 +244,28 @@ export const prologueSchema = z.strictObject({
           when: z.string().optional(),
         }),
       ),
-      /** 夢中になったものを選ぶ。選んだ内容は、あとの場面の文に出る */
-      likes: z.array(z.strictObject({ id: z.enum(LIKES), label: z.string().min(1) })).optional(),
+    }),
+  ),
+});
+
+/** トップページ（付録B-46）。統計の文は cardText を使い、big だけをここに書く */
+export const homeSchema = z.strictObject({
+  status: z.literal('draft'),
+  catch: z.string().min(1),
+  lead: z.string().min(1),
+  themes: z.array(
+    z.strictObject({
+      title: z.string().min(1),
+      body: z.string().min(1),
+      play: z.string().min(1),
+      stats: z.array(z.strictObject({ id: z.string().min(1), big: z.string().min(1) })),
+    }),
+  ),
+  explain: z.array(
+    z.strictObject({
+      title: z.string().min(1),
+      body: z.string().min(1),
+      source: z.strictObject({ label: z.string().min(1), url: z.string().url() }).optional(),
     }),
   ),
 });
@@ -330,6 +350,7 @@ export const contentSchema = z.strictObject({
   /** 1クリックで選べる見本（付録B-43） */
   presets: z.array(presetSchema),
   prologue: prologueSchema,
+  home: homeSchema,
   chapters: z.array(chapterSchema),
 });
 
@@ -359,4 +380,5 @@ export type CastMember = z.infer<typeof castSchema>;
 export type Look = z.infer<typeof lookSchema>;
 export type Preset = z.infer<typeof presetSchema>;
 export type Prologue = z.infer<typeof prologueSchema>;
+export type Home = z.infer<typeof homeSchema>;
 export type ResourceCategory = (typeof RESOURCE_CATEGORIES)[number];
