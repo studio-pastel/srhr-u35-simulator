@@ -74,8 +74,8 @@ export function Play() {
     return (
       <>
         <h1>進行中の周回がありません</h1>
-        <button type="button" class="btn primary" onClick={() => navigate('select')}>
-          主人公を選ぶ
+        <button type="button" class="btn primary" onClick={() => navigate('intro')}>
+          はじめの画面へ
         </button>
       </>
     );
@@ -179,7 +179,7 @@ export function Play() {
   );
 }
 
-// ── 幕間（付録B-8）：時間が流れる。最初の章では「はじまり」 ──
+// ── 幕間（付録B-8）：時間が流れる。最初の章は、15歳の場面の1年後 ──
 function Interlude({ run, onStart }: { run: RunState; onStart: () => void }) {
   const { content, animate } = useApp();
   const ch = getChapter(content, run.position.age);
@@ -192,7 +192,7 @@ function Interlude({ run, onStart }: { run: RunState; onStart: () => void }) {
   return (
     <section class="interlude fade-in">
       <LifeStrip run={run} />
-      <p class="interlude-elapsed num">{prev ? `${ch.age - prev.age}年後` : 'はじまり'}</p>
+      <p class="interlude-elapsed num">{prev ? `${ch.age - prev.age}年後` : '1年後'}</p>
       <h1 tabIndex={-1} ref={h} class="interlude-title">
         <span class="num">{ch.age}歳</span>　{ch.season}
       </h1>
@@ -208,7 +208,7 @@ function Interlude({ run, onStart }: { run: RunState; onStart: () => void }) {
 }
 
 // ── 場面（付録B-2・B-27）：会話を積み重ねて見せ、最新の行は文字が流れるように出す ──
-function ChatLine({ run, line, typing, typed }: { run: RunState; line: ShownLine; typing: boolean; typed: number }) {
+export function ChatLine({ run, line, typing, typed }: { run: RunState; line: ShownLine; typing: boolean; typed: number }) {
   const { content } = useApp();
   const text = typing ? Array.from(plainText(line.text)).slice(0, typed).join('') : null;
   const body = text !== null ? text : <RichText text={line.text} />;

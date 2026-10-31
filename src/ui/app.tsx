@@ -2,14 +2,14 @@
 import { createContext } from 'preact';
 import { useCallback, useContext, useEffect, useState } from 'preact/hooks';
 import content from 'virtual:content';
-import type { Content } from '../engine/schema';
+import type { Content, Look } from '../engine/schema';
 import type { RunState } from '../engine/types';
-import { newSeed } from '../engine/rng';
 import { clearSession, loadRun, loadSettings, saveRun, saveSettings, type Settings } from '../engine/storage';
 import { getChapter } from '../engine/progression';
 import { modalStack } from './components/Modal';
+import { FaceIcon } from './components/Faces';
 import { Intro } from './screens/Intro';
-import { Select } from './screens/Select';
+import { Prologue } from './screens/Prologue';
 import { Play } from './screens/Play';
 import { SupportScreen } from './screens/Support';
 import { SourcesScreen } from './screens/Sources';
@@ -19,12 +19,14 @@ import { AboutScreen } from './screens/About';
 import { ReplayScreen } from './screens/Replay';
 import { CompareScreen } from './screens/Compare';
 
-export type Route = 'intro' | 'select' | 'play' | 'support' | 'sources' | 'settings' | 'about' | 'replay' | 'compare' | 'dev';
+export type Route = 'intro' | 'birth' | 'play' | 'support' | 'sources' | 'settings' | 'about' | 'replay' | 'compare' | 'dev';
 
 const ROUTES: Record<string, Route> = {
   '': 'intro',
   '/': 'intro',
-  '/select': 'select',
+  // 主人公はランダムに決まるので、組み立てる画面はなくなった（付録B-45）
+  '/select': 'intro',
+  '/birth': 'birth',
   '/play': 'play',
   '/support': 'support',
   // 旧い「相談窓口」のページは「話せる場所」に統合した（付録B-19）
@@ -61,10 +63,6 @@ export function quickExit(): void {
   location.replace(content.config.exitUrl);
 }
 
-interface Pending {
-  seed: string;
-}
-
 export interface AppState {
   content: Content;
   settings: Settings;
@@ -73,9 +71,6 @@ export interface AppState {
   setRun: (r: RunState | null) => void;
   /** 演出をするか（設定と prefers-reduced-motion の両方を見る） */
   animate: boolean;
-  /** 主人公を組み立てる画面で使う、まだ始めていない周回のシード */
-  pending: Pending;
-  setPending: (p: Pending) => void;
 }
 
 const Ctx = createContext<AppState | null>(null);
@@ -101,7 +96,6 @@ export function App() {
   const [route, setRoute] = useState<Route>(routeFromHash);
   const [settings, setSettingsState] = useState<Settings>(loadSettings);
   const [run, setRunState] = useState<RunState | null>(loadRun);
-  const [pending, setPending] = useState<Pending>(() => ({ seed: newSeed() }));
   const reduced = usePrefersReducedMotion();
 
   useEffect(() => {
@@ -160,18 +154,24 @@ export function App() {
     run,
     setRun,
     animate: settings.motion && !reduced,
-    pending,
-    setPending,
   };
 
   let title: preact.ComponentChildren = content.config.siteName;
-  if (route === 'play' && run && run.position.step !== 'finished') {
-    const ch = getChapter(content, run.position.age);
+  // 左上には、いま生きている「私」を出す（付録B-45）
+  if ((route === 'play' || route === 'birth') && run) {
+    const ch = route === 'play' && run.position.step !== 'finished' ? getChapter(content, run.position.age) : undefined;
     title = (
-      <>
-        <strong class="num">{run.position.age}歳</strong>
-        {ch.season}
-      </>
+      <span class="topbar-me">
+        <FaceIcon look={run.profile.look as Look} age={ch ? run.position.age : 15} />
+        <span>
+          <strong>私（{run.profile.name}）</strong>
+          {ch && (
+            <span class="topbar-age">
+              <span class="num">{run.position.age}歳</span> {ch.season}
+            </span>
+          )}
+        </span>
+      </span>
     );
   }
 
@@ -189,7 +189,7 @@ export function App() {
         </header>
         <main id="main" tabIndex={-1}>
           {route === 'intro' && <Intro />}
-          {route === 'select' && <Select />}
+          {route === 'birth' && <Prologue />}
           {route === 'play' && <Play />}
           {route === 'support' && <div class="text-page"><SupportScreen /></div>}
           {route === 'sources' && <div class="text-page"><SourcesScreen /></div>}

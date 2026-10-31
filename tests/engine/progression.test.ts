@@ -3,7 +3,7 @@ import { describe, expect, it } from 'vitest';
 import fc from 'fast-check';
 import { invariantHolds, makeProfile, playThrough, realContent } from '../helpers';
 import { beginChapter, chapterResourceTags, createRun, currentScene, visibleChoices } from '../../src/engine/progression';
-import { ATTRACTIONS, GENDERS, initialOf, pregnancyPossible, type Profile } from '../../src/engine/profile';
+import { ATTRACTIONS, GENDERS, initialOf, pregnancyPossible, randomProfile, type Profile } from '../../src/engine/profile';
 import { compareRuns, startReplay } from '../../src/engine/replay';
 import { autoPlay, trajectory } from '../../src/engine/standard';
 import { sampleProfiles } from '../../src/engine/validate';
@@ -180,5 +180,32 @@ describe('2周目：属性だけ変える（付録B-43）', () => {
     expect(second.flags.partnerId).toBe('saki');
     expect(compareRuns(real, first, second).length).toBeGreaterThan(0);
     expect(trajectory(real, first)[0]!.params).toEqual(first.initial);
+  });
+});
+
+describe('ランダムな主人公（付録B-45）', () => {
+  const many = Array.from({ length: 500 }, (_, i) => randomProfile(`seed-${i}`));
+
+  it('同じシードなら同じ人になる', () => {
+    expect(randomProfile('abc')).toEqual(randomProfile('abc'));
+  });
+
+  it('性自認と好きになる人は、すべての値が偏りなく出る', () => {
+    for (const g of GENDERS) expect(many.filter((p) => p.gender === g).length).toBeGreaterThan(50);
+    for (const a of ATTRACTIONS) expect(many.filter((p) => p.attractedTo === a).length).toBeGreaterThan(50);
+  });
+
+  it('性自認とからだの組み合わせが合っている', () => {
+    for (const p of many) {
+      if (p.gender === 'woman' || p.gender === 'transMan') expect(p.body).toBe('canBePregnant');
+      if (p.gender === 'man' || p.gender === 'transWoman') expect(p.body).toBe('cannot');
+    }
+    expect(new Set(many.filter((p) => p.gender === 'nonbinary').map((p) => p.body)).size).toBe(2);
+  });
+
+  it('父親が同居しないひとり親の家庭では、親のあいだの暴力の場面が出ない', () => {
+    expect(many.some((p) => p.singleParent)).toBe(true);
+    expect(many.some((p) => p.witnessedDV)).toBe(true);
+    expect(many.some((p) => p.singleParent && p.witnessedDV)).toBe(false);
   });
 });

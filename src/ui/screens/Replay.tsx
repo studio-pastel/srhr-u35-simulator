@@ -3,7 +3,7 @@ import { useEffect, useRef, useState } from 'preact/hooks';
 import { navigate, useApp } from '../app';
 import { startReplay, switchableConditions, type ReplayRequest } from '../../engine/replay';
 import { loadHistory } from '../../engine/storage';
-import { ProfileBuilder } from './Select';
+import { ProfileBuilder } from './ProfileBuilder';
 
 export function ReplayScreen() {
   const { content, run, setRun } = useApp();
@@ -20,8 +20,8 @@ export function ReplayScreen() {
           2周目を選ぶ
         </h1>
         <p>終えた周回がありません。まず1周、遊んでみてください。</p>
-        <button type="button" class="btn primary" onClick={() => navigate('select')}>
-          主人公を選ぶ
+        <button type="button" class="btn primary" onClick={() => navigate('intro')}>
+          はじめの画面へ
         </button>
       </>
     );

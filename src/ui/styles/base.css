@@ -1509,10 +1509,16 @@ ul.plain {
     grid-template-columns: repeat(4, minmax(0, 1fr));
   }
   .interlude,
-  .peek,
-  .onboarding {
+  .peek {
     max-width: 640px;
     margin-inline: auto;
+  }
+  .ob-title {
+    max-width: 640px;
+    margin-inline: auto;
+  }
+  .ob-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
   }
 }
 
@@ -1644,4 +1650,70 @@ ul.plain {
     position: sticky;
     top: 72px;
   }
+}
+
+/* 最初の画面の説明（付録B-45） */
+.ob-grid {
+  display: grid;
+  gap: 12px;
+  margin-top: 24px;
+}
+
+.ob-params {
+  list-style: none;
+  padding: 0;
+  margin: 8px 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 12px;
+  font-size: 14px;
+}
+
+.ob-params li {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+/* 左上の「私」（付録B-45） */
+.topbar-me {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.topbar-me .face-icon {
+  flex: none;
+  width: 36px;
+  height: 36px;
+}
+
+.topbar-age {
+  display: block;
+}
+
+/* 生まれてから15歳まで（付録B-45） */
+.prologue .interlude-elapsed,
+.prologue .interlude-title {
+  text-align: center;
+}
+
+.prologue-facts {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 4px 12px;
+  margin: 0 0 12px;
+}
+
+.prologue-facts dt {
+  color: var(--text-sub);
+}
+
+.prologue-facts dd {
+  margin: 0;
+}
+
+.prologue-reasons {
+  margin-top: 8px;
+  font-size: 14px;
 }

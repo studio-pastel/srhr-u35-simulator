@@ -1,7 +1,7 @@
 // コンテンツ（content/*.yaml）の zod スキーマ。ビルド時の検証とテストで共有する（§2.2）。
 import { z } from 'zod';
 
-import { ATTRACTIONS, BODIES, ECONOMIES, GENDERS } from './profile-values';
+import { ATTRACTIONS, BODIES, ECONOMIES, GENDERS, LIKES } from './profile-values';
 import { AGES, CHARACTER_IDS, EFFECT_SIZES, PARAM_KEYS, SOURCES } from './constants';
 export { AGES, CHARACTER_IDS, EFFECT_SIZES, PARAM_KEYS, SOURCES };
 
@@ -228,6 +228,28 @@ export const presetSchema = z.strictObject({
   talkAboutSex: z.boolean(),
 });
 
+/** 生まれてから15歳までの、短い場面（付録B-45）。パラメーターは動かさない */
+export const prologueSchema = z.strictObject({
+  status: z.literal('draft'),
+  pages: z.array(
+    z.strictObject({
+      id: z.string().min(1),
+      age: z.number().int().min(0).max(15),
+      title: z.string().min(1),
+      stage: stageSchema,
+      lines: z.array(
+        z.strictObject({
+          text: z.string().min(1),
+          kind: z.enum(['narration', 'inner']).default('narration'),
+          when: z.string().optional(),
+        }),
+      ),
+      /** 夢中になったものを選ぶ。選んだ内容は、あとの場面の文に出る */
+      likes: z.array(z.strictObject({ id: z.enum(LIKES), label: z.string().min(1) })).optional(),
+    }),
+  ),
+});
+
 export const conditionSchema = z.strictObject({
   id: ident,
   label: z.string().min(1),
@@ -307,6 +329,7 @@ export const contentSchema = z.strictObject({
   cast: z.array(castSchema),
   /** 1クリックで選べる見本（付録B-43） */
   presets: z.array(presetSchema),
+  prologue: prologueSchema,
   chapters: z.array(chapterSchema),
 });
 
@@ -335,4 +358,5 @@ export type Stage = z.infer<typeof stageSchema>;
 export type CastMember = z.infer<typeof castSchema>;
 export type Look = z.infer<typeof lookSchema>;
 export type Preset = z.infer<typeof presetSchema>;
+export type Prologue = z.infer<typeof prologueSchema>;
 export type ResourceCategory = (typeof RESOURCE_CATEGORIES)[number];

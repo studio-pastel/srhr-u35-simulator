@@ -289,10 +289,7 @@ events:
             next: nurse
           - id: clinic
             label: "（婦人科を、自分で予約してみよう）"
-            effects:
-              - { param: body, sign: 1, size: M, source: choice, note: "婦人科を受診した" }
-              - { param: autonomy, sign: 1, size: S, source: choice, note: "自分で予約した" }
-            next: clinic
+            next: insurance
           - id: keepOn
             label: "（もう少しだけ、食事を減らそう）"
             # 付録A-21：ダイエット全般ではなく「極端な食事制限」だけを、30歳の CH-LBW の補正の条件にする
@@ -309,13 +306,62 @@ events:
           - { who: self, text: "あの……先月から、月経が来なくて。" }
           - { who: mori, text: "話してくれて、ありがとう。" }
           - { who: mori, text: "一度、婦人科で相談してみようか。探し方、一緒に調べよう。" }
+          - { who: mori, text: "保険証のことや、お家の人への話し方も、一緒に考えよう。" }
           - { who: self, kind: inner, text: "（責められなかった）", face: relieved }
+        next: END
+      # 保険証を使うと、受診先が親に伝わることがある（付録B-45）。協会けんぽの「医療費のお知らせ」は、扶養家族の分も医療機関名とともに記載される
+      - id: insurance
+        stage: { place: bedroom, time: night, cast: [{ id: self, x: 34, pose: phone, face: anxious }] }
+        lines:
+          - { who: narration, text: "予約のページを開いて、指が止まった。" }
+          - { who: self, kind: inner, text: "（保険証、お母さんが持ってる。借りたら理由を聞かれる）" }
+          - { who: self, kind: inner, text: "（あとから届く医療費のお知らせに、病院の名前が載るかも）" }
+          - { who: self, kind: inner, text: "（保険を使わないと、全額自分で払うことになる）" }
+          - { who: self, kind: inner, text: "（うちに、そんなお金はない）", when: "up.economy == 'hardship'" }
+        choices:
+          - id: tellParent
+            label: "お母さんに話して、保険証を借りる"
+            canonical: true
+            effects:
+              - { param: body, sign: 1, size: M, source: choice, note: "婦人科を受診した" }
+              - { param: autonomy, sign: 1, size: S, source: choice, note: "自分で話して受診した" }
+            next: tellParent
+          - id: selfPay
+            label: "貯めたお小遣いで、保険を使わずに受診する"
+            requires: "up.economy == 'middle'"
+            effects:
+              - { param: body, sign: 1, size: M, source: choice, note: "婦人科を受診した" }
+              - { param: living, sign: -1, size: M, source: choice, note: "全額を自分で払った" }
+            next: selfPay
+          - id: giveUp
+            label: "親に知られるくらいなら、行かない"
+            next: giveUp
+      - id: tellParent
+        stage: { place: living, time: night, cast: [{ id: self, x: 30, face: anxious }, { id: yuMother, x: 64 }] }
+        lines:
+          - { who: self, text: "あの……月経が来なくて。婦人科に行きたい。" }
+          - { who: yuMother, text: "……そう。話してくれて、よかった。保険証、渡すね。", when: "up.talkAboutSex == true" }
+          - { who: narration, text: "こんな話を、家でするのは初めてだった。", when: "up.talkAboutSex == false" }
+          - { who: yuMother, text: "……なんで急に。とにかく、保険証は渡すから。", when: "up.talkAboutSex == false" }
+          - { who: self, kind: inner, text: "（言えた。心臓が、まだどきどきしてる）" }
+        next: clinic
+      - id: selfPay
+        lines:
+          - { who: self, kind: inner, text: "（受付で「保険証は使いません」って言えばいいのかな）", face: anxious }
+          - { who: self, kind: inner, text: "（お小遣い、これでだいぶ減っちゃうな）" }
+        next: clinic
+      - id: giveUp
+        effects:
+          - { param: body, sign: -1, size: S, source: society, note: "親に知られずに受診しにくい" }
+        lines:
+          - { who: self, kind: inner, text: "（からだのことなのに、親に知られずに行くのは難しい）", face: sad }
+          - { who: narration, text: "気になったときは、保健室で相談できる。" }
         next: END
       - id: clinic
         stage: { place: clinic, time: day, cast: [{ id: self, x: 34 }] }
         lines:
           - { who: narration, text: "数日後、婦人科の待合室。" }
-          - { who: self, kind: inner, text: "（一人で予約の電話をするの、思ったより勇気がいった）" }
+          - { who: self, kind: inner, text: "（予約の電話をするの、思ったより勇気がいった）" }
           - { who: narration, text: "医師は食事のことを丁寧に聞き、これからのことを一緒に考えてくれた。" }
           - { who: self, kind: inner, text: "（来てよかった）", face: relieved }
         next: END

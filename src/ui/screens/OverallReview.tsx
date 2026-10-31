@@ -80,10 +80,10 @@ export function OverallReview({ run, onRestart }: { run: RunState; onRestart: ()
         class="btn"
         onClick={() => {
           onRestart();
-          navigate('select');
+          navigate('intro');
         }}
       >
-        最初から選びなおす
+        別の人生を生きる
       </button>
     </section>
   );

@@ -182,6 +182,10 @@ events:
           - { who: tamura, text: "願書の性別欄のことは……まあ、そのとき考えよう。", when: "up.gender == 'nonbinary'" }
           - { who: self, kind: inner, text: "（……自分の話を、聞いてくれてない気がする）", face: anxious }
           - { who: self, kind: inner, text: "（それに、うちの家計で、学費はどうするんだろう）", when: "up.economy == 'hardship'" }
+          - { who: self, kind: inner, text: "（小さいころから、絵を描くのが好きだったのにな）", when: "up.likes == 'draw'" }
+          - { who: self, kind: inner, text: "（走ることは、進路の話には出てこないのかな）", when: "up.likes == 'run'" }
+          - { who: self, kind: inner, text: "（作ったゲームの話なんて、先生にはできないな）", when: "up.likes == 'game'" }
+          - { who: self, kind: inner, text: "（本を読むのが好きだって、言えばよかったのかな）", when: "up.likes == 'read'" }
         choices:
           - id: say
             label: "「自分で考えて、決めたいです」"
@@ -397,6 +401,7 @@ events:
       - id: helped
         lines:
           - { who: mori, text: "よく来たね。休むことも、治療のうちだよ。" }
+          - { who: mori, text: "お家の人にどう話すかも、一緒に考えよう。" }
           - { who: self, kind: inner, text: "（休んでいいって、言ってもらえた）", face: relieved }
         next: END
       - id: alone

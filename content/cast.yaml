@@ -50,6 +50,11 @@
   role: 主人公の母
   peerOffset: 30
   look: { skin: "#efc4a0", hair: "#4a3226", hairStyle: short, clothes: ["#6b5b95", "#6b5b95", "#6b5b95"], pants: "#4a4a5a" }
+- id: father
+  name: お父さん
+  role: 主人公の父（生まれてから15歳までの場面）
+  peerOffset: 32
+  look: { skin: "#e3b38f", hair: "#1f1f24", hairStyle: short, clothes: ["#3e4a5c", "#3e4a5c", "#3e4a5c"], pants: "#2b2b2b" }
 - id: sora
   name: ソラ
   role: ケイの弟

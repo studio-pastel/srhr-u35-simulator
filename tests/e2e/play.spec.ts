@@ -20,17 +20,26 @@ async function blockExternal(page: Page) {
   );
 }
 
-/** オンボーディング（タイトル → あそびかた → 安心して遊ぶために）を進めて、主人公を選ぶ画面へ */
-async function onboard(page: Page) {
-  await page.getByRole('button', { name: 'はじめる' }).click();
-  await page.getByRole('button', { name: '次へ' }).click();
-  await page.getByRole('button', { name: '主人公を組み立てる' }).click();
+/** 乱数を固定して、同じ属性の主人公が出るようにする（数字ごとに別の人生になる） */
+async function fixSeed(page: Page, n: number) {
+  await page.addInitScript((v) => {
+    // 2回目からは値を変える（周回のIDが前の周回と重ならないように）
+    let i = 0;
+    crypto.getRandomValues = ((a: Uint8Array) => a.fill(v + i++)) as typeof crypto.getRandomValues;
+  }, n);
 }
 
-async function start(page: Page, name: string) {
-  await page.goto('/#/select');
-  await page.locator('.preset', { hasText: name }).click();
-  await page.getByRole('button', { name: 'この人で始める' }).click();
+/** 最初の画面から始めて、生まれてから15歳までをとばし、16歳の幕間へ */
+async function begin(page: Page) {
+  await page.getByRole('button', { name: 'はじめる' }).click();
+  await page.getByRole('button', { name: '15歳までとばす' }).click();
+  await page.getByRole('button', { name: '16歳へ' }).click();
+}
+
+async function start(page: Page, n = 1) {
+  await fixSeed(page, n);
+  await page.goto('/');
+  await begin(page);
 }
 
 /**
@@ -66,10 +75,10 @@ test.beforeEach(async ({ page }) => {
   await blockExternal(page);
 });
 
-for (const name of ['ミナミ', 'ハルト', 'ユウ', 'ケイ']) {
-  test(`見本の${name}で最後まで通しでプレイできる（CSP の下でエラーなし）`, async ({ page }) => {
+for (const n of [1, 2, 3, 4]) {
+  test(`ランダムな主人公${n}で最後まで通しでプレイできる（CSP の下でエラーなし）`, async ({ page }) => {
     const errors = watchErrors(page);
-    await start(page, name);
+    await start(page, n);
     await expect(page.locator('main h1')).toContainText('16歳');
     const reviews = await playToEnd(page);
     expect(reviews).toEqual(['16', '17']);
@@ -81,9 +90,7 @@ for (const name of ['ミナミ', 'ハルト', 'ユウ', 'ケイ']) {
 test('「すぐに閉じる」で exitUrl に移動し、ブラウザの「戻る」で戻れない', async ({ page }) => {
   // トップページから、画面の操作だけで進む（サイト内の移動では履歴を増やさない）
   await page.goto('/');
-  await onboard(page);
-  await page.locator('.preset', { hasText: 'ユウ' }).click();
-  await page.getByRole('button', { name: 'この人で始める' }).click();
+  await begin(page);
   await page.getByRole('button', { name: 'はじめる' }).click();
   await page.getByRole('link', { name: /私も相談したいことがある/ }).click();
   await page.getByRole('link', { name: '物語にもどる' }).click();
@@ -97,9 +104,7 @@ test('ブラウザの「戻る」でサイトを離れても、同じタブで�
   // 別のサイトから来た状態をつくる
   await page.goto('https://www.google.co.jp/search?q=before');
   await page.goto('/');
-  await onboard(page);
-  await page.locator('.preset', { hasText: 'ケイ' }).click();
-  await page.getByRole('button', { name: 'この人で始める' }).click();
+  await begin(page);
   await page.getByRole('button', { name: 'はじめる' }).click();
   for (let i = 0; i < 2; i++) await page.locator('main button.next-tap').first().click();
   const saved = await page.evaluate(() => sessionStorage.getItem('srhr.v1.run'));
@@ -120,7 +125,7 @@ test('ブラウザの「戻る」でサイトを離れても、同じタブで�
 });
 
 test('Esc キーでも「すぐに閉じる」が動き、進行状況が消える', async ({ page }) => {
-  await start(page, 'ケイ');
+  await start(page);
   await page.getByRole('button', { name: 'はじめる' }).click();
   expect(await page.evaluate(() => sessionStorage.getItem('srhr.v1.run'))).not.toBeNull();
   await page.keyboard.press('Escape');
@@ -130,11 +135,11 @@ test('Esc キーでも「すぐに閉じる」が動き、進行状況が消え�
 });
 
 test('キーボードだけで1章を終えられる', async ({ page }) => {
-  await page.goto('/#/select');
-  // 「この人で始める」までタブで移動して Enter
+  await page.goto('/');
+  // 「はじめる」までタブで移動して Enter
   for (let i = 0; i < 40; i++) {
     await page.keyboard.press('Tab');
-    if ((await page.evaluate(() => document.activeElement?.textContent?.trim())) === 'この人で始める') break;
+    if ((await page.evaluate(() => document.activeElement?.textContent?.trim())) === 'はじめる') break;
   }
   await page.keyboard.press('Enter');
   // 並列で動かすと遅くなるため、回数に余裕を持たせる
@@ -156,7 +161,7 @@ test('キーボードだけで1章を終えられる', async ({ page }) => {
 
 test('2周目の「同じ偶然で、条件だけ変える」で、比較画面に差分が出る', async ({ page }) => {
   const errors = watchErrors(page);
-  await start(page, 'ミナミ');
+  await start(page);
   await expect(page.locator('main h1')).toContainText('16歳');
   await playToEnd(page);
   await page.getByRole('button', { name: '2周目へ' }).click();
@@ -175,29 +180,45 @@ test('2周目の「同じ偶然で、条件だけ変える」で、比較画面�
 
 test('幅360pxで横スクロールが出ない', async ({ page }) => {
   await page.setViewportSize({ width: 360, height: 740 });
-  for (const path of ['/', '/#/select', '/#/support', '/#/sources', '/#/settings', '/#/about']) {
+  for (const path of ['/', '/#/support', '/#/sources', '/#/settings', '/#/about']) {
     await page.goto(path);
     const [sw, iw] = await page.evaluate(() => [document.documentElement.scrollWidth, innerWidth]);
     expect(sw, path).toBeLessThanOrEqual(iw);
   }
 });
 
-test('属性を自分で組み立てて始められ、属性だけ変えて2周目を遊べる（付録B-43）', async ({ page }) => {
+test('1周目のあと、属性だけ変えて2周目を遊べる（付録B-43）', async ({ page }) => {
   const errors = watchErrors(page);
-  await page.goto('/#/select');
-  await page.getByLabel('トランスジェンダー女性').check();
-  await page.getByLabel('性別を問わない').check();
-  await page.getByLabel('苦しい').check();
-  await page.getByLabel('リン', { exact: true }).check();
-  await page.getByRole('button', { name: 'この人で始める' }).click();
+  await start(page);
   await expect(page.locator('main h1')).toContainText('16歳');
   await playToEnd(page);
   await page.getByRole('button', { name: '2周目へ' }).click();
-  await page.getByRole('group', { name: '性自認' }).getByLabel('女性', { exact: true }).check();
+  await page.getByRole('group', { name: '性自認' }).getByLabel('トランスジェンダー女性').check();
+  await page.getByLabel('性別を問わない').check();
+  await page.getByLabel('苦しい').check();
   await page.getByRole('button', { name: 'この属性で、もう一度' }).click();
   await expect(page.locator('main h1')).toContainText('16歳');
   await playToEnd(page);
   await page.getByRole('button', { name: '前の周回と比べる' }).click();
   await expect(page.getByRole('heading', { name: '2つの周回を比べる' })).toBeVisible();
+  expect(errors).toEqual([]);
+});
+
+test('最初の画面の「はじめる」から、生まれた日を通って16歳に着き、左上に「私」が出る（付録B-45）', async ({ page }) => {
+  const errors = watchErrors(page);
+  await fixSeed(page, 5);
+  await page.goto('/');
+  await expect(page.locator('main')).toContainText('安心して遊ぶために');
+  await page.getByRole('button', { name: 'はじめる' }).click();
+  await expect(page.locator('main h1')).toContainText('生まれた日');
+  await expect(page.locator('.topbar-me')).toContainText('私（');
+  for (let i = 0; i < 80 && !(await page.getByRole('button', { name: '16歳へ' }).isVisible()); i++) {
+    const choice = page.locator('.choices button').first();
+    if (await choice.isVisible()) await choice.click();
+    else await page.locator('button.next-tap').click();
+  }
+  await expect(page.locator('main h1')).toContainText('15歳');
+  await page.getByRole('button', { name: '16歳へ' }).click();
+  await expect(page.locator('.topbar-me')).toContainText('16歳');
   expect(errors).toEqual([]);
 });

@@ -180,6 +180,21 @@ export function validateContent(raw: unknown, opts: ValidateOptions): ValidateRe
     }
   }
 
+  // ── 生まれてから15歳まで（付録B-45） ──
+  for (const page of content.prologue.pages) {
+    const w = `prologue/${page.id}`;
+    for (const c of page.stage.cast) {
+      if (!castIds.has(c.id)) errors.push(`${w}.stage：登場人物 ${c.id} が cast.yaml にありません`);
+      expr(`${w}.stage.cast.when`, c.when);
+    }
+    page.lines.forEach((l, i) => {
+      expr(`${w}.lines[${i}].when`, l.when);
+      textCheck(`${w}.lines[${i}]`, l.text);
+      const n = countChars(l.text.replace('%name%', 'ヒカル'));
+      if (n > TEXT_LIMITS.line) warnings.push(`${w}.lines[${i}]：吹き出しが ${n}字です（上限 ${TEXT_LIMITS.line}字）`);
+    });
+  }
+
   if (opts.requireAllChapters) {
     for (const a of ALL_AGES) if (!content.chapters.some((c) => c.age === a)) errors.push(`${a}歳の章がありません`);
   }

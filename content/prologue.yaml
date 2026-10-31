@@ -1,0 +1,101 @@
+# 生まれてから15歳まで（付録B-45）。Claude Code の下書き。パラメーターは動かさない。
+# %name% は主人公の名前に置きかわる。up.〇〇 の条件で文を出し分ける。
+# 性自認の文はトランスジェンダーの当事者の監修で確認する。
+status: draft
+pages:
+  - id: birth
+    age: 0
+    title: "生まれた日"
+    stage:
+      place: clinic
+      time: day
+      cast:
+        - { id: father, x: 18, when: "up.singleParent == false" }
+        - { id: yuMother, x: 42, face: smile }
+        - { id: self, x: 66 }
+    lines:
+      - { text: "春の朝。小さな産声があがった。" }
+      - { text: "「女の子ですよ」と、助産師さんが言った。", when: "up.body == 'canBePregnant'" }
+      - { text: "「男の子ですよ」と、助産師さんが言った。", when: "up.body == 'cannot'" }
+      - { text: "名前は、%name%。お母さんが何日も悩んで決めた。" }
+      - { text: "どの家に、どんなからだで生まれるか。それは誰にも選べない。" }
+  - id: school
+    age: 6
+    title: "小学校の入学式"
+    stage:
+      place: gate
+      time: day
+      cast:
+        - { id: father, x: 20, when: "up.singleParent == false" }
+        - { id: yuMother, x: 44, face: smile }
+        - { id: self, x: 68, face: smile }
+    lines:
+      - { text: "桜の下で、記念写真を撮った。" }
+      - { text: "お母さんは、仕事を半日休んで来てくれた。", when: "up.singleParent == true" }
+      - { text: "ランドセルは、いとこのお下がり。少し色があせている。", when: "up.economy == 'hardship'" }
+      - { text: "ぴかぴかのランドセルが、背中で少し重い。", when: "up.economy == 'middle'" }
+      - { text: "（友だち、できるかな）", kind: inner }
+  - id: likes
+    age: 8
+    title: "夢中になったもの"
+    stage:
+      place: classroom
+      time: dusk
+      cast:
+        - { id: self, x: 44, face: smile }
+    lines:
+      - { text: "放課後になると、時間を忘れた。" }
+      - { text: "（これをしてるときが、いちばん自分らしい）", kind: inner }
+    likes:
+      - { id: draw, label: "絵を描くこと" }
+      - { id: run, label: "思いきり走ること" }
+      - { id: game, label: "ゲームを作って遊ぶこと" }
+      - { id: read, label: "図書室で本を読むこと" }
+  - id: home
+    age: 12
+    title: "変わっていくもの"
+    stage:
+      place: living
+      time: dusk
+      cast:
+        - { id: self, x: 30 }
+        - { id: yuMother, x: 62, when: "up.familyCare == false" }
+        - { id: mio, x: 56, when: "up.familyCare == true" }
+        - { id: sora, x: 76, when: "up.familyCare == true" }
+    lines:
+      - { text: "小学校も、もうすぐ終わる。" }
+      - { text: "冬に、はじめての月経が来た。", when: "up.body == 'canBePregnant'" }
+      - { text: "声が、少しずつ低くなってきた。", when: "up.body == 'cannot'" }
+      - { text: "お母さんが、どうすればいいかを教えてくれた。", when: "up.talkAboutSex == true" }
+      - { text: "家では聞けず、一人でスマホで調べた。", when: "up.talkAboutSex == false" }
+      - { text: "弟のソラが生まれて、妹の迎えも任されるようになった。", when: "up.familyCare == true" }
+      - { text: "夜、お父さんの大きな声で目が覚めることがある。", when: "up.witnessedDV == true" }
+      - { text: "「今月、ちょっと苦しくて」。お母さんの電話の声が聞こえた。", when: "up.economy == 'hardship'" }
+  - id: self
+    age: 15
+    title: "15歳の私"
+    stage:
+      place: bedroom
+      time: night
+      cast:
+        - { id: self, x: 40 }
+    lines:
+      - { text: "中学3年の冬。鏡の前で、ふと思う。" }
+      - { text: "（自分が女の子だってこと、あまり疑ったことがない）", kind: inner, when: "up.gender == 'woman'" }
+      - { text: "（自分が男の子だってこと、あまり疑ったことがない）", kind: inner, when: "up.gender == 'man'" }
+      - { text: "（男の子って呼ばれるたび、どこか違うと感じてきた）", kind: inner, when: "up.gender == 'transWoman'" }
+      - { text: "（私は、女の子だ。まだ誰にも言っていないけれど）", kind: inner, when: "up.gender == 'transWoman'" }
+      - { text: "（女の子って呼ばれるたび、どこか違うと感じてきた）", kind: inner, when: "up.gender == 'transMan'" }
+      - { text: "（ぼくは、男の子だ。まだ誰にも言っていないけれど）", kind: inner, when: "up.gender == 'transMan'" }
+      - { text: "（女の子とも男の子とも、どうもしっくりこない）", kind: inner, when: "up.gender == 'nonbinary'" }
+      - { text: "（どっちでもない、でいいのかもしれない）", kind: inner, when: "up.gender == 'nonbinary'" }
+      - { text: "（気がつくと、目で追っているのは男の子だ）", kind: inner, when: "up.attractedTo == 'men'" }
+      - { text: "（気がつくと、目で追っているのは女の子だ）", kind: inner, when: "up.attractedTo == 'women'" }
+      - { text: "（好きになるのに、相手の性別はあまり関係ないみたいだ）", kind: inner, when: "up.attractedTo == 'any'" }
+      - { text: "（友だちの恋の話に、いまひとつ入っていけない）", kind: inner, when: "up.attractedTo == 'none'" }
+      - { text: "（「好き」って何なのか、まだよくわからない）", kind: inner, when: "up.attractedTo == 'unsure'" }
+      - { text: "（絵を描く時間だけは、ずっと変わらない）", kind: inner, when: "up.likes == 'draw'" }
+      - { text: "（走っているときだけは、何も考えなくていい）", kind: inner, when: "up.likes == 'run'" }
+      - { text: "（作りかけのゲーム、今夜は少し進めよう）", kind: inner, when: "up.likes == 'game'" }
+      - { text: "（読みかけの本の続きが、今も気になっている）", kind: inner, when: "up.likes == 'read'" }
+      - { text: "春が来れば、高校生になる。" }

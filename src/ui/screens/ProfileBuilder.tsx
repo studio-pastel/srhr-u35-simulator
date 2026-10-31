@@ -1,25 +1,24 @@
-// 主人公を組み立てる（付録B-43）。見本から1クリックで選ぶか、属性を1つずつ選ぶ。
+// 2周目で属性を変えるフォーム（付録B-43・B-45）。見本から1クリックで選ぶか、属性を1つずつ選ぶ。
 // 名前は個人情報を聞かないよう、自由入力にせず一覧から選ぶ。選んだ内容は端末の外に送らない。
-import { useEffect, useRef, useState } from 'preact/hooks';
-import { navigate, useApp } from '../app';
-import { createRun } from '../../engine/progression';
+import { useState } from 'preact/hooks';
+import { useApp } from '../app';
 import type { Look, Preset } from '../../engine/schema';
 import {
   ATTRACTION_LABELS,
   ATTRACTIONS,
   BODIES,
   BODY_LABELS,
+  CLOTHES,
   defaultBody,
   GENDER_LABELS,
   GENDERS,
+  HAIRS,
+  NAMES,
+  SKINS,
   type Profile,
 } from '../../engine/profile';
 import { PixelStage } from '../components/PixelStage';
 
-const NAMES = ['アオ', 'リン', 'カナタ', 'ヒカル', 'ナギ', 'マコト'];
-const SKINS = ['#f2c9a8', '#e8b896', '#d9a27f', '#b98258'];
-const HAIRS = ['#1f1f24', '#3a2a22', '#6a4632', '#9c6644'];
-const CLOTHES = ['#4f86c6', '#6b8e4e', '#d9a23b', '#c0563a', '#6b5b95', '#4a5a6a'];
 const STYLES: { id: Look['hairStyle']; label: string }[] = [
   { id: 'short', label: 'ショート' },
   { id: 'mid', label: 'ミディアム' },
@@ -34,19 +33,6 @@ const ITEMS: { id: Look['accessory'] | 'none'; label: string; accent?: string }[
   { id: 'headphones', label: 'ヘッドホン', accent: '#c0563a' },
   { id: 'beanie', label: 'ニット帽', accent: '#2a7f86' },
 ];
-
-const firstProfile = (): Profile => ({
-  name: NAMES[0]!,
-  gender: 'nonbinary',
-  body: 'cannot',
-  attractedTo: 'unsure',
-  economy: 'middle',
-  singleParent: false,
-  familyCare: false,
-  witnessedDV: false,
-  talkAboutSex: true,
-  look: { skin: SKINS[0]!, hair: HAIRS[1]!, hairStyle: 'mid', clothes: [CLOTHES[0]!, CLOTHES[0]!, CLOTHES[0]!], pants: '#2f3b52' },
-});
 
 function Radios<T extends string>(props: { legend: string; note?: string; value: T; options: readonly { id: T; label: string }[]; onChange: (v: T) => void }) {
   return (
@@ -92,10 +78,10 @@ function Colors(props: { legend: string; value: string; colors: string[]; onChan
 
 const pick = <T extends string>(o: Record<T, string>, ids: readonly T[]) => ids.map((id) => ({ id, label: o[id] }));
 
-/** 属性を選ぶフォーム。2周目で「属性だけ変える」ときにも使う */
-export function ProfileBuilder({ initial, startLabel, onStart }: { initial?: Profile; startLabel: string; onStart: (p: Profile) => void }) {
+/** 属性を選ぶフォーム。2周目で「属性だけ変える」ときに使う */
+export function ProfileBuilder({ initial, startLabel, onStart }: { initial: Profile; startLabel: string; onStart: (p: Profile) => void }) {
   const { content, animate } = useApp();
-  const [p, setP] = useState<Profile>(initial ?? firstProfile);
+  const [p, setP] = useState<Profile>(initial);
   const set = (patch: Partial<Profile>) => setP({ ...p, ...patch });
   const setLook = (patch: Partial<Look>) => set({ look: { ...p.look, ...patch } });
 
@@ -175,26 +161,5 @@ export function ProfileBuilder({ initial, startLabel, onStart }: { initial?: Pro
         </div>
       </div>
     </div>
-  );
-}
-
-export function Select() {
-  const { content, pending, setRun } = useApp();
-  const h = useRef<HTMLHeadingElement>(null);
-  useEffect(() => h.current?.focus(), []);
-  return (
-    <>
-      <h1 tabIndex={-1} ref={h}>
-        どんな人生を生きる？
-      </h1>
-      <p class="sub">あなたの分身を組み立てましょう。あとから、属性だけを変えてもう一度たどることもできます。</p>
-      <ProfileBuilder
-        startLabel="この人で始める"
-        onStart={(profile) => {
-          setRun(createRun(content, { profile, seed: pending.seed }));
-          navigate('play');
-        }}
-      />
-    </>
   );
 }
