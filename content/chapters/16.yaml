@@ -136,7 +136,8 @@ events:
           - { who: narration, text: "体育の前。更衣室の入り口で、足が止まる。" }
           - { who: self, kind: inner, text: "（男子更衣室に入るのが、つらい。でも、女子更衣室には入れない）", when: "up.gender == 'transWoman'", face: anxious }
           - { who: self, kind: inner, text: "（女子更衣室に入るのが、つらい。でも、男子更衣室には入れない）", when: "up.gender == 'transMan'", face: anxious }
-          - { who: self, kind: inner, text: "（男子か女子か、どちらかに入るしかない。どちらも違う気がする）", when: "up.gender == 'nonbinary'", face: anxious }
+          - { who: self, kind: inner, text: "（学校では女子だから、女子更衣室に入る。でも、自分は女子じゃない）", when: "up.gender == 'nonbinary' && up.body == 'canBePregnant'", face: anxious }
+          - { who: self, kind: inner, text: "（学校では男子だから、男子更衣室に入る。でも、自分は男子じゃない）", when: "up.gender == 'nonbinary' && up.body == 'cannot'", face: anxious }
           - { who: self, kind: inner, text: "（制服も、名簿の呼ばれ方も、毎日少しずつ疲れる）" }
           - { who: self, kind: inner, text: "（今日は、どうしよう）" }
         choices:
@@ -158,7 +159,8 @@ events:
           - { who: mori, text: "うん。どんなときが、いちばんしんどい？" }
           - { who: self, text: "男子更衣室で着替えるのが、つらくて。", when: "up.gender == 'transWoman'" }
           - { who: self, text: "女子更衣室で着替えるのが、つらくて。", when: "up.gender == 'transMan'" }
-          - { who: self, text: "男子か女子か、どちらかの更衣室に入るのが、つらくて。", when: "up.gender == 'nonbinary'" }
+          - { who: self, text: "女子更衣室で着替えるのが、つらくて。", when: "up.gender == 'nonbinary' && up.body == 'canBePregnant'" }
+          - { who: self, text: "男子更衣室で着替えるのが、つらくて。", when: "up.gender == 'nonbinary' && up.body == 'cannot'" }
           - { who: mori, text: "そっか。ここで着替えることもできるよ。" }
           - { who: mori, text: "制服や呼ばれ方のことも、どうしたいか聞かせて。" }
           - { who: self, kind: inner, text: "（「どうしたいか」って、初めて聞かれた）", face: relieved }
