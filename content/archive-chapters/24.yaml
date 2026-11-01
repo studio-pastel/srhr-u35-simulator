@@ -207,7 +207,7 @@ events:
             next: notOutDone
       - id: outDone
         effects:
-          - { param: psychSafety, sign: 1, size: S, source: others, note: "上司が受け止めた" }
+          - { param: connection, sign: 1, size: S, source: others, note: "上司が受け止めた" }
         lines:
           - { who: narration, text: "上司は少し考えてから、こう言った。" }
           - { who: narration, text: "「教えてくれてありがとう。困ったことがあったら言って」" }
@@ -232,7 +232,7 @@ events:
     scenes:
       - id: start
         effects:
-          - { param: options, sign: -1, size: S, source: upbringing, statRef: S22, when: "up.singleParent == true", note: "ひとり親家庭の家計" }
+          - { param: autonomy, sign: -1, size: S, source: upbringing, statRef: S22, when: "up.singleParent == true", note: "ひとり親家庭の家計" }
         lines:
           - { who: narration, text: "現場の休憩時間。喫煙所の前で、先輩が手招きする。" }
           - { who: senpai, text: "ケイ、一本どう？　疲れが取れるよ。" }
@@ -301,7 +301,7 @@ events:
             label: "資格を取る支援制度を調べる"
             canonical: true
             effects:
-              - { param: options, sign: 1, size: M, source: choice, note: "支援制度を探した" }
+              - { param: autonomy, sign: 1, size: M, source: choice, note: "支援制度を探した" }
             next: searched
           - id: keep
             label: "今の働き方を続ける"

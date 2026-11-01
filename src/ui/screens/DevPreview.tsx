@@ -41,14 +41,14 @@ export function DevPreview() {
   const bd = emptyBreakdown();
   bd.body.choice.plus = 10;
   bd.body.upbringing.minus = -5;
-  bd.safety.society.plus = 5;
-  bd.safety.chance.minus = -20;
-  bd.options.society.minus = -5;
-  bd.options.choice.plus = 5;
+  bd.living.society.plus = 5;
+  bd.living.chance.minus = -20;
+  bd.autonomy.society.minus = -5;
+  bd.autonomy.choice.plus = 5;
   bd.connection.chance.plus = 10;
   bd.autonomy.upbringing.minus = -5;
-  bd.psychSafety.others.minus = -20;
-  bd.psychSafety.others.plus = 10;
+  bd.connection.others.minus = -20;
+  bd.connection.others.plus = 10;
   return (
     <>
       <h1>開発用の確認画面</h1>

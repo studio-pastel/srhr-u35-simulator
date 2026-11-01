@@ -29,10 +29,10 @@ async function fixSeed(page: Page, n: number) {
   }, n);
 }
 
-/** 最初の画面から始めて、生まれてから15歳までをとばし、16歳の幕間へ */
+/** 最初の画面から始めて、生い立ちの年表を通り、16歳の幕間へ */
 async function begin(page: Page) {
   await page.getByRole('button', { name: 'はじめる' }).first().click();
-  await page.getByRole('button', { name: '15歳までとばす' }).click();
+  // テストは演出を減らす設定で動くので、年表ははじめから全部見えている
   await page.getByRole('button', { name: '16歳へ' }).click();
 }
 
@@ -195,7 +195,7 @@ test('1周目のあと、属性だけ変えて2周目を遊べる（付録B-43�
   await page.getByRole('button', { name: '2周目へ' }).click();
   await page.getByRole('group', { name: '性自認' }).getByLabel('トランスジェンダー女性').check();
   await page.getByLabel('性別を問わない').check();
-  await page.getByLabel('苦しい').check();
+  await page.getByLabel('両親と暮らし、失業や不調で家計が厳しい').check();
   await page.getByRole('button', { name: 'この属性で、もう一度' }).click();
   await expect(page.locator('main h1')).toContainText('16歳');
   await playToEnd(page);
@@ -207,26 +207,39 @@ test('1周目のあと、属性だけ変えて2周目を遊べる（付録B-43�
 test('最初の画面の「はじめる」から、生まれた日を通って16歳に着き、左上に「私」が出る（付録B-45）', async ({ page }) => {
   const errors = watchErrors(page);
   await fixSeed(page, 5);
+  // 自動で進むところを確かめるため、この試験だけ演出を減らさない
+  await page.emulateMedia({ reducedMotion: 'no-preference' });
   await page.goto('/');
   await expect(page.locator('main')).toContainText('SRHRとは');
   await expect(page.locator('main')).toContainText('プレコンセプションケアとは');
   await expect(page.locator('.stat-big').first()).toBeVisible();
   await page.getByRole('button', { name: 'はじめる' }).first().click();
-  await expect(page.locator('main h1')).toContainText('生まれた日');
+  await expect(page.locator('main h1')).toContainText('の15年');
   await expect(page.locator('.topbar-me')).toContainText('私（');
-  for (let i = 0; i < 80 && !(await page.getByRole('button', { name: '16歳へ' }).isVisible()); i++) {
-    await page.locator('button.next-tap').click();
-  }
+  await expect(page.locator('.life-gauge')).toHaveAttribute('aria-valuenow', '0');
+  await expect(page.locator('.life-log li')).toHaveCount(1);
+  // 年表は、押さなくても自動で進む
+  await expect(page.locator('.life-log li').nth(1)).toBeVisible();
+  // 一時停止すると止まる
+  await page.getByRole('button', { name: '一時停止' }).click();
+  const paused = await page.locator('.life-log li').count();
+  await page.waitForTimeout(3500);
+  await expect(page.locator('.life-log li')).toHaveCount(paused);
+  await page.getByRole('button', { name: '再生する' }).click();
+  await page.getByRole('button', { name: '15歳までとばす' }).click();
   await expect(page.locator('main h1')).toContainText('15歳');
+  await expect(page.locator('.life-gauge')).toHaveAttribute('aria-valuenow', '15');
+  await expect(page.locator('.life-log .reason').first()).toContainText('生育条件');
   await page.getByRole('button', { name: '16歳へ' }).click();
   await expect(page.locator('.topbar-me')).toContainText('16歳');
+  await expect(page.locator('.life-gauge')).toHaveAttribute('aria-valuenow', '16');
   expect(errors).toEqual([]);
 });
 
 test('ホームのボタンで最初の画面に戻り、続きから遊べる（付録B-46）', async ({ page }) => {
   await start(page);
   await page.getByRole('button', { name: 'ホーム' }).click();
-  await expect(page.locator('h1.ob-logo')).toBeVisible();
+  await expect(page.locator('h1.cover-catch')).toBeVisible();
   await expect(page.getByRole('button', { name: 'ホーム' })).toHaveCount(0);
   await page.getByRole('button', { name: '続きから遊ぶ' }).first().click();
   await expect(page.locator('main h1')).toContainText('16歳');

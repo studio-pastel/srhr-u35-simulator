@@ -25,9 +25,9 @@ describe('実コンテンツ', () => {
   it('章が欠けていても、requireAllChapters のときだけ失敗する（試作は16〜17歳だけ）', () => {
     expect(validateContent(rawContent(), { ...dev, requireAllChapters: true }).errors.join()).toMatch(/19歳の章がありません/);
   });
-  it('S01〜S57 がすべてある', () => {
+  it('S01〜S58 がすべてある', () => {
     const r = validateContent(rawContent(), dev);
-    expect(r.content!.stats.map((s) => s.id)).toEqual(Array.from({ length: 57 }, (_, i) => `S${String(i + 1).padStart(2, '0')}`));
+    expect(r.content!.stats.map((s) => s.id)).toEqual(Array.from({ length: 58 }, (_, i) => `S${String(i + 1).padStart(2, '0')}`));
   });
   it('Claude Code が書いた本文はすべて status: draft', () => {
     const r = validateContent(rawContent(), dev);
@@ -81,7 +81,7 @@ describe('ビルドを失敗させる条件（§12.1）', () => {
     ['米国データの書き出し', (r) => (r.stats.find((s: any) => s.id === 'S25').cardText = '日本では、20%です。'), /国名（例：「米国では、」）で始めて/],
     ['暴力の場面で、パートナーとの近さを変える（付録B-9）', (r) => (ev(r, 'E17-SNS').scenes[0].closeness = [{ who: 'partner', delta: 1, note: 'x' }]), /暴力の場面では、partner との近さを変えられません|partner は me の近しい人/],
     ['近しい人にいない相手の距離を変える', (r) => (ks(r, 'saved').closeness = [{ who: 'mori', delta: 1, note: 'x' }]), /mori は me の近しい人/],
-    ['シーンに入ったときの効果に choice', (r) => (ks(r, 'saved').effects = [{ param: 'safety', sign: -1, size: 'S', source: 'choice', note: 'x' }]), /choice は使えません/],
+    ['シーンに入ったときの効果に choice', (r) => (ks(r, 'saved').effects = [{ param: 'living', sign: -1, size: 'S', source: 'choice', note: 'x' }]), /choice は使えません/],
     ['ルビの書き方の誤り', (r) => (ks(r, 'saved').lines[0].text = '{漢字かんじ}'), /ルビ/],
   ];
   it.each(cases)('%s', (_, mutate, re) => {

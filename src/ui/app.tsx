@@ -8,6 +8,7 @@ import { clearSession, loadRun, loadSettings, saveRun, saveSettings, type Settin
 import { getChapter } from '../engine/progression';
 import { modalStack } from './components/Modal';
 import { FaceIcon } from './components/Faces';
+import { LifeGauge } from './components/LifeGauge';
 import { Intro } from './screens/Intro';
 import { Prologue } from './screens/Prologue';
 import { Play } from './screens/Play';
@@ -71,6 +72,8 @@ export interface AppState {
   setRun: (r: RunState | null) => void;
   /** 演出をするか（設定と prefers-reduced-motion の両方を見る） */
   animate: boolean;
+  /** 生い立ちの画面で、人生のゲージに出す年齢（付録B-47） */
+  setLifeAge: (age: number) => void;
 }
 
 const Ctx = createContext<AppState | null>(null);
@@ -97,6 +100,7 @@ export function App() {
   const [settings, setSettingsState] = useState<Settings>(loadSettings);
   const [run, setRunState] = useState<RunState | null>(loadRun);
   const reduced = usePrefersReducedMotion();
+  const [lifeAge, setLifeAge] = useState(0);
 
   useEffect(() => {
     const f = () => {
@@ -154,6 +158,7 @@ export function App() {
     run,
     setRun,
     animate: settings.motion && !reduced,
+    setLifeAge,
   };
 
   let title: preact.ComponentChildren = content.config.siteName;
@@ -162,7 +167,7 @@ export function App() {
     const ch = route === 'play' && run.position.step !== 'finished' ? getChapter(content, run.position.age) : undefined;
     title = (
       <span class="topbar-me">
-        <FaceIcon look={run.profile.look as Look} age={ch ? run.position.age : 15} />
+        <FaceIcon look={run.profile.look as Look} age={route === 'birth' ? lifeAge : ch ? run.position.age : 15} />
         <span>
           <strong>私（{run.profile.name}）</strong>
           {ch && (
@@ -181,14 +186,16 @@ export function App() {
         <a class="skip-link" href="#main" onClick={(e) => { e.preventDefault(); document.getElementById('main')?.focus(); }}>
           本文へ移動
         </a>
-        <header class="topbar">
-          <div class="topbar-title">{title}</div>
-          {route !== 'intro' && (
+        {/* 表紙は全面の見出しから始める（付録B-47） */}
+        {route !== 'intro' && (
+          <header class="topbar">
+            <div class="topbar-title">{title}</div>
             <button type="button" class="home-btn" onClick={() => navigate('intro')}>
               ホーム
             </button>
-          )}
-        </header>
+            {(route === 'play' || route === 'birth') && run && <LifeGauge age={route === 'birth' ? lifeAge : run.position.age} />}
+          </header>
+        )}
         <main id="main" tabIndex={-1}>
           {route === 'intro' && <Intro />}
           {route === 'birth' && <Prologue />}

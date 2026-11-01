@@ -32,14 +32,14 @@ describe('この場面をとばす（付録B-17）', () => {
   });
 
   it('暴力の場面をとばしても、途中で止まらず次へ進む（相談先は画面の下からだけ。付録B-39）', () => {
-    const s = skipEvent(real, toEvent(makeProfile({ witnessedDV: true }), 'E16-HOME'));
+    const s = skipEvent(real, toEvent(makeProfile({ familyStory: 'twoTense' }), 'E16-HOME'));
     expect(s.completedEvents).toContain('E16-HOME');
     expect(s.position.eventId).not.toBe('E16-HOME');
     expect(s.ledger.filter((e) => e.source === 'others' && e.eventId === 'E16-HOME')).toHaveLength(1);
   });
 
   it('とばしたのはそのイベントだけで、次のイベントの効果に skipped は付かない', () => {
-    const s = skipEvent(real, toEvent(makeProfile({ familyCare: true, witnessedDV: true }), 'E16-CARE'));
+    const s = skipEvent(real, toEvent(makeProfile({ familyCare: true, familyStory: 'twoTense' }), 'E16-CARE'));
     expect(s.position.skipping).toBeUndefined();
     expect(s.ledger.filter((e) => e.eventId === 'E16-HOME').every((e) => !e.skipped)).toBe(true);
   });

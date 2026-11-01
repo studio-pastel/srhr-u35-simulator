@@ -90,6 +90,7 @@ main:focus {
   z-index: 20;
   background: var(--bg);
   display: flex;
+  flex-wrap: wrap;
   align-items: center;
   justify-content: space-between;
   gap: 8px;
@@ -98,6 +99,7 @@ main:focus {
 }
 
 .topbar-title {
+  flex: 1 1 0;
   font-size: 14px;
   color: var(--text-sub);
   line-height: 1.4;
@@ -727,45 +729,12 @@ ul.plain {
 }
 
 /* オンボーディング（付録B-24） */
-.ob-title {
-  text-align: center;
-  padding-top: 8px;
-}
 
-.ob-logo {
-  font-size: 30px;
-  letter-spacing: 0.06em;
-  line-height: 1.2;
-  margin: 18px 0 6px;
-}
 
-.ob-tagline {
-  font-size: 17px;
-  margin: 0 0 18px;
-}
 
-.ob-step {
-  margin: 12px 0 0;
-  color: var(--text-sub);
-  font-size: 13px;
-}
 
-.ob-card {
-  background: var(--surface);
-  border: 1px solid var(--line);
-  border-radius: var(--radius);
-  padding: 12px 14px;
-  margin: 12px 0;
-}
 
-.ob-card h2 {
-  margin: 10px 0 4px;
-  font-size: 18px;
-}
 
-.ob-card p {
-  margin: 0 0 4px;
-}
 
 .ob-factors {
   list-style: none;
@@ -1019,7 +988,7 @@ ul.plain {
 /* ── 会話を積み重ねる場面（付録B-27） ── */
 .stage-sticky {
   position: sticky;
-  top: 56px;
+  top: var(--sticky-top, 56px);
   z-index: 10;
   background: var(--bg);
   padding-bottom: 6px;
@@ -1126,7 +1095,7 @@ ul.plain {
 /* ── ステータス（付録B-28・B-40）：名前・数字・ゲージを常に見せ、動いたときに弾ける ── */
 .status-bar {
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
+  grid-template-columns: repeat(4, 1fr);
   gap: 8px 12px;
   width: 100%;
   margin-top: 6px;
@@ -1491,7 +1460,7 @@ ul.plain {
   .scene > .stage-sticky {
     grid-column: 1;
     grid-row: 1 / span 5;
-    top: 64px;
+    top: calc(var(--sticky-top, 56px) + 8px);
   }
   .scene > .chat-log,
   .scene > .choices,
@@ -1515,17 +1484,6 @@ ul.plain {
     max-width: 640px;
     margin-inline: auto;
   }
-  .ob-title {
-    max-width: 640px;
-    margin-inline: auto;
-  }
-  .ob-grid,
-  .home-themes {
-    grid-template-columns: repeat(3, minmax(0, 1fr));
-  }
-  .home-explain {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-  }
 }
 
 /* スマホでは、パラメーターの名前を切らずに見せる */
@@ -1536,6 +1494,10 @@ ul.plain {
   }
   .status-head {
     gap: 2px;
+  }
+  /* 4列に名前と数字を収めるため、スマホではアイコンを出さない（名前は文字で見せる） */
+  .status-head .param-icon {
+    display: none;
   }
   .status-name {
     font-size: 11px;
@@ -1659,27 +1621,8 @@ ul.plain {
 }
 
 /* 最初の画面の説明（付録B-45） */
-.ob-grid {
-  display: grid;
-  gap: 12px;
-  margin-top: 24px;
-}
 
-.ob-params {
-  list-style: none;
-  padding: 0;
-  margin: 8px 0;
-  display: flex;
-  flex-wrap: wrap;
-  gap: 4px 12px;
-  font-size: 14px;
-}
 
-.ob-params li {
-  display: inline-flex;
-  align-items: center;
-  gap: 4px;
-}
 
 /* 左上の「私」（付録B-45） */
 .topbar-me {
@@ -1699,70 +1642,172 @@ ul.plain {
 }
 
 /* 生まれてから15歳まで（付録B-45） */
-.prologue .interlude-elapsed,
-.prologue .interlude-title {
-  text-align: center;
+
+
+
+
+
+/* 表紙（付録B-46・B-47）。全面の見出しと、罫線で区切る統計 */
+html,
+body {
+  overflow-x: clip;
 }
 
-.prologue-facts {
-  display: grid;
-  grid-template-columns: auto 1fr;
-  gap: 4px 12px;
-  margin: 0 0 12px;
+.cover {
+  width: 100vw;
+  margin-left: calc(50% - 50vw);
+  background: var(--cover-bg);
+  color: var(--cover-text);
 }
 
-.prologue-facts dt {
-  color: var(--text-sub);
+.cover-inner {
+  max-width: var(--col);
+  margin: 0 auto;
+  padding: clamp(32px, 7vw, 88px) 16px clamp(28px, 5vw, 56px);
 }
 
-.prologue-facts dd {
-  margin: 0;
-}
-
-.prologue-reasons {
-  margin-top: 8px;
-  font-size: 14px;
-}
-
-/* トップページ（付録B-46） */
-.home-catch {
-  font-size: 22px;
+.cover-brand {
+  margin: 0 0 clamp(24px, 6vw, 64px);
+  font-size: 13px;
   font-weight: 700;
-  line-height: 1.5;
-  margin: 12px 0 4px;
+  letter-spacing: 0.18em;
+  color: var(--cover-accent);
 }
 
-.home-themes,
-.home-explain {
+.cover-catch {
+  margin: 0;
+  font-size: clamp(22px, 7.4vw, 80px);
+  font-weight: 800;
+  line-height: 1.25;
+  letter-spacing: -0.02em;
+}
+
+.cover-catch span {
+  display: block;
+}
+
+.cover-catch:focus {
+  outline: none;
+}
+
+.cover-lead {
+  max-width: 38em;
+  margin: clamp(16px, 3vw, 28px) 0;
+  font-size: clamp(15px, 1.8vw, 18px);
+  color: var(--cover-sub);
+}
+
+.cover-actions,
+.home-cta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.cover-actions .btn {
+  width: auto;
+  margin: 0;
+  padding-inline: 32px;
+  border-radius: 999px;
+  border-color: var(--cover-sub);
+  background: transparent;
+  color: var(--cover-text);
+}
+
+.cover-actions .btn.primary {
+  border-color: var(--cover-accent);
+  background: var(--cover-accent);
+  color: var(--cover-bg);
+}
+
+/* 0歳から35歳へ：同じ人が年を重ねていく線 */
+.cover-line {
+  position: relative;
+  display: flex;
+  justify-content: space-between;
+  list-style: none;
+  margin: clamp(32px, 6vw, 72px) 0 0;
+  padding: 0;
+}
+
+.cover-line::before {
+  content: '';
+  position: absolute;
+  top: 24px;
+  left: 0;
+  right: 0;
+  height: 2px;
+  background: var(--cover-sub);
+  opacity: 0.45;
+}
+
+.cover-line li {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  font-size: 13px;
+  color: var(--cover-sub);
+}
+
+.cover-line .face-icon {
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  background: var(--cover-text);
+}
+
+.cover-theme {
   display: grid;
-  gap: 12px;
-  margin-top: 24px;
+  gap: 20px;
+  padding: clamp(32px, 6vw, 72px) 0;
+  border-bottom: 1px solid var(--line);
 }
 
-.home-theme h2,
-.home-explain h2 {
-  margin-top: 0;
+.cover-index {
+  display: block;
+  font-size: 14px;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  color: var(--accent);
+}
+
+.cover-theme h2 {
+  margin: 8px 0 12px;
+  font-size: clamp(24px, 3.4vw, 36px);
+  line-height: 1.35;
+  letter-spacing: -0.01em;
+}
+
+.cover-theme-head p {
+  margin: 0 0 8px;
 }
 
 .home-play {
   font-weight: 700;
 }
 
+.cover-stats {
+  display: grid;
+  gap: 0 24px;
+}
+
 .stat-tile {
-  border-top: 1px solid var(--line, #ddd);
-  padding: 12px 0 0;
-  margin-top: 12px;
+  border-top: 2px solid var(--text);
+  padding: 12px 0 24px;
 }
 
 .stat-big {
   display: block;
-  font-size: 34px;
+  font-size: clamp(38px, 5vw, 56px);
   font-weight: 800;
-  line-height: 1.2;
+  line-height: 1.15;
+  letter-spacing: -0.02em;
 }
 
 .stat-tile p {
-  margin: 4px 0 0;
+  margin: 8px 0 0;
 }
 
 .stat-source {
@@ -1770,7 +1815,207 @@ ul.plain {
   color: var(--text-sub);
 }
 
+.cover-explain,
+.cover-guide {
+  display: grid;
+  gap: 32px;
+  padding: clamp(32px, 6vw, 72px) 0;
+  border-bottom: 1px solid var(--line);
+}
+
+.cover-explain h2,
+.cover-guide h2 {
+  margin: 0 0 12px;
+  font-size: 22px;
+}
+
+.cover-explain p,
+.cover-guide p {
+  margin: 0 0 8px;
+}
+
+.cover-params {
+  list-style: none;
+  margin: 0 0 12px;
+  padding: 0;
+}
+
+.cover-params li {
+  display: flex;
+  gap: 8px;
+  padding: 6px 0;
+  font-size: 14px;
+}
+
+.cover-params .param-icon {
+  flex: none;
+  margin-top: 3px;
+}
+
+.cover-params strong {
+  display: block;
+  font-size: 15px;
+}
+
 .home-cta {
-  text-align: center;
-  margin-top: 24px;
+  justify-content: center;
+  margin-top: 32px;
+}
+
+.home-cta .btn {
+  width: auto;
+  padding-inline: 32px;
+  border-radius: 999px;
+}
+
+@media (min-width: 720px) {
+  .cover-stats {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+  .cover-explain {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (min-width: 960px) {
+  .cover-theme {
+    grid-template-columns: minmax(0, 1fr) minmax(0, 2fr);
+    gap: 48px;
+  }
+  .cover-stats {
+    align-self: start;
+  }
+  .cover-guide {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+
+/* 人生のゲージ（付録B-47）。上端に固定するので、その下の固定位置をずらす */
+.app:has(.life-gauge) {
+  --sticky-top: 112px;
+}
+
+.life-gauge {
+  flex: 1 0 100%;
+  padding: 18px 0 2px;
+}
+
+.life-gauge-track {
+  position: relative;
+  height: 6px;
+  border-radius: 999px;
+  background: var(--track);
+}
+
+.life-gauge-fill {
+  display: block;
+  height: 100%;
+  border-radius: 999px;
+  background: var(--accent);
+  transition: width 0.6s ease;
+}
+
+.life-gauge-pin {
+  position: absolute;
+  bottom: 8px;
+  transform: translateX(-50%);
+  padding: 0 6px;
+  border-radius: 999px;
+  background: var(--accent);
+  color: var(--surface);
+  font-size: 12px;
+  font-weight: 700;
+  line-height: 1.5;
+  white-space: nowrap;
+  transition: left 0.6s ease;
+}
+
+.life-gauge-stages {
+  display: flex;
+  margin-top: 2px;
+  font-size: 11px;
+  color: var(--text-sub);
+}
+
+.life-gauge-stages span {
+  flex-basis: 0;
+  border-left: 1px solid var(--line);
+  padding-left: 4px;
+  line-height: 1.4;
+}
+
+:root[data-motion='off'] .life-gauge-fill,
+:root[data-motion='off'] .life-gauge-pin {
+  transition: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .life-gauge-fill,
+  .life-gauge-pin {
+    transition: none;
+  }
+}
+
+/* 生い立ちの年表（付録B-47）。広い画面では、絵の横に年表を流す */
+@media (min-width: 720px) {
+  .prologue {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    gap: 0 24px;
+    align-items: start;
+  }
+  .prologue-title {
+    grid-column: 1 / -1;
+  }
+  .prologue .stage-sticky {
+    grid-row: 2 / span 3;
+  }
+  .prologue > :not(.prologue-title, .stage-sticky) {
+    grid-column: 2;
+  }
+  .prologue .life-log {
+    margin-top: 0;
+  }
+}
+
+.prologue-title {
+  margin: 8px 0;
+  font-size: 20px;
+}
+
+.prologue-title:focus {
+  outline: none;
+}
+
+.life-log {
+  list-style: none;
+  margin: 12px 0;
+  padding: 0;
+}
+
+.life-log li {
+  display: grid;
+  grid-template-columns: 3.2em minmax(0, 1fr);
+  gap: 8px;
+  padding: 8px 0;
+  border-top: 1px solid var(--line);
+  scroll-margin-bottom: 96px;
+}
+
+.life-log-age {
+  font-weight: 700;
+  color: var(--text-sub);
+}
+
+.life-log p {
+  margin: 0;
+}
+
+.life-log p.inner {
+  color: var(--text-sub);
+}
+
+.life-log .reason {
+  display: block;
+  margin-top: 4px;
 }

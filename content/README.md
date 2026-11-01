@@ -66,7 +66,7 @@ choices:
 # シーンに入ったときの効果（付録A-15）。選択と関係なく起きる変化。choice は使えない
 - id: m-start
   effects:
-    - { param: psychSafety, sign: -1, size: L, source: others, statRef: S07, note: "交際相手からの束縛" }
+    - { param: connection, sign: -1, size: L, source: others, statRef: S07, note: "交際相手からの束縛" }
   text: "……"
   next: m-plans
 
@@ -79,7 +79,7 @@ choices:
   next: notTaught              # どの条件にも当てはまらないとき
 ```
 
-- `param`：body（からだ）／safety（安全）／psychSafety（心理的安全）／options（選択肢の幅）／connection（つながり）／autonomy（自己決定）
+- `param`：body（からだ）／autonomy（自己決定）／connection（つながり）／living（くらし）（付録B-47）
 - `source`：choice（選択）／upbringing（生育条件）／society（社会条件）／others（他者の行為）／chance（偶然）
   - 暴力を受けたことによる変化は、必ず `others` にする（被害者の `choice` にしない）。友人や先生などの支援による回復も `others`。
 - `size`：S／M／L（数値は `config.yaml`）

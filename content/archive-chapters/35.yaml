@@ -50,7 +50,7 @@ events:
             canonical: true
             effects:
               - { param: body, sign: -1, size: S, source: choice, statRef: S31, note: "通院と投薬の負担" }
-              - { param: options, sign: -1, size: S, source: society, statRef: S31, note: "仕事との両立が難しい" }
+              - { param: autonomy, sign: -1, size: S, source: society, statRef: S31, note: "仕事との両立が難しい" }
             next: r1
           - id: noTreat
             label: "「治療は、しないでおこう」"
@@ -83,7 +83,7 @@ events:
             canonical: true
             effects:
               - { param: body, sign: -1, size: S, source: choice, statRef: S31, note: "通院と投薬の負担" }
-              - { param: options, sign: -1, size: S, source: society, statRef: S31, note: "仕事との両立が難しい" }
+              - { param: autonomy, sign: -1, size: S, source: society, statRef: S31, note: "仕事との両立が難しい" }
             next: r2
           - id: stop
             label: "「ここで、やめにしたい」"
@@ -110,7 +110,7 @@ events:
             canonical: true
             effects:
               - { param: body, sign: -1, size: S, source: choice, statRef: S31, note: "通院と投薬の負担" }
-              - { param: options, sign: -1, size: S, source: society, statRef: S31, note: "仕事との両立が難しい" }
+              - { param: autonomy, sign: -1, size: S, source: society, statRef: S31, note: "仕事との両立が難しい" }
             next: r3
           - id: stop
             label: "「ここで、やめにしたい」"
@@ -137,7 +137,7 @@ events:
             canonical: true
             effects:
               - { param: body, sign: -1, size: S, source: choice, statRef: S31, note: "通院と投薬の負担" }
-              - { param: options, sign: -1, size: S, source: society, statRef: S31, note: "仕事との両立が難しい" }
+              - { param: autonomy, sign: -1, size: S, source: society, statRef: S31, note: "仕事との両立が難しい" }
             next: r4
           - id: stop
             label: "「ここで、やめにしたい」"
@@ -164,7 +164,7 @@ events:
             canonical: true
             effects:
               - { param: body, sign: -1, size: S, source: choice, statRef: S31, note: "通院と投薬の負担" }
-              - { param: options, sign: -1, size: S, source: society, statRef: S31, note: "仕事との両立が難しい" }
+              - { param: autonomy, sign: -1, size: S, source: society, statRef: S31, note: "仕事との両立が難しい" }
             next: r5
           - id: stop
             label: "「ここで、やめにしたい」"
@@ -191,7 +191,7 @@ events:
             canonical: true
             effects:
               - { param: body, sign: -1, size: S, source: choice, statRef: S31, note: "通院と投薬の負担" }
-              - { param: options, sign: -1, size: S, source: society, statRef: S31, note: "仕事との両立が難しい" }
+              - { param: autonomy, sign: -1, size: S, source: society, statRef: S31, note: "仕事との両立が難しい" }
             next: r6
           - id: stop
             label: "「ここで、やめにしたい」"
@@ -263,7 +263,7 @@ events:
           - id: seek
             label: "子育ての相談先を探す"
             effects:
-              - { param: safety, sign: 1, size: S, source: choice, note: "相談先を探した" }
+              - { param: living, sign: 1, size: S, source: choice, note: "相談先を探した" }
               - { param: connection, sign: 1, size: S, source: choice, note: "一人で抱えなかった" }
             next: sought
       - id: talked
@@ -294,7 +294,7 @@ events:
         closeness:
           - { who: yuMother, delta: 1, note: "会いに来てくれた" }
         effects:
-          - { param: psychSafety, sign: -1, size: S, source: upbringing, when: "up.comingOutAnxiety == true", note: "家族の反応が気になる" }
+          - { param: connection, sign: -1, size: S, source: upbringing, when: "up.comingOutAnxiety == true", note: "家族の反応が気になる" }
         lines:
           - { who: narration, text: "母が、アオイと暮らす家に初めて来た。" }
           - { who: yuMother, text: "アオイさん、いつもユウがお世話になって。" }
@@ -319,7 +319,7 @@ events:
             next: thanks
       - id: family
         effects:
-          - { param: psychSafety, sign: 1, size: S, source: others, note: "母が受けとめようとした" }
+          - { param: connection, sign: 1, size: S, source: others, note: "母が受けとめようとした" }
         lines:
           - { who: yu, text: "お母さん、アオイは私の家族だよ。" }
           - { who: yuMother, text: "……うん。そうなんだね。", face: relieved }

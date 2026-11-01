@@ -1,10 +1,10 @@
-# 生まれてから15歳まで（付録B-45）。Claude Code の下書き。パラメーターは動かさない。
+# 0〜15歳の生い立ちの年表（付録B-45・B-47）。Claude Code の下書き。
+# 属性のラベルで減点せず、起きた出来事の積み重ねとして見せる。パラメーターの変化は src/engine/profile.ts の historyOf にある。
+# 性自認と好きになる人は、何年もかけて少しずつ気づいていく形で書く（ある日突然わかるものとして書かない）。
 # %name% は主人公の名前に置きかわる。up.〇〇 の条件で文を出し分ける。
 status: draft
-pages:
-  - id: birth
-    age: 0
-    title: "生まれた日"
+stages:
+  - from: 0
     stage:
       place: clinic
       time: day
@@ -12,15 +12,15 @@ pages:
         - { id: father, x: 18, when: "up.singleParent == false" }
         - { id: yuMother, x: 42, face: smile }
         - { id: self, x: 66 }
-    lines:
-      - { text: "春の朝。小さな産声があがった。" }
-      - { text: "「女の子ですよ」と、助産師さんが言った。", when: "up.body == 'canBePregnant'" }
-      - { text: "「男の子ですよ」と、助産師さんが言った。", when: "up.body == 'cannot'" }
-      - { text: "名前は、%name%。お母さんが何日も悩んで決めた。" }
-      - { text: "どの家に、どんなからだで生まれるか。それは誰にも選べない。" }
-  - id: school
-    age: 6
-    title: "小学校の入学式"
+  - from: 3
+    stage:
+      place: living
+      time: day
+      cast:
+        - { id: father, x: 18, when: "up.singleParent == false" }
+        - { id: yuMother, x: 42 }
+        - { id: self, x: 66 }
+  - from: 6
     stage:
       place: gate
       time: day
@@ -28,53 +28,94 @@ pages:
         - { id: father, x: 20, when: "up.singleParent == false" }
         - { id: yuMother, x: 44, face: smile }
         - { id: self, x: 68, face: smile }
-    lines:
-      - { text: "桜の下で、記念写真を撮った。" }
-      - { text: "お母さんは、仕事を半日休んで来てくれた。", when: "up.singleParent == true" }
-      - { text: "ランドセルは、いとこのお下がり。少し色があせている。", when: "up.economy == 'hardship'" }
-      - { text: "ぴかぴかのランドセルが、背中で少し重い。", when: "up.economy == 'middle'" }
-      - { text: "（友だち、できるかな）", kind: inner }
-  - id: home
-    age: 12
-    title: "変わっていくもの"
+  - from: 8
+    stage:
+      place: classroom
+      time: day
+      cast:
+        - { id: self, x: 40 }
+  - from: 12
     stage:
       place: living
       time: dusk
       cast:
         - { id: self, x: 30 }
-        - { id: yuMother, x: 62, when: "up.familyCare == false" }
-        - { id: mio, x: 56, when: "up.familyCare == true" }
-        - { id: sora, x: 76, when: "up.familyCare == true" }
-    lines:
-      - { text: "小学校も、もうすぐ終わる。" }
-      - { text: "冬に、はじめての月経が来た。", when: "up.body == 'canBePregnant'" }
-      - { text: "声が、少しずつ低くなってきた。", when: "up.body == 'cannot'" }
-      - { text: "お母さんが、どうすればいいかを教えてくれた。", when: "up.talkAboutSex == true" }
-      - { text: "家では聞けず、一人でスマホで調べた。", when: "up.talkAboutSex == false" }
-      - { text: "弟のソラが生まれて、妹の迎えも任されるようになった。", when: "up.familyCare == true" }
-      - { text: "夜、お父さんの大きな声で目が覚めることがある。", when: "up.witnessedDV == true" }
-      - { text: "「今月、ちょっと苦しくて」。お母さんの電話の声が聞こえた。", when: "up.economy == 'hardship'" }
-  - id: self
-    age: 15
-    title: "15歳の私"
+        - { id: yuMother, x: 62 }
+  - from: 14
     stage:
       place: bedroom
       time: night
       cast:
         - { id: self, x: 40 }
-    lines:
-      - { text: "中学3年の冬。鏡の前で、ふと思う。" }
-      - { text: "（自分が女の子だってこと、あまり疑ったことがない）", kind: inner, when: "up.gender == 'woman'" }
-      - { text: "（自分が男の子だってこと、あまり疑ったことがない）", kind: inner, when: "up.gender == 'man'" }
-      - { text: "（男の子って呼ばれるたび、どこか違うと感じてきた）", kind: inner, when: "up.gender == 'transWoman'" }
-      - { text: "（私は、女の子だ。まだ誰にも言っていないけれど）", kind: inner, when: "up.gender == 'transWoman'" }
-      - { text: "（女の子って呼ばれるたび、どこか違うと感じてきた）", kind: inner, when: "up.gender == 'transMan'" }
-      - { text: "（ぼくは、男の子だ。まだ誰にも言っていないけれど）", kind: inner, when: "up.gender == 'transMan'" }
-      - { text: "（女の子とも男の子とも、どうもしっくりこない）", kind: inner, when: "up.gender == 'nonbinary'" }
-      - { text: "（どっちでもない、でいいのかもしれない）", kind: inner, when: "up.gender == 'nonbinary'" }
-      - { text: "（気がつくと、目で追っているのは男の子だ）", kind: inner, when: "up.attractedTo == 'men'" }
-      - { text: "（気がつくと、目で追っているのは女の子だ）", kind: inner, when: "up.attractedTo == 'women'" }
-      - { text: "（好きになるのに、相手の性別はあまり関係ないみたいだ）", kind: inner, when: "up.attractedTo == 'any'" }
-      - { text: "（友だちの恋の話に、いまひとつ入っていけない）", kind: inner, when: "up.attractedTo == 'none'" }
-      - { text: "（「好き」って何なのか、まだよくわからない）", kind: inner, when: "up.attractedTo == 'unsure'" }
-      - { text: "春が来れば、高校生になる。" }
+entries:
+  # ── 誰にでも ──
+  - { age: 0, text: "春の朝。%name%が生まれた。" }
+  - { age: 0, text: "「女の子ですよ」と、助産師さんが言った。", when: "up.body == 'canBePregnant'" }
+  - { age: 0, text: "「男の子ですよ」と、助産師さんが言った。", when: "up.body == 'cannot'" }
+  - { age: 6, text: "ランドセルは、いとこのお下がり。少し色があせている。", when: "up.economy == 'hardship'" }
+  - { age: 6, text: "桜の下で、記念写真を撮った。ランドセルが背中で少し重い。", when: "up.economy == 'middle'" }
+  - { age: 12, text: "はじめての月経が来た。", when: "up.body == 'canBePregnant'" }
+  - { age: 12, text: "声が、少しずつ低くなってきた。", when: "up.body == 'cannot'" }
+
+  # ── 性自認：女性・男性 ──
+  - { age: 14, kind: inner, text: "（自分が女の子だってこと、疑ったことがない。考えなくてもすんできた）", when: "up.gender == 'woman'" }
+  - { age: 14, kind: inner, text: "（自分が男の子だってこと、疑ったことがない。考えなくてもすんできた）", when: "up.gender == 'man'" }
+
+  # ── 性自認：トランスジェンダー女性 ──
+  - { age: 5, text: "「男の子なんだから」と言われると、何かが引っかかった。理由はわからなかった。", when: "up.gender == 'transWoman'" }
+  - { age: 9, text: "着替えも、整列も、男子の側。なんとなく嫌だったけれど、誰にも言わなかった。言いかたがわからなかった。", when: "up.gender == 'transWoman'" }
+  - { age: 12, kind: inner, text: "（声が変わっていくのが、怖い。止まってほしい）", when: "up.gender == 'transWoman' && up.body == 'cannot'" }
+  - { age: 13, text: "夜中にスマホで調べて、「トランスジェンダー」という言葉を見つけた。すぐに画面を閉じた。", when: "up.gender == 'transWoman'" }
+  - { age: 14, kind: inner, text: "（気のせいかもしれない。何度もそう思い直した。でも、何度も同じところに戻ってくる）", when: "up.gender == 'transWoman'" }
+  - { age: 15, kind: inner, text: "（たぶん、私は女の子なんだと思う。まだ誰にも言っていない）", when: "up.gender == 'transWoman'" }
+
+  # ── 性自認：トランスジェンダー男性 ──
+  - { age: 5, text: "「女の子なんだから」と言われると、何かが引っかかった。理由はわからなかった。", when: "up.gender == 'transMan'" }
+  - { age: 9, text: "スカートをはく日は、朝から気が重かった。みんなそうなのだと思っていた。", when: "up.gender == 'transMan'" }
+  - { age: 12, kind: inner, text: "（月経が来た。自分のからだなのに、自分のことじゃないみたいだ）", when: "up.gender == 'transMan' && up.body == 'canBePregnant'" }
+  - { age: 13, text: "夜中にスマホで調べて、「トランスジェンダー」という言葉を見つけた。すぐに画面を閉じた。", when: "up.gender == 'transMan'" }
+  - { age: 14, kind: inner, text: "（気のせいかもしれない。何度もそう思い直した。でも、何度も同じところに戻ってくる）", when: "up.gender == 'transMan'" }
+  - { age: 15, kind: inner, text: "（たぶん、ぼくは男の子なんだと思う。まだ誰にも言っていない）", when: "up.gender == 'transMan'" }
+
+  # ── 性自認：ノンバイナリー ──
+  - { age: 7, text: "男女に分かれて並ぶとき、自分がどちらの列にいるのか、ときどき確かめた。", when: "up.gender == 'nonbinary'" }
+  - { age: 11, text: "「女子は」「男子は」と言われるたび、どちらの話にも自分が入っていない気がした。", when: "up.gender == 'nonbinary'" }
+  - { age: 13, text: "どちらかに決められないのは、自分がおかしいからだろうか。誰にも聞けなかった。", when: "up.gender == 'nonbinary'" }
+  - { age: 14, text: "「ノンバイナリー」という言葉を知った。自分のことなのか、まだわからない。", when: "up.gender == 'nonbinary'" }
+  - { age: 15, kind: inner, text: "（どっちでもない、でいいのかもしれない。いまは、そう思っている）", when: "up.gender == 'nonbinary'" }
+
+  # ── 好きになる人 ──
+  - { age: 12, text: "気がつくと、同じクラスの男の子を目で追っていた。", when: "up.attractedTo == 'men'" }
+  - { age: 12, text: "気がつくと、同じクラスの女の子を目で追っていた。", when: "up.attractedTo == 'women'" }
+  - { age: 14, kind: inner, text: "（友だちには、言えないと思う）", when: "(up.attractedTo == 'men' && (up.gender == 'man' || up.gender == 'transMan')) || (up.attractedTo == 'women' && (up.gender == 'woman' || up.gender == 'transWoman'))" }
+  - { age: 13, text: "男の子を好きになったことも、女の子を好きになったこともある。相手の性別は、あまり関係ないみたいだ。", when: "up.attractedTo == 'any'" }
+  - { age: 12, text: "みんなが好きな人の話をしている。話を合わせるために、好きな人がいることにした。", when: "up.attractedTo == 'none'" }
+  - { age: 15, kind: inner, text: "（恋愛感情がない人もいると知った。自分もそうなのかもしれない）", when: "up.attractedTo == 'none'" }
+  - { age: 13, text: "「好きな人いる？」と聞かれても、答えられなかった。", when: "up.attractedTo == 'unsure'" }
+  - { age: 15, kind: inner, text: "（「好き」って何なのか、まだよくわからない）", when: "up.attractedTo == 'unsure'" }
+
+  - { age: 15, text: "春が来れば、高校生になる。" }
+
+# 家族の歩み。年齢は抽選で決まる（統計は S58）
+family:
+  divorceMoved: "両親が離婚した。母と2人の生活が始まり、転居と母の転職で、暮らしが大きく変わった。養育費の取り決めはなく、家計のやりくりは厳しい。"
+  divorceRelief: "家の中で激しい口論と緊張が続いたあと、両親が離婚した。生活は苦しくなったが、張り詰めた空気はなくなった。"
+  unmarried: "生まれたときから、母と2人暮らし。母は1人で働きながら子育てを担っていて、日々の暮らしや時間に余裕はあまりない。"
+  bereaved: "父が病気で亡くなった。遺族年金などの支えはあるものの、母が1人で家計と家事を担うことになった。"
+  twoStable: "両親と暮らしている。経済的には安定した環境で育った。"
+  twoCold: "両親と暮らしている。お金に困ってはいないが、家の中の空気は冷え切っていて、いつ離婚するかわからない。"
+  twoTense: "両親と暮らしている。夜、父の大きな声で目が覚めることがある。母の返事は聞こえない。"
+  twoHardship: "両親と暮らしている。親の失業や体調不良が重なり、家計はいつも厳しい。"
+
+# 家で、本人のからだの感覚が尊重されてきたか（付録B-47）。性や体の話を親にしないこと自体は、問題として書かない
+bodyRespect:
+  dismissed:
+    - { text: "月経が始まって、体調の悪い日が増えた。家では「みんな我慢している」「気合が足りない」と流され、しんどさを口にしなくなった。", when: "up.body == 'canBePregnant'" }
+    - { text: "頭痛やおなかの痛みが続いた。家では「みんな我慢している」「気合が足りない」と流され、しんどさを口にしなくなった。", when: "up.body == 'cannot'" }
+  managed:
+    - { text: "体調も、生活リズムも、進路も、親が先回りして決めてしまう。自分のからだの感覚や意志で選ぶ機会は少なかった。" }
+  respected:
+    - { text: "頭痛や生理痛があるときは「無理しなくていい」「必要なら病院に行こう」と言ってもらえた。からだの感覚は、そのまま尊重されてきた。", when: "up.body == 'canBePregnant'" }
+    - { text: "頭痛やおなかの痛みがあるときは「無理しなくていい」「必要なら病院に行こう」と言ってもらえた。からだの感覚は、そのまま尊重されてきた。", when: "up.body == 'cannot'" }
+
+care: "弟と妹の世話を任されることが増えた。放課後は、まっすぐ家に帰る。"

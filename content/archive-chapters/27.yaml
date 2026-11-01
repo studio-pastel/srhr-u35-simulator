@@ -192,7 +192,7 @@ events:
     scenes:
       - id: start
         effects:
-          - { param: options, sign: -1, size: S, source: society, note: "制度の壁がある" }
+          - { param: autonomy, sign: -1, size: S, source: society, note: "制度の壁がある" }
         lines:
           - { who: aoi, text: "ねえ、子どものこと、どう思う？" }
           - { who: yu, kind: inner, text: "（考えたことはある。でも、調べるほど、道のりの多さに気づく）" }
@@ -220,7 +220,7 @@ events:
         next: END
       - id: support
         effects:
-          - { param: psychSafety, sign: 1, size: S, source: others, note: "支援団体が話を聞いた" }
+          - { param: connection, sign: 1, size: S, source: others, note: "支援団体が話を聞いた" }
         lines:
           - { who: narration, text: "支援団体の人は、二人の話をゆっくり聞いてくれた。" }
           - { who: aoi, text: "同じように考えてる家族、ほかにもいるんだね。" }
@@ -309,7 +309,7 @@ events:
             canonical: true
             effects:
               - { param: connection, sign: 1, size: M, source: choice, note: "育児の時間を増やした" }
-              - { param: options, sign: -1, size: S, source: society, statRef: S21, when: "cond.parentalLeave == 'hard'", note: "育児に理解の少ない職場" }
+              - { param: autonomy, sign: -1, size: S, source: society, statRef: S21, when: "cond.parentalLeave == 'hard'", note: "育児に理解の少ない職場" }
             closeness:
               - { who: keiChild, delta: 1, note: "参観日に行った" }
             next: time

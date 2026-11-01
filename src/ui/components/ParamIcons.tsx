@@ -1,4 +1,4 @@
-// 6つのパラメーターのアイコン（自作の SVG）と、いつも出すステータス（付録B-28・B-40）。
+// 4つのパラメーターのアイコン（自作の SVG）と、いつも出すステータス（付録B-28・B-40）。
 import { useEffect, useRef, useState } from 'preact/hooks';
 import { PARAM_KEYS } from '../../engine/constants';
 import type { ParamKey } from '../../engine/schema';
@@ -8,12 +8,6 @@ import { displayValue } from '../../engine/effects';
 const PATHS: Record<ParamKey, string> = {
   // からだ：ハート
   body: 'M12 20s-7-4.4-7-10a4 4 0 0 1 7-2.6A4 4 0 0 1 19 10c0 5.6-7 10-7 10z',
-  // 安全：盾
-  safety: 'M12 3l7 3v5c0 4.5-3 8-7 10c-4-2-7-5.5-7-10V6z',
-  // 心理的安全：手のひらで包む
-  psychSafety: 'M4 13c2 0 3 1 4 2h4a2 2 0 0 1 0 4H7M4 13v7M20 9a3 3 0 1 1-6 0a3 3 0 0 1 6 0z',
-  // 選択肢の幅：分かれ道
-  options: 'M12 21v-7M12 14l-6-6M12 14l6-6M6 8V4M18 8V4M4 6l2-2l2 2M16 6l2-2l2 2',
   // つながり：つながった輪
   connection: 'M9 15a4 4 0 1 1 0-6M15 9a4 4 0 1 1 0 6M8 12h8',
   // 自己決定：方位磁針
@@ -54,13 +48,11 @@ function CountUp({ value, animate }: { value: number; animate: boolean }) {
 }
 
 /**
- * 場面の下にいつも出す6つのパラメーター（付録B-40）。名前・数字・ゲージを常に見せる。
+ * 場面の下にいつも出す4つのパラメーター（付録B-40・B-47）。名前・数字・ゲージを常に見せる。
  * 動いたときは、増減の数字が飛び出し、数字が数え上がり、ゲージが伸び縮みする。
  */
-export function StatusBar({ params, change, animate, onOpen }: { params: Params; change: { entries: LedgerEntry[]; stamp: number } | null; animate: boolean; onOpen: () => void }) {
-  return (
-    <button type="button" class="status-bar" onClick={onOpen} aria-label="パラメーターと記録を開く">
-      {PARAM_KEYS.map((k) => {
+export function StatusBar({ params, change, animate, onOpen }: { params: Params; change: { entries: LedgerEntry[]; stamp: number } | null; animate: boolean; onOpen?: () => void }) {
+  const items = PARAM_KEYS.map((k) => {
         const v = displayValue(params[k]).value;
         const delta = (change?.entries ?? []).filter((e) => e.param === k).reduce((a, e) => a + e.delta, 0);
         const dir = delta > 0 ? 'up' : delta < 0 ? 'down' : '';
@@ -81,7 +73,17 @@ export function StatusBar({ params, change, animate, onOpen }: { params: Params;
             )}
           </span>
         );
-      })}
+  });
+  // 開くものがない画面（生い立ち）では、押せる形にしない
+  if (!onOpen)
+    return (
+      <div class="status-bar" role="group" aria-label="パラメーター">
+        {items}
+      </div>
+    );
+  return (
+    <button type="button" class="status-bar" onClick={onOpen} aria-label="パラメーターと記録を開く">
+      {items}
     </button>
   );
 }

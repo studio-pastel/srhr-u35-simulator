@@ -24,12 +24,17 @@ import type { Profile } from './profile';
 
 export const PARAM_LABELS: Record<ParamKey, string> = {
   body: 'からだ',
-  safety: '安全',
-  psychSafety: '心理的安全',
-  options: '選択肢の幅',
-  connection: 'つながり',
   autonomy: '自己決定',
+  connection: 'つながり',
   living: 'くらし',
+};
+
+/** 4軸の意味（付録B-47） */
+export const PARAM_HINTS: Record<ParamKey, string> = {
+  body: '健康、からだの感覚、医療へのアクセス',
+  autonomy: '情報と選択肢を持って、自分で決められること',
+  connection: '自分の感覚や境界線を尊重してくれる人や居場所',
+  living: 'お金、暮らしの安定、安心して過ごせること、時間と制度のゆとり',
 };
 
 export const SOURCE_LABELS: Record<Source, string> = {
@@ -113,8 +118,8 @@ export interface ChanceLogEntry {
 export type ReplayChange = 'profile' | { condition: string; from: string; to: string };
 
 export interface RunState {
-  /** 6：主人公1人と属性（profile）に変更。古い保存データは読み込まない */
-  version: 6;
+  /** 7：パラメーターの4軸統合と生い立ち（付録B-47）。古い保存データは読み込まない */
+  version: 7;
   runId: string;
   seed: string;
   protagonist: CharacterId;

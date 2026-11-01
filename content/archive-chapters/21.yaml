@@ -151,7 +151,7 @@ events:
             label: "「費用も通院も、半分ずつにしよう」"
             effects:
               - { param: connection, sign: 1, size: M, source: choice, note: "費用と通院を分担した" }
-              - { param: options, sign: -1, size: S, source: upbringing, statRef: S22, when: "up.economy == 'hardship'", note: "家計に余裕がない" }
+              - { param: autonomy, sign: -1, size: S, source: upbringing, statRef: S22, when: "up.economy == 'hardship'", note: "家計に余裕がない" }
             closeness:
               - { who: saki, delta: 1, note: "いっしょに背負った" }
             next: share
@@ -256,8 +256,8 @@ events:
     scenes:
       - id: start
         effects:
-          - { param: psychSafety, sign: -1, size: L, source: others, statRef: S03, note: "元交際相手のつきまとい" }
-          - { param: safety, sign: -1, size: M, source: others, statRef: S03, note: "待ち伏せされる不安" }
+          - { param: connection, sign: -1, size: L, source: others, statRef: S03, note: "元交際相手のつきまとい" }
+          - { param: living, sign: -1, size: M, source: others, statRef: S03, note: "待ち伏せされる不安" }
         lines:
           - { who: narration, text: "別れてから、ハルトからのメッセージが止まらない。" }
           - { who: haruto, kind: message, text: "なんで無視するの" }
@@ -277,8 +277,8 @@ events:
             next: notYet
       - id: reported
         effects:
-          - { param: safety, sign: 1, size: M, source: others, note: "警察が対応を始めた" }
-          - { param: psychSafety, sign: 1, size: M, source: others, note: "相談員が支えてくれた" }
+          - { param: living, sign: 1, size: M, source: others, note: "警察が対応を始めた" }
+          - { param: connection, sign: 1, size: M, source: others, note: "相談員が支えてくれた" }
         lines:
           - { who: counselor, text: "メッセージは、消さずに残しておいてください。" }
           - { who: counselor, text: "安全のためにできること、いっしょに考えましょう。" }
@@ -357,7 +357,7 @@ events:
         next: END
       - id: consulted
         effects:
-          - { param: psychSafety, sign: 1, size: S, source: others, note: "話を聞いてもらえた" }
+          - { param: connection, sign: 1, size: S, source: others, note: "話を聞いてもらえた" }
         lines:
           - { who: counselor, text: "話してくれて、ありがとうございます。" }
           - { who: counselor, text: "人を支配するような行動は、学んで身についたもの。学び直すこともできます。" }

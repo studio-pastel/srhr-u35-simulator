@@ -3,7 +3,8 @@ import { describe, expect, it } from 'vitest';
 import fc from 'fast-check';
 import { invariantHolds, makeProfile, playThrough, realContent } from '../helpers';
 import { beginChapter, chapterResourceTags, createRun, currentScene, visibleChoices } from '../../src/engine/progression';
-import { ATTRACTIONS, GENDERS, initialOf, pregnancyPossible, randomProfile, type Profile } from '../../src/engine/profile';
+import { ATTRACTIONS, BODY_RESPECTS, FAMILY_STORIES, GENDERS, historyOf, initialOf, pregnancyPossible, randomProfile, SINGLE_PARENT_REASONS, singleParentOf, upOf, type Profile } from '../../src/engine/profile';
+import { lifeStory } from '../../src/engine/lifestory';
 import { compareRuns, startReplay } from '../../src/engine/replay';
 import { autoPlay, trajectory } from '../../src/engine/standard';
 import { sampleProfiles } from '../../src/engine/validate';
@@ -34,11 +35,18 @@ describe('要因分解の不変条件（§6.3）', () => {
     );
   });
 
-  it('はじめのパラメーターは、家庭の条件で変わる', () => {
+  it('はじめのパラメーターは、生い立ちの出来事で変わる（付録B-47）', () => {
     const base = real.characters[0]!.initial;
-    expect(initialOf(base, makeProfile()).living).toBe(base.living);
-    expect(initialOf(base, makeProfile({ economy: 'hardship' })).living).toBeLessThan(base.living);
-    expect(initialOf(base, makeProfile({ witnessedDV: true })).psychSafety).toBeLessThan(base.psychSafety);
+    const of = (o: Partial<Profile>) => initialOf(base, makeProfile({ bodyRespect: 'managed', ...o }));
+    expect(of({ familyStory: 'twoStable' }).living).toBe(base.living + 5);
+    expect(of({ familyStory: 'divorceMoved' }).living).toBe(base.living - 5);
+    expect(of({ familyStory: 'divorceRelief' }).connection).toBe(base.connection + 2);
+    expect(of({ familyStory: 'bereaved' }).living).toBe(base.living - 3);
+    expect(of({ familyStory: 'twoCold' }).living).toBe(base.living);
+    expect(of({ familyStory: 'twoCold' }).connection).toBe(base.connection - 5);
+    expect(of({ bodyRespect: 'dismissed' }).body).toBe(base.body - 2);
+    expect(of({ bodyRespect: 'managed' }).autonomy).toBe(base.autonomy - 5);
+    expect(of({ bodyRespect: 'respected' }).autonomy).toBe(base.autonomy + 3);
   });
 });
 
@@ -63,7 +71,7 @@ describe('属性で出来事が変わる（付録B-43）', () => {
   it('家庭の条件の場面は、選んだときだけ出る', () => {
     expect(events({ familyCare: true })).toContain('E16-CARE');
     expect(events({})).not.toContain('E16-CARE');
-    expect(events({ witnessedDV: true })).toContain('E16-HOME');
+    expect(events({ familyStory: 'twoTense' })).toContain('E16-HOME');
     expect(events({})).not.toContain('E16-HOME');
   });
   it('16歳の授業の場面はない', () => {
@@ -128,7 +136,7 @@ describe('自分で選べない出来事（付録B-43）', () => {
 
 describe('格差とくらし（付録B-43）', () => {
   it('家計が苦しいと、くらしが下がった状態で始まり、旅行の場面が変わる', () => {
-    const hard = playThrough(real, run({ economy: 'hardship' }), () => 0);
+    const hard = playThrough(real, run({ familyStory: 'twoHardship' }), () => 0);
     expect(hard.choices['E17-TRIP/hard']).toBeDefined();
     const mid = playThrough(real, run(), () => 0);
     expect(mid.choices['E17-TRIP/normal']).toBeDefined();
@@ -143,7 +151,7 @@ describe('格差とくらし（付録B-43）', () => {
 
 describe('読まずに進む章と相談窓口のタグ', () => {
   it('読まずに進むと、効果は本来の要因のまま skipped 付きで記録する', () => {
-    const s = playThrough(real, run({ witnessedDV: true }), () => 1, { skipChapter: (a) => a === 16 });
+    const s = playThrough(real, run({ familyStory: 'twoTense' }), () => 1, { skipChapter: (a) => a === 16 });
     expect(s.skippedChapters).toEqual([16]);
     const e16 = s.ledger.filter((e) => e.age === 16);
     expect(e16.length).toBeGreaterThan(0);
@@ -203,9 +211,59 @@ describe('ランダムな主人公（付録B-45）', () => {
     expect(new Set(many.filter((p) => p.gender === 'nonbinary').map((p) => p.body)).size).toBe(2);
   });
 
-  it('父親が同居しないひとり親の家庭では、親のあいだの暴力の場面が出ない', () => {
-    expect(many.some((p) => p.singleParent)).toBe(true);
-    expect(many.some((p) => p.witnessedDV)).toBe(true);
-    expect(many.some((p) => p.singleParent && p.witnessedDV)).toBe(false);
+  it('家族の歩みも、からだの感覚の尊重も、すべて起こり得て、年齢は決めた範囲に入る（付録B-47）', () => {
+    expect(new Set(many.map((p) => p.familyStory)).size).toBe(FAMILY_STORIES.length);
+    expect(new Set(many.map((p) => p.bodyRespect)).size).toBe(BODY_RESPECTS.length);
+    for (const p of many) {
+      if (p.familyStory === 'divorceMoved' || p.familyStory === 'divorceRelief') expect(p.familyAge).toBeGreaterThanOrEqual(3);
+      if (p.familyStory === 'bereaved') expect(p.familyAge).toBeGreaterThanOrEqual(5);
+      if (p.familyStory === 'unmarried') expect(p.familyAge).toBe(0);
+      expect(p.familyAge).toBeLessThanOrEqual(14);
+    }
+  });
+
+  it('父親と暮らしていない家庭では、親のあいだの暴力の場面が出ない', () => {
+    for (const s of FAMILY_STORIES) expect(upOf(makeProfile({ familyStory: s })).witnessedDV === true && singleParentOf(s)).toBe(false);
+  });
+
+  it('ひとり親になった理由の比は、S58 の値と一致する', () => {
+    const n = real.stats.find((s) => s.id === 'S58')!.numbers!;
+    expect(SINGLE_PARENT_REASONS).toEqual({ divorce: n.motherDivorce, unmarried: n.motherUnmarried, bereaved: n.motherBereaved });
+  });
+});
+
+describe('生い立ちの年表（付録B-47）', () => {
+  const story = (o: Partial<Profile>) => lifeStory(real, createRun(real, { profile: makeProfile(o), seed: 'a'.repeat(32) }));
+
+  it('年齢の順に並び、変化の合計がはじめのパラメーターになる', () => {
+    for (const familyStory of FAMILY_STORIES)
+      for (const bodyRespect of BODY_RESPECTS) {
+        const o = { familyStory, bodyRespect, familyCare: true };
+        const s = story(o);
+        expect(s.map((e) => e.age)).toEqual(s.map((e) => e.age).sort((a, b) => a - b));
+        expect(s.every((e) => e.text.length > 0)).toBe(true);
+        const base = { ...real.characters[0]!.initial };
+        for (const e of s) for (const x of e.effects) base[x.param] += x.delta;
+        expect(base).toEqual(initialOf(real.characters[0]!.initial, makeProfile(o)));
+      }
+  });
+
+  it('トランスジェンダーとノンバイナリーの気づきは、一度にではなく何年もかけて出る', () => {
+    const marker = /引っかかった|列にいる|画面を閉じた|ノンバイナリー|たぶん|どっちでもない|どちらの話にも/;
+    for (const [gender, body] of [['transWoman', 'cannot'], ['transMan', 'canBePregnant'], ['nonbinary', 'cannot']] as const) {
+      const ages = new Set(story({ gender, body, attractedTo: 'unsure' }).filter((e) => e.age < 15 && e.age > 0 && e.effects.length === 0 && e.text.length > 0).map((e) => e.age));
+      expect(ages.size).toBeGreaterThanOrEqual(4);
+      const key = story({ gender, body }).filter((e) => marker.test(e.text)).map((e) => e.age);
+      expect(Math.max(...key) - Math.min(...key)).toBeGreaterThanOrEqual(2);
+    }
+  });
+
+  it('本人の属性だけを理由に減点しない：理由の文に「ひとり親」などのラベルを使わない', () => {
+    for (const familyStory of FAMILY_STORIES) for (const e of historyOf(makeProfile({ familyStory }))) for (const x of e.effects) expect(x.note).not.toMatch(/ひとり親|未婚/);
+  });
+
+  it('月経のある人とない人で、からだの感覚の文が正しく出し分けられる', () => {
+    expect(story({ body: 'cannot', bodyRespect: 'dismissed' }).some((e) => e.text.includes('頭痛やおなかの痛み'))).toBe(true);
+    expect(story({ body: 'canBePregnant', bodyRespect: 'dismissed' }).some((e) => e.text.includes('月経が始まって'))).toBe(true);
   });
 });

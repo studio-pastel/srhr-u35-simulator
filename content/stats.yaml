@@ -712,3 +712,17 @@
     year: "2020年"
   verified: true
   jpData: true
+
+# S58 は 2026-11-01 に発注者の指示で追加（SPEC.md 付録B-47）
+- id: S58
+  label: "ひとり親世帯になった理由"
+  value: "母子世帯は離婚79.5%、未婚の母10.8%、死別5.3%。父子世帯は離婚69.7%、死別21.3%、未婚の父1.0%"
+  cardText: "日本では、母子世帯になった理由は、離婚79.5%、未婚の母10.8%、死別5.3%です。父子世帯は、離婚69.7%、死別21.3%です。"
+  numbers: { motherDivorce: 0.795, motherUnmarried: 0.108, motherBereaved: 0.053 }
+  definition: "令和3年度の推計値。ほかに遺棄、行方不明、その他、不詳がある。生い立ちの抽選では、母子世帯の3つの理由の比だけを使う"
+  source:
+    title: "こども家庭庁 令和3年度 全国ひとり親世帯等調査"
+    url: "https://www.cfa.go.jp/assets/contents/node/basic_page/field_ref_resources/f1dc19f2-79dc-49bf-a774-21607026a21d/9ff012a5/20230725_councils_shingikai_hinkon_hitorioya_6TseCaln_05.pdf"
+    year: "2021年度"
+  verified: true
+  jpData: true

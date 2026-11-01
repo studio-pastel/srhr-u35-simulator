@@ -52,7 +52,7 @@ events:
             canonical: true
             effects:
               - { param: connection, sign: 1, size: M, source: choice, note: "育児休業を取った" }
-              - { param: options, sign: -1, size: S, source: society, statRef: S21, when: "cond.parentalLeave == 'hard'", note: "取りにくい職場" }
+              - { param: autonomy, sign: -1, size: S, source: society, statRef: S21, when: "cond.parentalLeave == 'hard'", note: "取りにくい職場" }
             closeness:
               - { who: haruChild, delta: 1, note: "育児休業を取った" }
               - { who: nao, delta: 1, note: "二人で育てている" }
@@ -158,7 +158,7 @@ events:
             neutral: true
             canonical: true
             effects:
-              - { param: options, sign: 1, size: M, source: choice, note: "新しい仕事に挑んだ" }
+              - { param: autonomy, sign: 1, size: M, source: choice, note: "新しい仕事に挑んだ" }
             next: moved
           - id: stay
             label: "「今の部署で、もっと深めたいです」"
@@ -224,7 +224,7 @@ events:
         next: END
       - id: unavailable
         effects:
-          - { param: options, sign: -1, size: S, source: society, statRef: S29, note: "住む自治体に制度がない" }
+          - { param: autonomy, sign: -1, size: S, source: society, statRef: S29, note: "住む自治体に制度がない" }
         lines:
           - { who: yu, text: "この市には、パートナーシップ制度がないんだよね。" }
           - { who: aoi, text: "病院とか、もしものときに困るかもしれない。", face: anxious }

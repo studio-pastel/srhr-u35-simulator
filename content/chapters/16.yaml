@@ -110,7 +110,7 @@ events:
       - id: nurse
         stage: { place: nurse, time: day, cast: [{ id: self, x: 30 }, { id: mori, x: 64 }] }
         effects:
-          - { param: psychSafety, sign: 1, size: S, source: others, note: "先生が受け止めた" }
+          - { param: connection, sign: 1, size: S, source: others, note: "先生が受け止めた" }
         lines:
           - { who: mori, text: "教えてくれて、ありがとう。" }
           - { who: mori, text: "着替える場所や制服のこと、どうしたいか一緒に考えよう。" }
@@ -264,15 +264,14 @@ events:
           - { who: narration, text: "その夜、自分の部屋。" }
           - { who: self, kind: inner, text: "（ダイエットを始めて、もう二か月）" }
           - { who: self, kind: inner, text: "（体重は減った。でも……先月から、月経が来てない）", face: anxious }
-        branches:
-          - when: "up.talkAboutSex == false"
-            next: noTalk
-        next: choose
+        next: noTalk
       - id: noTalk
         stage: { place: bedroom, time: night, cast: [{ id: self, x: 34, face: anxious }] }
         lines:
           - { who: narration, text: "台所から、母の声が聞こえる。" }
-          - { who: self, kind: inner, text: "（お母さんに言う？……家で、こういう話をしたことない）" }
+          - { who: self, kind: inner, text: "（お母さんに言っても、「みんな我慢してる」って言われそう）", when: "up.bodyRespect == 'dismissed'" }
+          - { who: self, kind: inner, text: "（お母さんに言ったら、全部お母さんが決めてしまいそう）", when: "up.bodyRespect == 'managed'" }
+          - { who: self, kind: inner, text: "（お母さんなら、聞いてくれると思う。でも、言うかどうかは自分で決めたい）", when: "up.bodyRespect == 'respected'" }
         next: choose
       - id: choose
         stage: { place: bedroom, time: night, cast: [{ id: self, x: 34, face: anxious }] }
@@ -296,12 +295,12 @@ events:
             setFlags: { extremeDiet: true }
             effects:
               - { param: body, sign: -1, size: M, source: choice, note: "食事を減らし続けた" }
-              - { param: body, sign: -1, size: S, source: upbringing, when: "up.talkAboutSex == false", note: "家で相談しにくい" }
+              - { param: body, sign: -1, size: S, source: upbringing, when: "up.bodyRespect == 'dismissed'", note: "しんどさを我慢するのに慣れてきた" }
             next: keepOn
       - id: nurse
         stage: { place: nurse, time: day, cast: [{ id: self, x: 30 }, { id: mori, x: 64 }] }
         effects:
-          - { param: psychSafety, sign: 1, size: S, source: others, note: "養護教諭が受け止めた" }
+          - { param: connection, sign: 1, size: S, source: others, note: "養護教諭が受け止めた" }
         lines:
           - { who: self, text: "あの……先月から、月経が来なくて。" }
           - { who: mori, text: "話してくれて、ありがとう。" }
@@ -338,11 +337,15 @@ events:
             next: giveUp
       - id: tellParent
         stage: { place: living, time: night, cast: [{ id: self, x: 30, face: anxious }, { id: yuMother, x: 64 }] }
+        effects:
+          - { param: connection, sign: 1, size: S, source: upbringing, when: "up.bodyRespect == 'respected'", note: "不調を受けとめてもらえる家だった" }
+          - { param: autonomy, sign: -1, size: S, source: upbringing, when: "up.bodyRespect == 'managed'", note: "受診先も親が決めた" }
+          - { param: connection, sign: -1, size: S, source: upbringing, when: "up.bodyRespect == 'dismissed'", note: "しんどさを軽く扱われた" }
         lines:
           - { who: self, text: "あの……月経が来なくて。婦人科に行きたい。" }
-          - { who: yuMother, text: "……そう。話してくれて、よかった。保険証、渡すね。", when: "up.talkAboutSex == true" }
-          - { who: narration, text: "こんな話を、家でするのは初めてだった。", when: "up.talkAboutSex == false" }
-          - { who: yuMother, text: "……なんで急に。とにかく、保険証は渡すから。", when: "up.talkAboutSex == false" }
+          - { who: yuMother, text: "そう。話してくれて、よかった。無理しなくていいよ。保険証、渡すね。", when: "up.bodyRespect == 'respected'" }
+          - { who: yuMother, text: "わかった。病院はお母さんが探して、予約しておくから。", when: "up.bodyRespect == 'managed'" }
+          - { who: yuMother, text: "みんな、そんなものよ。……行きたいなら、保険証は渡すけど。", when: "up.bodyRespect == 'dismissed'" }
           - { who: self, kind: inner, text: "（言えた。心臓が、まだどきどきしてる）" }
         next: clinic
       - id: selfPay
@@ -415,7 +418,7 @@ events:
             next: silent
       - id: tell
         effects:
-          - { param: options, sign: 1, size: S, source: others, note: "担任が支援を調べた" }
+          - { param: autonomy, sign: 1, size: S, source: others, note: "担任が支援を調べた" }
         lines:
           - { who: tamura, text: "そうか。話してくれて、助かった。" }
           - { who: tamura, text: "スクールカウンセラーや地域の支援につなぐ方法、一緒に調べよう。" }
@@ -441,8 +444,8 @@ events:
     scenes:
       - id: start
         effects:
-          - { param: psychSafety, sign: -1, size: M, source: others, statRef: S04, note: "家で怒鳴り声が続く" }
-          - { param: safety, sign: -1, size: S, source: upbringing, statRef: S04, when: "up.witnessedDV == true", note: "家庭内の支配を見て育つ" }
+          - { param: connection, sign: -1, size: M, source: others, statRef: S04, note: "家で怒鳴り声が続く" }
+          - { param: living, sign: -1, size: S, source: upbringing, statRef: S04, when: "up.witnessedDV == true", note: "家の中で安心して暮らせない" }
         lines:
           - { who: narration, text: "夕食のあと。居間から、父の大きな声が聞こえる。" }
           - { who: narration, text: "母の返事は、聞こえない。" }
@@ -458,7 +461,7 @@ events:
             label: "（明日、誰かに話してみよう）"
             effects:
               - { param: connection, sign: 1, size: M, source: choice, note: "家のことを人に話した" }
-              - { param: safety, sign: 1, size: S, source: society, when: "flags.knowsHelplines == true", note: "授業で相談先を知った" }
+              - { param: connection, sign: 1, size: S, source: society, when: "flags.knowsHelplines == true", note: "授業で相談先を知った" }
             setFlags: { toldHome: true }
             next: tell
           - id: ignore
@@ -469,7 +472,7 @@ events:
       - id: tell
         stage: { place: nurse, time: day, cast: [{ id: self, x: 30, face: sad }, { id: mori, x: 64 }] }
         effects:
-          - { param: psychSafety, sign: 1, size: S, source: others, note: "養護教諭が話を聞いた" }
+          - { param: connection, sign: 1, size: S, source: others, note: "養護教諭が話を聞いた" }
         lines:
           - { who: self, text: "……家が、ちょっとしんどくて。" }
           - { who: mori, text: "話してくれて、ありがとう。急がなくていいよ。" }

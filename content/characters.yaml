@@ -2,7 +2,7 @@
 # initial ははじめのパラメーターの基準。家計や家庭の条件で profile.ts の initialOf が変える（T3：監修で調整する）。
 - id: me
   name: あなた
-  initial: { body: 60, safety: 60, psychSafety: 60, options: 60, connection: 50, autonomy: 55, living: 55 }
+  initial: { body: 60, autonomy: 55, connection: 50, living: 55 }
   statRefs: []
   # 人との距離（付録B-9）：近しい人、はじめの近さ（0〜3）、登場する年齢
   bonds:

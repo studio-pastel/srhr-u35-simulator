@@ -8,8 +8,13 @@ import {
   ATTRACTIONS,
   BODIES,
   BODY_LABELS,
+  BODY_RESPECT_LABELS,
+  BODY_RESPECTS,
   CLOTHES,
   defaultBody,
+  defaultFamilyAge,
+  FAMILY_LABELS,
+  FAMILY_STORIES,
   GENDER_LABELS,
   GENDERS,
   HAIRS,
@@ -122,22 +127,12 @@ export function ProfileBuilder({ initial, startLabel, onStart }: { initial: Prof
           <Radios legend="性自認" value={p.gender} options={pick(GENDER_LABELS, GENDERS)} onChange={(gender) => set({ gender, body: defaultBody(gender) })} />
           <Radios legend="からだ" note="妊娠や月経の場面に関わります。" value={p.body} options={pick(BODY_LABELS, BODIES)} onChange={(body) => set({ body })} />
           <Radios legend="好きになる人" value={p.attractedTo} options={pick(ATTRACTION_LABELS, ATTRACTIONS)} onChange={(attractedTo) => set({ attractedTo })} />
-          <Radios
-            legend="家計"
-            value={p.economy}
-            options={[
-              { id: 'middle', label: 'ふつう' },
-              { id: 'hardship', label: '苦しい' },
-            ]}
-            onChange={(economy) => set({ economy })}
-          />
+          <Radios legend="家族の歩み" value={p.familyStory} options={pick(FAMILY_LABELS, FAMILY_STORIES)} onChange={(familyStory) => set({ familyStory, familyAge: defaultFamilyAge(familyStory) })} />
+          <Radios legend="からだの感覚は、家で" value={p.bodyRespect} options={pick(BODY_RESPECT_LABELS, BODY_RESPECTS)} onChange={(bodyRespect) => set({ bodyRespect })} />
           <fieldset class="builder-group">
-            <legend>家庭のこと（あてはまるものを選ぶ）</legend>
+            <legend>きょうだい</legend>
             <div class="builder-options">
-              <Check label="ひとり親の家庭" checked={p.singleParent} onChange={(singleParent) => set({ singleParent })} />
               <Check label="きょうだいの世話をしている" checked={p.familyCare} onChange={(familyCare) => set({ familyCare })} />
-              <Check label="親のあいだの暴力を見て育った" checked={p.witnessedDV} onChange={(witnessedDV) => set({ witnessedDV })} />
-              <Check label="家で性やからだの話ができる" checked={p.talkAboutSex} onChange={(talkAboutSex) => set({ talkAboutSex })} />
             </div>
           </fieldset>
 

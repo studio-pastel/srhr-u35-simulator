@@ -1,7 +1,7 @@
 // コンテンツ（content/*.yaml）の zod スキーマ。ビルド時の検証とテストで共有する（§2.2）。
 import { z } from 'zod';
 
-import { ATTRACTIONS, BODIES, ECONOMIES, GENDERS } from './profile-values';
+import { ATTRACTIONS, BODIES, BODY_RESPECTS, FAMILY_STORIES, GENDERS } from './profile-values';
 import { AGES, CHARACTER_IDS, EFFECT_SIZES, PARAM_KEYS, SOURCES } from './constants';
 export { AGES, CHARACTER_IDS, EFFECT_SIZES, PARAM_KEYS, SOURCES };
 
@@ -29,7 +29,7 @@ export const chanceEffectSchema = effectSchema.extend({ source: source.optional(
 
 /**
  * 人との距離（付録B-9）。主人公から見た脇役との近さ（0〜3）を変える。
- * 6つのパラメーターと要因分解には含めない。delta は近さの増減、end は関係の終わり（別れたなど）。
+ * 4つのパラメーターと要因分解には含めない。delta は近さの増減、end は関係の終わり（別れたなど）。
  */
 export const closenessSchema = z.strictObject({
   who: z.string().min(1),
@@ -166,11 +166,8 @@ export const chapterSchema = z.strictObject({
 
 const paramRecord = z.strictObject({
   body: z.number(),
-  safety: z.number(),
-  psychSafety: z.number(),
-  options: z.number(),
-  connection: z.number(),
   autonomy: z.number(),
+  connection: z.number(),
   living: z.number(),
 });
 
@@ -221,31 +218,30 @@ export const presetSchema = z.strictObject({
   gender: z.enum(GENDERS),
   body: z.enum(BODIES),
   attractedTo: z.enum(ATTRACTIONS),
-  economy: z.enum(ECONOMIES),
-  singleParent: z.boolean(),
+  familyStory: z.enum(FAMILY_STORIES),
+  familyAge: z.number().int().min(0).max(14),
+  bodyRespect: z.enum(BODY_RESPECTS),
   familyCare: z.boolean(),
-  witnessedDV: z.boolean(),
-  talkAboutSex: z.boolean(),
 });
 
-/** 生まれてから15歳までの、短い場面（付録B-45）。パラメーターは動かさない */
+const prologueLine = z.strictObject({
+  text: z.string().min(1),
+  kind: z.enum(['narration', 'inner']).default('narration'),
+  when: z.string().optional(),
+});
+
+/** 0〜15歳の生い立ちの年表（付録B-45・B-47）。パラメーターの変化は profile.ts の historyOf が持つ */
 export const prologueSchema = z.strictObject({
   status: z.literal('draft'),
-  pages: z.array(
-    z.strictObject({
-      id: z.string().min(1),
-      age: z.number().int().min(0).max(15),
-      title: z.string().min(1),
-      stage: stageSchema,
-      lines: z.array(
-        z.strictObject({
-          text: z.string().min(1),
-          kind: z.enum(['narration', 'inner']).default('narration'),
-          when: z.string().optional(),
-        }),
-      ),
-    }),
-  ),
+  /** from 歳以降に映す舞台 */
+  stages: z.array(z.strictObject({ from: z.number().int().min(0).max(15), stage: stageSchema })).min(1),
+  /** 年齢の決まった出来事 */
+  entries: z.array(prologueLine.extend({ age: z.number().int().min(0).max(15) })),
+  /** 家族の歩み。年齢は profile.familyAge */
+  family: z.strictObject(Object.fromEntries(FAMILY_STORIES.map((k) => [k, z.string().min(1)])) as Record<(typeof FAMILY_STORIES)[number], z.ZodString>),
+  /** からだの感覚の尊重。文はからだの違いで出し分ける */
+  bodyRespect: z.strictObject(Object.fromEntries(BODY_RESPECTS.map((k) => [k, z.array(prologueLine).min(1)])) as Record<(typeof BODY_RESPECTS)[number], z.ZodArray<typeof prologueLine>>),
+  care: z.string().min(1),
 });
 
 /** トップページ（付録B-46）。統計の文は cardText を使い、big だけをここに書く */

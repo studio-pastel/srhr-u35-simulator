@@ -1,7 +1,7 @@
 // 定数（zod に依存しない）。画面のコードはここから読み込み、配信物に zod を含めない。
-// psychSafety（心理的安全）と others（他者の行為）は付録A-13・A-14 で追加
-// living（くらし）は付録B-43 で追加
-export const PARAM_KEYS = ['body', 'safety', 'psychSafety', 'options', 'connection', 'autonomy', 'living'] as const;
+// others（他者の行為）は付録A-14 で追加
+// パラメーターは4軸に統合した（付録B-47）：自己決定＋選択肢の幅、つながり＋心理的安全、くらし＋安全
+export const PARAM_KEYS = ['body', 'autonomy', 'connection', 'living'] as const;
 export const SOURCES = ['choice', 'upbringing', 'society', 'others', 'chance'] as const;
 // 主人公は1人（付録B-43）。属性は RunState.profile で持つ
 export const CHARACTER_IDS = ['me'] as const;

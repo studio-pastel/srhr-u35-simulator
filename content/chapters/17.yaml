@@ -48,6 +48,8 @@ events:
           - { who: partner, text: "……あのさ。したいなって、思ってて。" }
           - { who: partner, text: "でも、どう思ってるか、聞きたい。" }
           - { who: self, kind: inner, text: "（したいかどうかは、自分で決めていい）" }
+          - { who: self, kind: inner, text: "（家でも、自分のからだの感じ方は、そのまま聞いてもらえてきた）", when: "up.bodyRespect == 'respected'" }
+          - { who: self, kind: inner, text: "（嫌だって言っても、大げさだと思われるかな）", when: "up.bodyRespect == 'dismissed'", face: anxious }
           - { who: self, kind: inner, text: "（いまそう思っても、あとで気持ちが変わってもいい）", when: "flags.knowsConsent == true" }
           - { who: self, kind: inner, text: "（こういうとき、どうするのが「ふつう」なんだろう）", when: "flags.knowsConsent == false", face: anxious }
         choices:
@@ -72,7 +74,7 @@ events:
             next: silent
       - id: notYet
         effects:
-          - { param: psychSafety, sign: 1, size: S, source: others, note: "相手が受けとめた" }
+          - { param: connection, sign: 1, size: S, source: others, note: "相手が受けとめた" }
         lines:
           - { who: self, text: "……まだ、したくない。" }
           - { who: partner, text: "わかった。言ってくれて、ありがとう。" }
@@ -82,7 +84,7 @@ events:
         next: END
       - id: talk
         effects:
-          - { param: psychSafety, sign: 1, size: S, source: others, note: "相手が確かめてくれた" }
+          - { param: connection, sign: 1, size: S, source: others, note: "相手が確かめてくれた" }
         lines:
           - { who: self, text: "うん。でも、その前にちゃんと話したい。" }
           - { who: self, text: "避妊のこと、どうしようか。", when: "flags.pregnancyPossible == true" }
@@ -98,7 +100,7 @@ events:
         next: END
       - id: silent
         effects:
-          - { param: psychSafety, sign: 1, size: S, source: others, note: "相手が確かめてくれた" }
+          - { param: connection, sign: 1, size: S, source: others, note: "相手が確かめてくれた" }
         lines:
           - { who: narration, text: "何も言えないまま、時間が過ぎる。" }
           - { who: partner, text: "……迷ってる？" }
@@ -174,7 +176,7 @@ events:
     scenes:
       - id: start
         effects:
-          - { param: options, sign: -1, size: S, source: society, statRef: S43, when: "up.gender == 'woman' || up.gender == 'transWoman'", note: "性別で期待が変わる" }
+          - { param: autonomy, sign: -1, size: S, source: society, statRef: S43, when: "up.gender == 'woman' || up.gender == 'transWoman'", note: "性別で期待が変わる" }
         lines:
           - { who: narration, text: "放課後の進路面談。行きたい学部のことを話した。" }
           - { who: tamura, text: "女の子なんだし、そんなに頑張らなくても、近くの短大でいいんじゃないか。", when: "up.gender == 'woman' || up.gender == 'transWoman'" }
@@ -192,7 +194,7 @@ events:
           - id: follow
             label: "「……そうですね」"
             effects:
-              - { param: options, sign: -1, size: S, source: choice, note: "言われた進路に寄せた" }
+              - { param: autonomy, sign: -1, size: S, source: choice, note: "言われた進路に寄せた" }
             next: follow
       - id: say
         lines:
@@ -300,7 +302,7 @@ events:
     scenes:
       - id: start
         effects:
-          - { param: psychSafety, sign: -1, size: M, source: others, statRef: S08, note: "性的な画像を求められた" }
+          - { param: connection, sign: -1, size: M, source: others, statRef: S08, note: "性的な画像を求められた" }
         lines:
           - { who: narration, text: "好きなバンドの話で、毎晩のように盛り上がっている相手がいる。" }
           - { who: netFriend, kind: message, text: "新曲やばかったね！" }
@@ -317,7 +319,7 @@ events:
           - id: record
             label: "画面を保存して、相談する"
             effects:
-              - { param: safety, sign: 1, size: M, source: choice, note: "記録して相談した" }
+              - { param: autonomy, sign: 1, size: M, source: choice, note: "記録して相談した" }
               - { param: connection, sign: 1, size: S, source: choice, note: "一人で抱えなかった" }
             next: record
           - id: send
@@ -332,7 +334,7 @@ events:
       - id: record
         stage: { place: nurse, time: day, cast: [{ id: self, x: 30 }, { id: mori, x: 64 }] }
         effects:
-          - { param: psychSafety, sign: 1, size: S, source: others, note: "保健室で受け止められた" }
+          - { param: connection, sign: 1, size: S, source: others, note: "保健室で受け止められた" }
         lines:
           - { who: narration, text: "画面を保存して、相手をブロックした。次の日、保健室へ。" }
           - { who: mori, text: "見せてくれてありがとう。あなたは、何も悪くないよ。" }
@@ -373,7 +375,7 @@ events:
             happens:
               effects:
                 - { param: body, sign: -1, size: M, note: "うつ病になった" }
-                - { param: psychSafety, sign: -1, size: M, note: "何も手につかない" }
+                - { param: connection, sign: -1, size: M, note: "何も手につかない" }
               next: happened
             notHappens: { next: fine }
       - id: fine
@@ -384,6 +386,8 @@ events:
         lines:
           - { who: narration, text: "朝、起き上がれない日が続いた。好きだった音楽も、聞く気がしない。" }
           - { who: self, kind: inner, text: "（なまけてるだけ？　でも、からだが動かない）", face: sad }
+          - { who: self, kind: inner, text: "（「気合が足りない」って、また言われるだろうな）", when: "up.bodyRespect == 'dismissed'" }
+          - { who: self, kind: inner, text: "（しんどいって、言っていいはずだ）", when: "up.bodyRespect == 'respected'" }
           - { who: narration, text: "誰にでも起こり得ることで、あなたのせいではない。" }
         choices:
           - id: clinic
@@ -434,8 +438,8 @@ events:
           outcomes:
             happens:
               effects:
-                - { param: psychSafety, sign: -1, size: L, note: "性暴力の被害" }
-                - { param: safety, sign: -1, size: L, note: "性暴力の被害" }
+                - { param: connection, sign: -1, size: L, note: "性暴力の被害" }
+                - { param: living, sign: -1, size: L, note: "安心して暮らせなくなった" }
               next: happened
             notHappens: { next: quiet }
       - id: quiet
@@ -459,7 +463,7 @@ events:
             next: notYet
       - id: told
         effects:
-          - { param: psychSafety, sign: 1, size: S, source: others, note: "話を聞いてもらえた" }
+          - { param: connection, sign: 1, size: S, source: others, note: "話を聞いてもらえた" }
         lines:
           - { who: mori, text: "話してくれて、ありがとう。あなたは、何も悪くない。" }
           - { who: mori, text: "これからのこと、あなたのペースで考えよう。" }

@@ -1,33 +1,35 @@
-// 生まれてから15歳まで（付録B-45）。自分で決められなかったことを、短い場面でたどって、この人を知る。
-import { useEffect, useRef, useState } from 'preact/hooks';
+// 0〜15歳の生い立ち（付録B-45・B-47）。年表が自動で進み、出来事の積み重ねとして15歳のパラメーターが決まる。
+import { useEffect, useMemo, useRef, useState } from 'preact/hooks';
 import { navigate, useApp } from '../app';
-import { check } from '../../engine/flags';
-import { contextOf } from '../../engine/progression';
-import { ATTRACTION_LABELS, GENDER_LABELS, initialReasons, type Profile } from '../../engine/profile';
-import { PARAM_LABELS, SOURCE_LABELS } from '../../engine/types';
-import { Hud } from '../components/Hud';
+import { lifeStory } from '../../engine/lifestory';
+import { PARAM_LABELS, SOURCE_LABELS, type Params } from '../../engine/types';
+import { StatusBar } from '../components/ParamIcons';
 import { PixelStage } from '../components/PixelStage';
-import { sceneSpec, type ShownLine } from '../stage';
-import { ChatLine } from './Play';
+import { sceneSpec } from '../stage';
 
-function homeWords(p: Profile): string[] {
-  return [
-    p.economy === 'hardship' ? '家計が苦しい' : '家計はふつう',
-    ...(p.singleParent ? ['ひとり親の家庭'] : []),
-    ...(p.familyCare ? ['きょうだいの世話をしている'] : []),
-    ...(p.witnessedDV ? ['親のあいだの暴力を見て育った'] : []),
-    p.talkAboutSex ? '家で性やからだの話ができる' : '家で性やからだの話ができない',
-  ];
-}
+/** 1行を見せる時間。読める長さに合わせる */
+const entryMs = (text: string) => 600 + 40 * [...text].length;
 
 export function Prologue() {
-  const { run, content, animate } = useApp();
-  const [pageIndex, setPageIndex] = useState(0);
-  const [lineIndex, setLineIndex] = useState(0);
+  const { run, content, animate, setLifeAge } = useApp();
+  const story = useMemo(() => (run ? lifeStory(content, run) : []), [run?.runId]);
+  // 演出を減らす設定では、自動で動かさず、はじめから全部を見せる
+  const [shown, setShown] = useState(animate ? 1 : story.length);
+  const [paused, setPaused] = useState(false);
+  const done = shown >= story.length;
+  const age = story[Math.max(shown - 1, 0)]?.age ?? 0;
+
   const h = useRef<HTMLHeadingElement>(null);
-  useEffect(() => h.current?.focus({ preventScroll: true }), [pageIndex]);
-  const endRef = useRef<HTMLDivElement>(null);
-  useEffect(() => endRef.current?.scrollIntoView({ block: 'end', behavior: animate ? 'smooth' : 'auto' }), [lineIndex]);
+  useEffect(() => h.current?.focus({ preventScroll: true }), [done]);
+  const endRef = useRef<HTMLLIElement>(null);
+  useEffect(() => endRef.current?.scrollIntoView({ block: 'nearest', behavior: animate ? 'smooth' : 'auto' }), [shown]);
+  useEffect(() => setLifeAge(age), [age]);
+
+  useEffect(() => {
+    if (done || paused) return;
+    const id = setTimeout(() => setShown(shown + 1), entryMs(story[shown - 1]?.text ?? ''));
+    return () => clearTimeout(id);
+  }, [shown, paused, done]);
 
   if (!run) {
     return (
@@ -40,101 +42,65 @@ export function Prologue() {
     );
   }
 
-  const pages = content.prologue.pages;
-  const page = pages[pageIndex];
   const p = run.profile;
-
-  if (!page) {
-    const reasons = initialReasons(p);
-    return (
-      <section class="fade-in prologue">
-        <h1 tabIndex={-1} ref={h}>
-          私（{p.name}）、15歳
-        </h1>
-        <div class="review-grid">
-          <div class="panel">
-            <h2 style={{ marginTop: 0 }}>ここまでの私</h2>
-            <dl class="prologue-facts">
-              <dt>性自認</dt>
-              <dd>{GENDER_LABELS[p.gender]}</dd>
-              <dt>好きになる人</dt>
-              <dd>{ATTRACTION_LABELS[p.attractedTo]}</dd>
-              <dt>からだ</dt>
-              <dd>{p.body === 'canBePregnant' ? '月経がある' : '月経はない'}</dd>
-              <dt>家庭</dt>
-              <dd>{homeWords(p).join('、')}</dd>
-            </dl>
-            <p class="sub" style={{ marginBottom: 0 }}>
-              どれも、選んだことではありません。ランダムに決まりました（確率は遊びのための値で、現実の割合ではありません）。
-            </p>
-          </div>
-          <div class="panel">
-            <h2 style={{ marginTop: 0 }}>はじまりのパラメーター</h2>
-            <Hud params={run.params} onOpen={() => undefined} quiet />
-            {reasons.length > 0 && (
-              <ul class="plain prologue-reasons">
-                {reasons.map((r, i) => (
-                  <li key={i} class="reason f-upbringing">
-                    <strong class="num">
-                      {PARAM_LABELS[r.param]} {r.delta}
-                    </strong>{' '}
-                    {r.note}（{SOURCE_LABELS.upbringing}）
-                  </li>
-                ))}
-              </ul>
-            )}
-          </div>
-        </div>
-        <button type="button" class="btn primary" onClick={() => navigate('play')}>
-          16歳へ
-        </button>
-      </section>
-    );
-  }
-
-  // 舞台と人物の年齢は、そのページの年齢で描く
-  const at = { ...run, position: { ...run.position, age: page.age } };
-  const ctx = contextOf(content, at);
-  const lines: ShownLine[] = page.lines
-    .filter((l) => check(l.when, ctx))
-    .map((l) => ({
-      who: l.kind === 'inner' ? 'me' : 'narration',
-      name: l.kind === 'inner' ? `${p.name}（心の声）` : '',
-      kind: l.kind,
-      text: l.text.replace('%name%', p.name),
-    }));
-  const i = Math.min(lineIndex, lines.length - 1);
-  const atLast = i >= lines.length - 1;
-  const nextPage = () => {
-    setLineIndex(0);
-    setPageIndex(pageIndex + 1);
-  };
+  const params = paramsAt(content.characters[0]!.initial, story.slice(0, shown));
+  const stage = [...content.prologue.stages].reverse().find((s) => s.from <= age)?.stage;
+  const at = { ...run, position: { ...run.position, age } };
 
   return (
-    <section class="scene prologue" key={page.id}>
-      <p class="interlude-elapsed num">{page.age === 0 ? '0歳' : `${page.age}歳`}</p>
-      <h1 tabIndex={-1} ref={h} class="interlude-title">
-        {page.title}
+    <section class="fade-in prologue">
+      <h1 tabIndex={-1} ref={h} class="prologue-title">
+        {done ? `私（${p.name}）、15歳` : `私（${p.name}）の15年`}
       </h1>
       <div class="stage-sticky">
         <div class="stage-wrap">
-          <PixelStage spec={sceneSpec(content, at, page.stage)} label={`${p.name}、${page.age}歳`} animate={animate} />
+          <PixelStage spec={sceneSpec(content, at, stage)} label={`${p.name}、${age}歳`} animate={animate} />
         </div>
+        <StatusBar params={params} change={null} animate={animate} />
       </div>
-      <div class="chat-log" aria-live="polite">
-        {lines.slice(0, i + 1).map((l, k) => (
-          <ChatLine key={k} run={at} line={l} typing={false} typed={0} />
+
+      <ol class="life-log" aria-live="polite">
+        {story.slice(0, shown).map((e, i) => (
+          <li key={i} ref={i === shown - 1 ? endRef : undefined} class={e.effects.length ? 'has-effects' : ''}>
+            <span class="life-log-age num">{e.age}歳</span>
+            <div>
+              <p class={e.kind === 'inner' ? 'inner' : ''}>{e.text}</p>
+              {e.effects.map((x, k) => (
+                <p key={k} class="reason f-upbringing">
+                  <strong class="num">
+                    {PARAM_LABELS[x.param]} {x.delta > 0 ? `+${x.delta}` : x.delta}
+                  </strong>{' '}
+                  {x.note}（{SOURCE_LABELS.upbringing}）
+                </p>
+              ))}
+            </div>
+          </li>
         ))}
-        <div ref={endRef} />
-      </div>
-      <button type="button" class="next-tap" onClick={() => (atLast ? nextPage() : setLineIndex(i + 1))}>
-        ▼ 次へ
-      </button>
-      <div class="scene-tools">
-        <button type="button" class="tool" onClick={() => setPageIndex(pages.length)}>
-          15歳までとばす
-        </button>
-      </div>
+      </ol>
+
+      {done ? (
+        <>
+          <p class="sub">どれも、選んだことではありません。ランダムに決まりました（ひとり親になった理由の割合は統計に基づき、ほかは遊びのための値です）。</p>
+          <button type="button" class="btn primary" onClick={() => navigate('play')}>
+            16歳へ
+          </button>
+        </>
+      ) : (
+        <div class="scene-tools">
+          <button type="button" class="tool" onClick={() => setPaused(!paused)}>
+            {paused ? '再生する' : '一時停止'}
+          </button>
+          <button type="button" class="tool" onClick={() => setShown(story.length)}>
+            15歳までとばす
+          </button>
+        </div>
+      )}
     </section>
   );
+}
+
+function paramsAt(base: Params, entries: { effects: { param: keyof Params; delta: number }[] }[]): Params {
+  const out = { ...base };
+  for (const e of entries) for (const x of e.effects) out[x.param] += x.delta;
+  return out;
 }

@@ -64,7 +64,7 @@ export function createRun(content: Content, opts: NewRunOptions): RunState {
   for (const c of content.conditions) Object.assign(flags, c.options.find((o) => o.id === conditions[c.id])?.setFlags);
   const initial = initialOf(ch.initial, opts.profile);
   const state: RunState = {
-    version: 6,
+    version: 7,
     runId: opts.runId ?? newSeed().slice(0, 12),
     seed: opts.seed ?? newSeed(),
     protagonist: 'me',

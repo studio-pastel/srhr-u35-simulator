@@ -2,45 +2,41 @@
 # 物語の中に友だちとしては登場しない。
 - id: minami
   name: ナツキ
-  blurb: "女性。好きになるのは男性。家で、からだの話をしたことがない。"
+  blurb: "女性。好きになるのは男性。家では、からだのしんどさを我慢してきた。"
   gender: woman
   body: canBePregnant
   attractedTo: men
-  economy: middle
-  singleParent: false
+  familyStory: twoStable
+  familyAge: 8
+  bodyRespect: dismissed
   familyCare: false
-  witnessedDV: false
-  talkAboutSex: false
 - id: haruto
   name: ハル
   blurb: "男性。好きになるのは女性。親のあいだの暴力を見て育った。"
   gender: man
   body: cannot
   attractedTo: women
-  economy: middle
-  singleParent: false
+  familyStory: twoTense
+  familyAge: 8
+  bodyRespect: dismissed
   familyCare: false
-  witnessedDV: true
-  talkAboutSex: false
 - id: yu
   name: ユウ
   blurb: "女性。好きになるのは女性。自分をどう呼ぶかは、まだ決めていない。"
   gender: woman
   body: canBePregnant
   attractedTo: women
-  economy: middle
-  singleParent: false
+  familyStory: twoStable
+  familyAge: 8
+  bodyRespect: respected
   familyCare: false
-  witnessedDV: false
-  talkAboutSex: true
 - id: kei
   name: ケイ
-  blurb: "男性。好きになるのは女性。ひとり親の家庭で、弟と妹の世話をしている。"
+  blurb: "男性。好きになるのは女性。9歳で両親が離婚し、弟と妹の世話をしている。"
   gender: man
   body: cannot
   attractedTo: women
-  economy: hardship
-  singleParent: true
+  familyStory: divorceMoved
+  familyAge: 9
+  bodyRespect: dismissed
   familyCare: true
-  witnessedDV: false
-  talkAboutSex: false

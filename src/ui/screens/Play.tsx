@@ -427,7 +427,7 @@ function ChapterReview({ run, onNext }: { run: RunState; onNext: () => void }) {
   const isLast = sortedChapters(content).at(-1)?.age === age;
   const said = chosenLines(content, run, age);
   const highlights = chapterHighlights(run, age);
-  const psych = run.ledger.filter((e) => e.age === age && e.param === 'psychSafety').reduce((a, e) => a + e.delta, 0);
+  const psych = run.ledger.filter((e) => e.age === age && e.param === 'connection').reduce((a, e) => a + e.delta, 0);
   const face = psych < 0 ? ('sad' as const) : psych > 0 ? ('relieved' as const) : ('normal' as const);
   const stage = mainStage(content, run, age);
   const spec = sceneSpec(content, run, stage ? { ...stage, cast: stage.cast.map((c) => (c.id === 'self' ? { ...c, face } : c)) } : undefined);

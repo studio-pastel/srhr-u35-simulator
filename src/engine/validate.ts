@@ -1,7 +1,7 @@
 // コンテンツ検証（§12.1）。npm run validate、ビルド、テストで共有する。
 import { contentSchema, CHARACTER_IDS } from './schema';
 import type { Closeness, Content, GameEvent, Scene } from './schema';
-import { ATTRACTIONS, BODIES, GENDERS, PROFILE_KEYS, type Profile } from './profile';
+import { ATTRACTIONS, BODIES, economyOf, FAMILY_STORIES, GENDERS, PROFILE_KEYS, type Profile } from './profile';
 import type { RunState } from './types';
 import { collectComparisons, collectRefs, FlagExprError, parseFlagExpr } from './flags';
 import { countChars, TEXT_LIMITS } from './limits';
@@ -180,19 +180,26 @@ export function validateContent(raw: unknown, opts: ValidateOptions): ValidateRe
     }
   }
 
-  // ── 生まれてから15歳まで（付録B-45） ──
-  for (const page of content.prologue.pages) {
-    const w = `prologue/${page.id}`;
-    for (const c of page.stage.cast) {
-      if (!castIds.has(c.id)) errors.push(`${w}.stage：登場人物 ${c.id} が cast.yaml にありません`);
-      expr(`${w}.stage.cast.when`, c.when);
+  // ── 生まれてから15歳まで（付録B-45・B-47） ──
+  const pro = content.prologue;
+  pro.stages.forEach((x, i) => {
+    for (const c of x.stage.cast) {
+      if (!castIds.has(c.id)) errors.push(`prologue/stages[${i}]：登場人物 ${c.id} が cast.yaml にありません`);
+      expr(`prologue/stages[${i}].cast.when`, c.when);
     }
-    page.lines.forEach((l, i) => {
-      expr(`${w}.lines[${i}].when`, l.when);
-      textCheck(`${w}.lines[${i}]`, l.text);
-      const n = countChars(l.text.replace('%name%', 'ヒカル'));
-      if (n > TEXT_LIMITS.line) warnings.push(`${w}.lines[${i}]：吹き出しが ${n}字です（上限 ${TEXT_LIMITS.line}字）`);
-    });
+  });
+  if (pro.stages[0]?.from !== 0) errors.push('prologue/stages：0歳の舞台がありません');
+  const proLines: [string, { text: string; when?: string | undefined }][] = [
+    ...pro.entries.map((l, i) => [`prologue/entries[${i}]`, l] as [string, typeof l]),
+    ...Object.entries(pro.family).map(([k, text]) => [`prologue/family/${k}`, { text }] as [string, { text: string }]),
+    ...Object.entries(pro.bodyRespect).flatMap(([k, ls]) => ls.map((l, i) => [`prologue/bodyRespect/${k}[${i}]`, l] as [string, typeof l])),
+    ['prologue/care', { text: pro.care }],
+  ];
+  for (const [w, l] of proLines) {
+    expr(`${w}.when`, l.when);
+    textCheck(w, l.text);
+    const n = countChars(l.text.replace('%name%', 'ヒカル'));
+    if (n > TEXT_LIMITS.line * 2) warnings.push(`${w}：年表の1行が ${n}字です（上限 ${TEXT_LIMITS.line * 2}字）`);
   }
 
   // ── トップページ（付録B-46）：確かめた統計の数字だけを大きく出す ──
@@ -472,7 +479,7 @@ function flowKey(s: RunState, relevant: Set<string>): string {
   return JSON.stringify([s.position, f]);
 }
 
-/** 属性の全組み合わせ（家庭の条件は「すべてなし」と「すべてあり」の2通りで代表させる） */
+/** 属性の全組み合わせ（家族の歩みはすべて試す。きょうだいの世話とからだの感覚の尊重は、安定した家庭とそれ以外の2通りで代表させる） */
 export function sampleProfiles(content: Content): Profile[] {
   const look = content.cast.find((c) => c.id === 'me')?.look;
   if (!look) return [];
@@ -480,17 +487,16 @@ export function sampleProfiles(content: Content): Profile[] {
   for (const gender of GENDERS)
     for (const body of BODIES)
       for (const attractedTo of ATTRACTIONS)
-        for (const heavy of [false, true])
+        for (const heavy of FAMILY_STORIES)
           out.push({
             name: 'テスト',
             gender,
             body,
             attractedTo,
-            economy: heavy ? 'hardship' : 'middle',
-            singleParent: heavy,
-            familyCare: heavy,
-            witnessedDV: heavy,
-            talkAboutSex: !heavy,
+            familyStory: heavy,
+            familyAge: 8,
+            bodyRespect: heavy === 'twoStable' ? 'respected' : 'dismissed',
+            familyCare: heavy !== 'twoStable',
             look,
           });
   return out;
@@ -505,7 +511,7 @@ export function reachability(content: Content, errors: string[], limit = 500_000
   for (const profile of sampleProfiles(content)) {
     for (const conditions of conditionCombinations(content)) {
       const start = createRun(content, { profile, seed: '0'.repeat(32), conditions: conditions as Record<string, string> });
-      const label = `到達性：${profile.gender}/${profile.body}/${profile.attractedTo}/${profile.economy}（${JSON.stringify(conditions)}）`;
+      const label = `到達性：${profile.gender}/${profile.body}/${profile.attractedTo}/${economyOf(profile.familyStory)}/${profile.familyStory}（${JSON.stringify(conditions)}）`;
       const visited = new Set<string>();
       const stack: { s: RunState; path: string[] }[] = [{ s: start, path: [] }];
       let finished = false;

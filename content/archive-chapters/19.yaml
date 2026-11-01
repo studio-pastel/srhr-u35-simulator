@@ -43,7 +43,7 @@ events:
       - id: m-start
         viewpoint: minami
         effects:
-          - { param: psychSafety, sign: -1, size: M, source: others, statRef: S07, note: "束縛が続いている" }
+          - { param: connection, sign: -1, size: M, source: others, statRef: S07, note: "束縛が続いている" }
         lines:
           - { who: narration, text: "別々の大学に進んで、会えるのは週末だけになった。" }
           - { who: haruto, kind: message, text: "今日、誰といた？" }
@@ -79,8 +79,8 @@ events:
       - id: m-escalated
         viewpoint: minami
         effects:
-          - { param: psychSafety, sign: -1, size: L, source: others, statRef: S04, note: "交際相手からの暴力" }
-          - { param: safety, sign: -1, size: M, source: others, statRef: S04, note: "避妊に協力してもらえない" }
+          - { param: connection, sign: -1, size: L, source: others, statRef: S04, note: "交際相手からの暴力" }
+          - { param: living, sign: -1, size: M, source: others, statRef: S04, note: "避妊に協力してもらえない" }
         lines:
           - { who: narration, text: "予定を断った日から、ハルトの態度は、もっと強くなった。" }
           - { who: minami, kind: inner, text: "（避妊してって言っても、聞いてもらえない）", face: sad }
@@ -105,7 +105,7 @@ events:
             canonical: true
             effects:
               - { param: connection, sign: 1, size: S, source: choice, note: "相談窓口に連絡した" }
-              - { param: safety, sign: 1, size: S, source: society, when: "flags.knowsHelplines == true", note: "授業で相談先を知った" }
+              - { param: living, sign: 1, size: S, source: society, when: "flags.knowsHelplines == true", note: "授業で相談先を知った" }
             setFlags: { minamiResponse19: helpline }
             next: m-helpline
           - id: friend
@@ -123,8 +123,8 @@ events:
       - id: m-helpline
         viewpoint: minami
         effects:
-          - { param: psychSafety, sign: 1, size: M, source: others, note: "相談員が話を聞いた" }
-          - { param: safety, sign: 1, size: S, source: others, note: "安全の計画を考えた" }
+          - { param: connection, sign: 1, size: M, source: others, note: "相談員が話を聞いた" }
+          - { param: living, sign: 1, size: S, source: others, note: "安全の計画を考えた" }
         lines:
           - { who: counselor, text: "話してくれて、ありがとうございます。" }
           - { who: counselor, text: "あなたのせいではありません。" }
@@ -134,7 +134,7 @@ events:
       - id: m-friend
         viewpoint: minami
         effects:
-          - { param: psychSafety, sign: 1, size: S, source: others, note: "友人が受け止めた" }
+          - { param: connection, sign: 1, size: S, source: others, note: "友人が受け止めた" }
         lines:
           - { who: riko, kind: message, text: "話してくれて、よかった。" }
           - { who: riko, kind: message, text: "相談できるところ、いっしょに調べよう。" }
@@ -193,7 +193,7 @@ events:
         viewpoint: minami
         stage: { place: campus, time: day, cast: [{ id: minami, x: 30 }, { id: riko, x: 64 }] }
         effects:
-          - { param: psychSafety, sign: 1, size: S, source: others, note: "友人が受け止めた" }
+          - { param: connection, sign: 1, size: S, source: others, note: "友人が受け止めた" }
         lines:
           - { who: riko, text: "謝ってくれたからって、戻らなきゃいけないわけじゃないよ。" }
           - { who: minami, kind: inner, text: "（……うん。そうだよね）", face: relieved }
@@ -413,7 +413,7 @@ events:
         next: pharmacy
       - id: clinic
         effects:
-          - { param: options, sign: -1, size: S, source: society, statRef: S11, note: "受診しないと買えない" }
+          - { param: autonomy, sign: -1, size: S, source: society, statRef: S11, note: "受診しないと買えない" }
         lines:
           - { who: narration, text: "この頃は、受診して処方を受けないと買えなかった。" }
           - { who: kei, kind: inner, text: "（仕事を抜けて、開いている病院を探すしかない）" }
@@ -432,7 +432,7 @@ events:
         next: ec
       - id: cost
         effects:
-          - { param: options, sign: -1, size: S, source: upbringing, statRef: S11, note: "薬代7,480円の負担" }
+          - { param: autonomy, sign: -1, size: S, source: upbringing, statRef: S11, note: "薬代7,480円の負担" }
         lines:
           - { who: kei, kind: inner, text: "（7,480円。今月の家計には、小さくない）" }
           - { who: narration, text: "二人で出し合って払った。" }
@@ -473,7 +473,7 @@ events:
     scenes:
       - id: start
         effects:
-          - { param: psychSafety, sign: -1, size: S, source: upbringing, when: "up.comingOutAnxiety == true", note: "話した後の反応が不安" }
+          - { param: connection, sign: -1, size: S, source: upbringing, when: "up.comingOutAnxiety == true", note: "話した後の反応が不安" }
         lines:
           - { who: narration, text: "軽音サークルで、ひとつ上のアオイと話すようになった。" }
           - { who: aoi, text: "ユウもそのバンド好きなの？　あのアルバム、最高だよね。" }
@@ -553,7 +553,7 @@ events:
         closeness:
           - { who: aoi, delta: 1, note: "確かめてくれた" }
         effects:
-          - { param: psychSafety, sign: 1, size: S, source: others, note: "相手が確かめてくれた" }
+          - { param: connection, sign: 1, size: S, source: others, note: "相手が確かめてくれた" }
         lines:
           - { who: narration, text: "駅までの道が、いつもより短かった。" }
           - { who: yu, kind: inner, text: "（聞いてくれるの、うれしいな）", face: smile }
@@ -562,7 +562,7 @@ events:
         closeness:
           - { who: aoi, delta: 1, note: "受けとめてくれた" }
         effects:
-          - { param: psychSafety, sign: 1, size: S, source: others, note: "相手が受けとめた" }
+          - { param: connection, sign: 1, size: S, source: others, note: "相手が受けとめた" }
         lines:
           - { who: aoi, text: "わかった。言ってくれて、ありがとう。" }
           - { who: aoi, text: "ユウのペースでいいよ。" }

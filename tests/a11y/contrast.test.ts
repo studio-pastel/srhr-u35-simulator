@@ -48,7 +48,7 @@ const GRAPHICS: [string, string, number, string][] = [
   ['accent', 'surface', 3, '選択肢の枠・フォーカス'],
   ['accent', 'track', 3, 'ゲージ'],
   ['text', 'surface', 3, '要因分解の棒の輪郭'],
-  ...(['body', 'safety', 'psychSafety', 'options', 'connection', 'autonomy'] as const).map(
+  ...(['body', 'autonomy', 'connection', 'living'] as const).map(
     (p) => [`p-${p}`, 'surface', 3, `折れ線（${p}）`] as [string, string, number, string],
   ),
 ];

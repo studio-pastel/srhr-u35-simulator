@@ -1,5 +1,5 @@
 // 人との距離（付録B-9）。主人公から見た、近しい人との近さ（0〜3）を、顔と点で見せる。
-// 6つのパラメーターとは別のもの。数字は出さず、点の数だけで見せる。関係が終わった人は、点を消して「別れた」などと書く。
+// 4つのパラメーターとは別のもの。数字は出さず、点の数だけで見せる。関係が終わった人は、点を消して「別れた」などと書く。
 import { useApp } from '../app';
 import { check } from '../../engine/flags';
 import { contextOf, getCharacter } from '../../engine/progression';
