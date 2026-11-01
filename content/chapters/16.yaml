@@ -9,6 +9,7 @@
 #   - 選んだ言葉を、次の行でくり返さない
 #   - 話す人は、その場面の舞台にいること（メッセージを除く）
 #   - 心の声に教訓を書かない。大人に定型のお礼を言わせない
+#   - 性自認やセクシュアリティを断定しない。「どちらにも属さない」のような不在の表現を使わず、いまの感じ方と経験として書く（付録B-49）
 #
 # 文字数の上限（src/engine/limits.ts）
 #   吹き出し 40字／選択肢 30字／効果 note 20字（超えるとエラー）／要約 40字
@@ -113,8 +114,7 @@ events:
         closeness:
           - { who: riko, delta: 1, note: "否定しないでくれた" }
         lines:
-          - { who: riko, text: "あー、そういう人もいるよね。" }
-          - { who: riko, text: "じゃあ、購買の新しいパンの話しよ。", face: smile }
+          - { who: riko, text: "そっか。じゃあ、購買の新しいパンの話しよ。", face: smile }
           - { who: self, kind: inner, text: "（なんだ、そんな感じでいいのか）", face: relieved }
         next: END
 
@@ -133,11 +133,8 @@ events:
     scenes:
       - id: start
         lines:
-          - { who: narration, text: "体育の前。更衣室の入り口で、足が止まる。" }
-          - { who: self, kind: inner, text: "（男子更衣室に入るのが、つらい。でも、女子更衣室には入れない）", when: "up.gender == 'transWoman'", face: anxious }
-          - { who: self, kind: inner, text: "（女子更衣室に入るのが、つらい。でも、男子更衣室には入れない）", when: "up.gender == 'transMan'", face: anxious }
-          - { who: self, kind: inner, text: "（学校では女子だから、女子更衣室に入る。でも、自分は女子じゃない）", when: "up.gender == 'nonbinary' && up.body == 'canBePregnant'", face: anxious }
-          - { who: self, kind: inner, text: "（学校では男子だから、男子更衣室に入る。でも、自分は男子じゃない）", when: "up.gender == 'nonbinary' && up.body == 'cannot'", face: anxious }
+          - { who: narration, text: "体育の前。決められた更衣室の入り口で、足が止まる。" }
+          - { who: self, kind: inner, text: "（ここで着替えるたび、なんだか息が詰まる）", face: anxious }
           - { who: self, kind: inner, text: "（制服も、名簿の呼ばれ方も、毎日少しずつ疲れる）" }
           - { who: self, kind: inner, text: "（今日は、どうしよう）" }
         choices:
@@ -157,10 +154,7 @@ events:
         lines:
           - { who: self, text: "あの、体育の着替えのことなんですけど……。" }
           - { who: mori, text: "うん。どんなときが、いちばんしんどい？" }
-          - { who: self, text: "男子更衣室で着替えるのが、つらくて。", when: "up.gender == 'transWoman'" }
-          - { who: self, text: "女子更衣室で着替えるのが、つらくて。", when: "up.gender == 'transMan'" }
-          - { who: self, text: "女子更衣室で着替えるのが、つらくて。", when: "up.gender == 'nonbinary' && up.body == 'canBePregnant'" }
-          - { who: self, text: "男子更衣室で着替えるのが、つらくて。", when: "up.gender == 'nonbinary' && up.body == 'cannot'" }
+          - { who: self, text: "決められた更衣室で着替えるのが、しんどくて。" }
           - { who: mori, text: "そっか。ここで着替えることもできるよ。" }
           - { who: mori, text: "制服や呼ばれ方のことも、どうしたいか聞かせて。" }
           - { who: self, kind: inner, text: "（「どうしたいか」って、初めて聞かれた）", face: relieved }
@@ -248,7 +242,7 @@ events:
         lines:
           - { who: narration, text: "その夜、厚生労働省や自治体の資料を読み比べた。" }
           - { who: self, kind: inner, text: "（性的な経験がある女性の、半分以上が一度はかかるんだ……）" }
-          - { who: self, kind: inner, text: "（「女性の」と書いてある。でも、子宮があるのは自分も同じだ）", when: "up.gender != 'woman'" }
+          - { who: self, kind: inner, text: "（「女性の」と書いてある。自分のことだと思いにくい。でも、関係はある）", when: "up.gender != 'woman'" }
           - { who: self, kind: inner, text: "（ワクチンで、子宮頸がんの原因の50〜70%を防げるって書いてある）" }
         next: decide
       - id: decide

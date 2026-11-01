@@ -1,6 +1,7 @@
 # 0〜15歳の生い立ちの年表（付録B-45・B-47）。Claude Code の下書き。
 # 属性のラベルで減点せず、起きた出来事の積み重ねとして見せる。パラメーターの変化は src/engine/profile.ts の historyOf にある。
 # 性自認と好きになる人は、何年もかけて少しずつ気づいていく形で書く（ある日突然わかるものとして書かない）。
+# 断定しない。「どちらにも属さない」のような不在の表現を使わない。いまの感じ方として書き、変わることもある前提にする（付録B-49）。
 # %name% は主人公の名前に置きかわる。up.〇〇 の条件で文を出し分ける。
 status: draft
 stages:
@@ -58,8 +59,8 @@ entries:
   - { age: 12, text: "声が、少しずつ低くなってきた。", when: "up.body == 'cannot'" }
 
   # ── 性自認：女性・男性 ──
-  - { age: 14, kind: inner, text: "（自分が女の子だってこと、疑ったことがない。考えなくてもすんできた）", when: "up.gender == 'woman'" }
-  - { age: 14, kind: inner, text: "（自分が男の子だってこと、疑ったことがない。考えなくてもすんできた）", when: "up.gender == 'man'" }
+  - { age: 14, kind: inner, text: "（「女の子」と言われて、引っかかったことは特にない。いまのところ）", when: "up.gender == 'woman'" }
+  - { age: 14, kind: inner, text: "（「男の子」と言われて、引っかかったことは特にない。いまのところ）", when: "up.gender == 'man'" }
 
   # ── 性自認：トランスジェンダー女性 ──
   - { age: 5, text: "「男の子なんだから」と言われると、何かが引っかかった。理由はわからなかった。", when: "up.gender == 'transWoman'" }
@@ -67,7 +68,7 @@ entries:
   - { age: 12, kind: inner, text: "（声が変わっていくのが、怖い。止まってほしい）", when: "up.gender == 'transWoman' && up.body == 'cannot'" }
   - { age: 13, text: "夜中にスマホで調べて、「トランスジェンダー」という言葉を見つけた。すぐに画面を閉じた。", when: "up.gender == 'transWoman'" }
   - { age: 14, kind: inner, text: "（気のせいかもしれない。何度もそう思い直した。でも、何度も同じところに戻ってくる）", when: "up.gender == 'transWoman'" }
-  - { age: 15, kind: inner, text: "（たぶん、私は女の子なんだと思う。まだ誰にも言っていない）", when: "up.gender == 'transWoman'" }
+  - { age: 15, kind: inner, text: "（「女の子」のほうが、しっくりくる気がする。いまは。まだ誰にも言っていない）", when: "up.gender == 'transWoman'" }
 
   # ── 性自認：トランスジェンダー男性 ──
   - { age: 5, text: "「女の子なんだから」と言われると、何かが引っかかった。理由はわからなかった。", when: "up.gender == 'transMan'" }
@@ -75,22 +76,22 @@ entries:
   - { age: 12, kind: inner, text: "（月経が来た。自分のからだなのに、自分のことじゃないみたいだ）", when: "up.gender == 'transMan' && up.body == 'canBePregnant'" }
   - { age: 13, text: "夜中にスマホで調べて、「トランスジェンダー」という言葉を見つけた。すぐに画面を閉じた。", when: "up.gender == 'transMan'" }
   - { age: 14, kind: inner, text: "（気のせいかもしれない。何度もそう思い直した。でも、何度も同じところに戻ってくる）", when: "up.gender == 'transMan'" }
-  - { age: 15, kind: inner, text: "（たぶん、ぼくは男の子なんだと思う。まだ誰にも言っていない）", when: "up.gender == 'transMan'" }
+  - { age: 15, kind: inner, text: "（「男の子」のほうが、しっくりくる気がする。いまは。まだ誰にも言っていない）", when: "up.gender == 'transMan'" }
 
   # ── 性自認：ノンバイナリー ──
   - { age: 7, text: "男女に分かれて並ぶとき、自分がどちらの列にいるのか、ときどき確かめた。", when: "up.gender == 'nonbinary'" }
-  - { age: 11, text: "「女子は」「男子は」と言われるたび、どちらの話にも自分が入っていない気がした。", when: "up.gender == 'nonbinary'" }
-  - { age: 13, text: "どちらかに決められないのは、自分がおかしいからだろうか。誰にも聞けなかった。", when: "up.gender == 'nonbinary'" }
+  - { age: 11, text: "「女子は」「男子は」と言われるたび、少しだけ落ち着かなかった。", when: "up.gender == 'nonbinary'" }
+  - { age: 13, text: "「女子」も「男子」も、しっくりくる日とこない日がある。誰にも聞けなかった。", when: "up.gender == 'nonbinary'" }
   - { age: 14, text: "「ノンバイナリー」という言葉を知った。自分のことなのか、まだわからない。", when: "up.gender == 'nonbinary'" }
-  - { age: 15, kind: inner, text: "（男でも女でもない、でいいのかもしれない。いまは、そう思っている）", when: "up.gender == 'nonbinary'" }
+  - { age: 15, kind: inner, text: "（この言葉が合うのかは、まだわからない。いまは、急いで決めなくていい気がする）", when: "up.gender == 'nonbinary'" }
 
   # ── 好きになる人 ──
   - { age: 12, text: "気がつくと、同じクラスの男の子を目で追っていた。", when: "up.attractedTo == 'men'" }
   - { age: 12, text: "気がつくと、同じクラスの女の子を目で追っていた。", when: "up.attractedTo == 'women'" }
   - { age: 14, kind: inner, text: "（友だちには、言えないと思う）", when: "(up.attractedTo == 'men' && (up.gender == 'man' || up.gender == 'transMan')) || (up.attractedTo == 'women' && (up.gender == 'woman' || up.gender == 'transWoman'))" }
-  - { age: 13, text: "男の子を好きになったことも、女の子を好きになったこともある。相手の性別は、あまり関係ないみたいだ。", when: "up.attractedTo == 'any'" }
+  - { age: 13, text: "男の子を好きになったことも、女の子を好きになったこともある。相手の性別は、あまり関係ないのかもしれない。", when: "up.attractedTo == 'any'" }
   - { age: 12, text: "みんなが好きな人の話をしている。話を合わせるために、好きな人がいることにした。", when: "up.attractedTo == 'none'" }
-  - { age: 15, kind: inner, text: "（恋愛感情がない人もいると知った。自分もそうなのかもしれない）", when: "up.attractedTo == 'none'" }
+  - { age: 15, kind: inner, text: "（恋愛感情をあまり持たない人もいると知った。自分も近いのかもしれない）", when: "up.attractedTo == 'none'" }
   - { age: 13, text: "「好きな人いる？」と聞かれても、答えられなかった。", when: "up.attractedTo == 'unsure'" }
   - { age: 15, kind: inner, text: "（「好き」って何なのか、まだよくわからない）", when: "up.attractedTo == 'unsure'" }
 

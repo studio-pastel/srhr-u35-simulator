@@ -136,3 +136,11 @@ describe('セリフの決まり（付録B-48）', () => {
     for (const ev of events) expect(ev.trigger?.kind === 'chance').toBe(ev.kind === 'chance');
   });
 });
+
+describe('性のあり方の書き方（付録B-49）', () => {
+  it('不在を感じさせる表現や、性自認を言い切る表現を本文に使わない', () => {
+    const raw: any = rawContent();
+    const text = JSON.stringify([raw.prologue, raw.chapters]);
+    for (const word of ['どちらにも属さない', 'どっちでもない', '男でも女でもない', 'どちらの話にも', '自分は女子じゃない', '自分は男子じゃない']) expect(text).not.toContain(word);
+  });
+});
