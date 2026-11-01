@@ -3,7 +3,7 @@ import { describe, expect, it } from 'vitest';
 import { makeProfile, rawContent, realContent } from '../helpers';
 import { advanceScene, beginChapter, choose, createRun, currentScene, skipEvent, visibleChoices } from '../../src/engine/progression';
 import { validateContent } from '../../src/engine/validate';
-import { linesOf, sceneSpec, stageOf } from '../../src/ui/stage';
+import { linesOf, sceneSpec, stageOf, fillText, relationOf } from '../../src/ui/stage';
 import type { Profile } from '../../src/engine/profile';
 import type { RunState } from '../../src/engine/types';
 
@@ -85,6 +85,16 @@ describe('吹き出しと舞台の組み立て', () => {
     expect(sceneSpec(real, s, stage as never).actors).toHaveLength(1);
     s.flags.partnerId = 'sou';
     expect(sceneSpec(real, s, stage as never).actors[1]!.look).toEqual(real.cast.find((c) => c.id === 'sou')!.look);
+  });
+
+  it('%partner% は名前になり、付き合うと関係の表示が変わる（付録B-48）', () => {
+    const s = createRun(real, { profile: makeProfile(), seed: SEED });
+    s.flags.partnerId = 'saki';
+    expect(fillText(real, s, '%partner%の家')).toBe('サキの家');
+    expect(relationOf(real, s, 'saki')).toBe('クラスメイト');
+    s.flags.dating = true;
+    expect(relationOf(real, s, 'saki')).toBe('付き合っている人');
+    expect(relationOf(real, s, 'riko')).toBe('友だち');
   });
 
   it('属性に合う吹き出しだけが出る', () => {

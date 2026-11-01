@@ -2,6 +2,7 @@
 import type { Content, Stage } from '../engine/schema';
 import type { RunState } from '../engine/types';
 import { getChapter } from '../engine/progression';
+import { fillText } from './stage';
 
 /** その章で、主人公が選んだセリフや行動（選択肢のラベル） */
 export function chosenLines(content: Content, run: RunState, age: number): string[] {
@@ -13,7 +14,7 @@ export function chosenLines(content: Content, run: RunState, age: number): strin
       if (!sc.choices?.length) continue;
       const picked = run.choices[`${ev.id}/${sc.id}`];
       const c = sc.choices.find((x) => x.id === picked);
-      if (c) out.push(c.label);
+      if (c) out.push(fillText(content, run, c.label));
     }
   }
   return out;

@@ -3,164 +3,60 @@
 # 主人公は1人（付録B-43）。who: partner はこの周回のパートナー（16歳で決まる）。
 # flags.pregnancyPossible は、属性とパートナーから自動で決まる。
 #
-# 性交渉の場面（付録B-30）：行為は描かず、会話と暗転で描く。するか・しないかに負の効果を付けない。
-# 同意は、決まった言葉の手続きではなく、互いの様子を気にかけ合うこととして描く。
+# 性の話（付録B-30・B-48）：17歳の登場人物なので、性行為に向かう流れや暗転は書かず、話し合いの場面として閉じる。
+# したいか・したくないかに負の効果を付けない。同意は、決まった言葉の手続きではなく、互いの様子を気にかけ合うこととして描く。
 # 性暴力（付録B-43）：性別や性的指向にかかわらず起こり得る前提で、統計の確率で起こす。行為は描かない（P4）。
 age: 17
 title: "17歳"
-season: "高校2年・夏"
+season: "高校2年"
 status: draft
 intro:
-  me: "高校2年の夏。進路の話が、少しずつ現実になってきた。"
+  me: "高校2年。進路の話が、少しずつ現実になってきた。"
 events:
-  # ───────── パートナーがいる場合：するかどうか ─────────
-  - id: E17-TALK
+  # ───────── 好きな人がいる場合：付き合うかどうか ─────────
+  - id: E17-ASKOUT
     age: 17
     characters: [me]
     kind: fixed
-    domains: [同意, 避妊の知識, STIの知識]
+    trigger: { kind: profile, text: "好きになる人から起きた" }
+    domains: [関係性]
     requires: "flags.partnerId == 'sou' || flags.partnerId == 'saki'"
-    statCard: [S32, S34]
-    stage: { place: bedroom, time: dusk, cast: [{ id: self, x: 28 }, { id: partner, x: 62 }] }
-    summary: "付き合い始めた相手と、するかどうかを話した。"
+    stage: { place: gate, time: dusk, cast: [{ id: self, x: 28 }, { id: partner, x: 62 }] }
+    summary: "クラスメイトに、付き合ってほしいと言われた。"
     status: draft
     scenes:
       - id: start
+        lines:
+          - { who: narration, text: "高校2年の春。%partner%とは、去年からずっと同じクラスだ。" }
+          - { who: narration, text: "放課後、校門のところで呼び止められた。" }
+          - { who: partner, text: "あのさ。ずっと言おうと思ってたんだけど。" }
+          - { who: partner, text: "付き合ってほしい。……どうかな。" }
+        choices:
+          - id: yes
+            label: "「うん。付き合おう」"
+            canonical: true
+            neutral: true
+            setFlags: { dating: true }
+            next: yes
+          - id: no
+            label: "「ごめん。友だちのままでいたい」"
+            neutral: true
+            next: no
+      - id: yes
         closeness:
           - { who: sou, delta: 1, note: "付き合い始めた", when: "flags.partnerId == 'sou'" }
           - { who: saki, delta: 1, note: "付き合い始めた", when: "flags.partnerId == 'saki'" }
         lines:
-          - { who: narration, text: "付き合って、1か月。今日は、相手の家に来ている。" }
-          - { who: partner, text: "今日、親、夜まで帰ってこないんだ。" }
-          - { who: self, kind: inner, text: "（……それって、そういうこと？）", face: anxious }
-          - { who: narration, text: "映画が終わって、少し静かになった。" }
-        choices:
-          - id: wait
-            label: "相手が何か言うのを、待つ"
-            canonical: true
-            next: asked
-          - id: askFirst
-            label: "「……したいなって、思ってて」と自分から言う"
-            next: selfAsk
-      # ── 相手から聞かれる ──
-      - id: asked
-        lines:
-          - { who: partner, text: "……あのさ。したいなって、思ってて。" }
-          - { who: partner, text: "でも、どう思ってるか、聞きたい。" }
-          - { who: self, kind: inner, text: "（したいかどうかは、自分で決めていい）" }
-          - { who: self, kind: inner, text: "（家でも、自分のからだの感じ方は、そのまま聞いてもらえてきた）", when: "up.bodyRespect == 'respected'" }
-          - { who: self, kind: inner, text: "（嫌だって言っても、大げさだと思われるかな）", when: "up.bodyRespect == 'dismissed'", face: anxious }
-          - { who: self, kind: inner, text: "（いまそう思っても、あとで気持ちが変わってもいい）", when: "flags.knowsConsent == true" }
-          - { who: self, kind: inner, text: "（こういうとき、どうするのが「ふつう」なんだろう）", when: "flags.knowsConsent == false", face: anxious }
-        choices:
-          - id: notYet
-            label: "「まだ、したくない」"
-            canonical: true
-            neutral: true
-            effects:
-              - { param: autonomy, sign: 1, size: M, source: choice, note: "気持ちを言えた" }
-            next: notYet
-          - id: talk
-            label: "「うん。でも、その前にちゃんと話したい」"
-            neutral: true
-            effects:
-              - { param: autonomy, sign: 1, size: M, source: choice, note: "話し合おうと言えた" }
-              - { param: connection, sign: 1, size: S, source: choice, note: "安心して話せた" }
-            next: talk
-          - id: silent
-            label: "何も言えない"
-            effects:
-              - { param: autonomy, sign: -1, size: S, source: society, statRef: S06, when: "cond.sexEducation == 'notTaught'", note: "学ぶ機会がなかった" }
-            next: silent
-      - id: notYet
-        effects:
-          - { param: connection, sign: 1, size: S, source: others, note: "相手が受けとめた" }
-        lines:
-          - { who: self, text: "……まだ、したくない。" }
-          - { who: partner, text: "わかった。言ってくれて、ありがとう。" }
-          - { who: self, kind: inner, text: "（……ちゃんと、聞いてくれた）", face: relieved }
-          - { who: narration, text: "そのあとは、お菓子を分けながら、もう1本映画を見た。" }
-          - { who: self, kind: inner, text: "（手をつないでるだけで、なんだか、うれしい）", face: smile }
+          - { who: partner, text: "よかった……。断られると思ってた。", face: relieved }
+          - { who: narration, text: "こうして、%partner%と付き合うことになった。" }
+          - { who: narration, text: "週末に映画を見たり、テスト前に一緒に勉強したり。" }
+          - { who: self, kind: inner, text: "（なんでもない話を、ずっとしていられる）", face: smile }
         next: END
-      - id: talk
-        effects:
-          - { param: connection, sign: 1, size: S, source: others, note: "相手が確かめてくれた" }
+      - id: no
         lines:
-          - { who: self, text: "うん。でも、その前にちゃんと話したい。" }
-          - { who: self, text: "避妊のこと、どうしようか。", when: "flags.pregnancyPossible == true" }
-          - { who: partner, text: "コンドーム、ある。……実は、使い方も調べた。", when: "flags.pregnancyPossible == true" }
-          - { who: self, text: "性感染症のこととか、ちゃんとしたくて。", when: "flags.pregnancyPossible == false" }
-          - { who: partner, text: "うん。コンドーム、ある。……実は、調べた。", when: "flags.pregnancyPossible == false" }
-          - { who: self, text: "ふふ。……なんか、緊張するね。" }
-          - { who: partner, text: "うん。いやだなって思ったら、すぐ言ってね。" }
-          - { who: narration, kind: fade, text: "――" }
-          - { who: narration, text: "帰り道。夕焼けが、まだ少し残っていた。" }
-          - { who: self, kind: inner, text: "（ちょっと緊張したけど、ちゃんと話せてよかった）" }
-          - { who: self, kind: inner, text: "（……前より、近くなった気がする）", face: smile }
-        next: END
-      - id: silent
-        effects:
-          - { param: connection, sign: 1, size: S, source: others, note: "相手が確かめてくれた" }
-        lines:
-          - { who: narration, text: "何も言えないまま、時間が過ぎる。" }
-          - { who: partner, text: "……迷ってる？" }
-          - { who: partner, text: "無理しなくていいよ。今日は、やめとこっか。" }
-          - { who: self, kind: inner, text: "（……顔に出てたのかな。ちゃんと見てくれてた）" }
-          - { who: self, kind: inner, text: "（次は、自分の言葉で言ってみたい）", face: relieved }
-        next: END
-      # ── 自分から聞く ──
-      - id: selfAsk
-        lines:
-          - { who: self, text: "……したいなって、思ってて。どう思う？" }
-          - { who: partner, text: "……まだ、したくない。", face: anxious }
-          - { who: self, kind: inner, text: "（……そっか）" }
-        choices:
-          - id: accept
-            label: "「わかった。言ってくれて、ありがとう」"
-            canonical: true
-            effects:
-              - { param: connection, sign: 1, size: M, source: choice, note: "気持ちを受けとめた" }
-            next: accept
-          - id: press
-            label: "「なんで？　ちょっとだけでも」"
-            effects:
-              - { param: connection, sign: -1, size: M, source: choice, note: "相手を追いつめた" }
-            next: press
-      - id: accept
-        lines:
-          - { who: partner, text: "……ちゃんと聞いてくれて、うれしい。", face: smile }
-          - { who: narration, text: "そのあとは、お菓子を分けながら、もう1本映画を見た。" }
-          - { who: self, kind: inner, text: "（しなくても、いっしょにいるだけで楽しい）", face: smile }
-        next: END
-      - id: press
-        lines:
-          - { who: partner, text: "ごめん。今日は、帰るね。", face: anxious }
-          - { who: narration, text: "玄関のドアが閉まる音が、やけに大きく聞こえた。" }
-          - { who: self, kind: inner, text: "（……いま、何をしようとしてた？）", face: sad }
-        # 押し切ろうとした側にも、学び直す選択肢を置く（付録B-30、§11-4）
-        choices:
-          - id: apologize
-            label: "謝って、話を聞く"
-            canonical: true
-            effects:
-              - { param: autonomy, sign: 1, size: M, source: choice, note: "自分の行動を見直した" }
-            next: apologize
-          - id: blame
-            label: "「はっきりしない相手が悪い」"
-            effects:
-              - { param: connection, sign: -1, size: S, source: choice, note: "関係がぎくしゃくした" }
-            next: blame
-      - id: apologize
-        lines:
-          - { who: self, kind: message, text: "さっきはごめん。嫌って言ってくれたのに、聞かなかった。" }
-          - { who: partner, kind: message, text: "……うん。次は、ちゃんと聞いてほしい。" }
-          - { who: self, kind: inner, text: "（「いや」は、説得するものじゃない）" }
-        next: END
-      - id: blame
-        lines:
-          - { who: self, kind: inner, text: "（……はっきりしないのが悪い）" }
-          - { who: narration, text: "その夜、相手からのメッセージは来なかった。" }
-          - { who: narration, text: "相手の「いや」を受けとめる方法は、あとからでも学べる。" }
+          - { who: partner, text: "そっか。……うん、わかった。", face: sad }
+          - { who: partner, text: "じゃあ、また明日。" }
+          - { who: self, kind: inner, text: "（明日、いつも通りに話せるかな）" }
         next: END
 
   # ───────── 誰にでも：進路（格差の場面。付録B-43） ─────────
@@ -168,37 +64,41 @@ events:
     age: 17
     characters: [me]
     kind: fixed
+    trigger: { kind: story, text: "誰にでも起きる（内容は性別で変わる）" }
     domains: [ジェンダー格差, 社会経済]
     statCard: [S43, S45]
     stage: { place: classroom, time: dusk, cast: [{ id: self, x: 30 }, { id: tamura, x: 64 }] }
-    summary: "進路面談で、先生に思いがけないことを言われた。"
+    summary: "進路面談で、担任に思いがけないことを言われた。"
     status: draft
     scenes:
       - id: start
         effects:
-          - { param: autonomy, sign: -1, size: S, source: society, statRef: S43, when: "up.gender == 'woman' || up.gender == 'transWoman'", note: "性別で期待が変わる" }
+          - { param: autonomy, sign: -1, size: S, source: society, statRef: S43, when: "up.gender == 'woman' || up.gender == 'transWoman' || up.gender == 'transMan'", note: "性別で期待が変わる" }
         lines:
-          - { who: narration, text: "放課後の進路面談。行きたい学部のことを話した。" }
-          - { who: tamura, text: "女の子なんだし、そんなに頑張らなくても、近くの短大でいいんじゃないか。", when: "up.gender == 'woman' || up.gender == 'transWoman'" }
-          - { who: tamura, text: "男なら、ちゃんと稼げるところに行かないとな。", when: "up.gender == 'man' || up.gender == 'transMan'" }
-          - { who: tamura, text: "願書の性別欄のことは……まあ、そのとき考えよう。", when: "up.gender == 'nonbinary'" }
+          - { who: narration, text: "放課後の進路面談。担任に、行きたい学部のことを話した。" }
+          # 先生には本人の性自認が伝わっていない。出生時の性別で見て話している
+          - { who: tamura, text: "女の子なんだし、そんなに頑張らなくても、近くの短大でいいんじゃないか。", when: "up.gender == 'woman' || up.gender == 'transMan'" }
+          - { who: tamura, text: "男なら、ちゃんと稼げるところに行かないとな。その学部でいいのか？", when: "up.gender == 'man' || up.gender == 'transWoman'" }
+          - { who: tamura, text: "その学部、願書の性別欄は男か女かだぞ。それでも受けるのか？", when: "up.gender == 'nonbinary'" }
+          - { who: self, kind: inner, text: "（「女の子」か。先生には、そう見えている）", when: "up.gender == 'transMan'" }
+          - { who: self, kind: inner, text: "（「男なら」か。先生には、そう見えている）", when: "up.gender == 'transWoman'" }
           - { who: self, kind: inner, text: "（……自分の話を、聞いてくれてない気がする）", face: anxious }
           - { who: self, kind: inner, text: "（それに、うちの家計で、学費はどうするんだろう）", when: "up.economy == 'hardship'" }
         choices:
           - id: say
-            label: "「自分で考えて、決めたいです」"
+            label: "「それでも、この学部を受けたいです」"
             canonical: true
             effects:
               - { param: autonomy, sign: 1, size: M, source: choice, note: "進路を自分で考えた" }
             next: say
           - id: follow
-            label: "「……そうですね」"
+            label: "「……そうですね。考え直します」"
             effects:
               - { param: autonomy, sign: -1, size: S, source: choice, note: "言われた進路に寄せた" }
             next: follow
       - id: say
         lines:
-          - { who: tamura, text: "……そうか。悪かった。資料、探してみるよ。" }
+          - { who: tamura, text: "……そうか。わかった。入試の資料、探しておくよ。" }
           - { who: self, kind: inner, text: "（言ってみるものだな）", face: relieved }
         branches:
           - when: "up.economy == 'hardship'"
@@ -213,7 +113,8 @@ events:
         next: END
       - id: scholarship
         lines:
-          - { who: tamura, text: "奨学金や授業料の減免もある。お金のことも、一緒に調べよう。" }
+          - { who: self, text: "あの……うち、学費が厳しいと思うんです。" }
+          - { who: tamura, text: "そうか。奨学金や授業料の減免もある。一緒に調べよう。" }
         next: END
 
   # ───────── 誰にでも：お金（くらし。付録B-43） ─────────
@@ -221,6 +122,7 @@ events:
     age: 17
     characters: [me]
     kind: fixed
+    trigger: { kind: story, text: "誰にでも起きる（内容は家計で変わる）" }
     domains: [くらし, 社会経済]
     statCard: [S22]
     stage: { place: gate, time: dusk, cast: [{ id: self, x: 30 }, { id: riko, x: 64 }] }
@@ -229,7 +131,8 @@ events:
     scenes:
       - id: start
         lines:
-          - { who: riko, text: "夏休み、みんなで海に行かない？　泊まりで！", face: smile }
+          - { who: narration, text: "夏休みの少し前。" }
+          - { who: riko, text: "ねえ、夏休み、みんなで海に行かない？　泊まりで！", face: smile }
         branches:
           - when: "up.economy == 'hardship'"
             next: hard
@@ -246,19 +149,19 @@ events:
               - { param: living, sign: -1, size: S, source: choice, note: "バイト代を使った" }
             next: went
           - id: save
-            label: "「今回はやめて、貯めておく」"
+            label: "「今回はやめとく。貯めときたくて」"
             effects:
               - { param: living, sign: 1, size: S, source: choice, note: "お金を貯めた" }
             next: saved
       - id: hard
-        effects:
-          - { param: connection, sign: -1, size: S, source: upbringing, statRef: S22, note: "お金で誘いを断る" }
         lines:
           - { who: self, kind: inner, text: "（交通費と宿代……。家に言い出せる金額じゃない）", face: sad }
         choices:
           - id: decline
             label: "「ごめん、その日、用事があって」"
             canonical: true
+            effects:
+              - { param: connection, sign: -1, size: S, source: upbringing, statRef: S22, note: "お金で誘いを断る" }
             next: declined
           - id: tell
             label: "「実は、お金がなくて」"
@@ -273,6 +176,7 @@ events:
         next: END
       - id: saved
         lines:
+          - { who: riko, text: "そっか。じゃあ、写真いっぱい送るね。" }
           - { who: self, kind: inner, text: "（写真が回ってくると、ちょっとうらやましい）" }
         next: END
       - id: declined
@@ -293,6 +197,7 @@ events:
     age: 17
     characters: [me]
     kind: fixed
+    trigger: { kind: story, text: "誰にでも起きる" }
     domains: [オンラインの性的被害]
     statCard: [S08]
     resources: [violence]
@@ -304,20 +209,21 @@ events:
         effects:
           - { param: connection, sign: -1, size: M, source: others, statRef: S08, note: "性的な画像を求められた" }
         lines:
-          - { who: narration, text: "好きなバンドの話で、毎晩のように盛り上がっている相手がいる。" }
+          - { who: narration, text: "好きなバンドのファン同士で、SNSでつながった人がいる。" }
+          - { who: narration, text: "会ったことはないけれど、毎晩のように話している。" }
           - { who: netFriend, kind: message, text: "新曲やばかったね！" }
           - { who: self, kind: message, text: "わかる、2番のとこ泣いた" }
           - { who: netFriend, kind: message, text: "ねえ、写真送ってよ。顔じゃないやつ。" }
           - { who: self, kind: inner, text: "（……え？）", face: anxious }
         choices:
           - id: refuse
-            label: "「それは送らない」"
+            label: "「それは送らない」と返す"
             canonical: true
             effects:
               - { param: autonomy, sign: 1, size: M, source: choice, note: "自分で断った" }
             next: refuse
           - id: record
-            label: "画面を保存して、相談する"
+            label: "画面を保存して、保健室で相談する"
             effects:
               - { param: autonomy, sign: 1, size: M, source: choice, note: "記録して相談した" }
               - { param: connection, sign: 1, size: S, source: choice, note: "一人で抱えなかった" }
@@ -327,8 +233,7 @@ events:
             next: send
       - id: refuse
         lines:
-          - { who: self, kind: message, text: "それは送らない。" }
-          - { who: narration, text: "相手からの返信は、それきり来なくなった。" }
+          - { who: narration, text: "返信は、それきり来なくなった。" }
           - { who: self, kind: inner, text: "（画面を閉じても、少し手がふるえてる）" }
         next: END
       - id: record
@@ -337,14 +242,152 @@ events:
           - { param: connection, sign: 1, size: S, source: others, note: "保健室で受け止められた" }
         lines:
           - { who: narration, text: "画面を保存して、相手をブロックした。次の日、保健室へ。" }
-          - { who: mori, text: "見せてくれてありがとう。あなたは、何も悪くないよ。" }
+          - { who: self, text: "SNSで、こんなのが来て……。" }
+          - { who: mori, text: "嫌な思いをしたね。保存しておいてくれて、助かるよ。" }
           - { who: self, kind: inner, text: "（……来て、よかった）", face: relieved }
         next: END
       - id: send
         lines:
           - { who: narration, text: "送ったあと、胸がざわざわして眠れない。" }
           - { who: self, kind: inner, text: "（どうしよう。消してもらえるのかな）", face: sad }
-          - { who: narration, text: "送ったあとからでも、相談できる場所がある。" }
+          - { who: narration, text: "送ってしまったあとでも、相談できる場所がある。" }
+        next: END
+
+  # ───────── 付き合っている場合：その話をする（半年たってから） ─────────
+  - id: E17-TALK
+    age: 17
+    characters: [me]
+    kind: fixed
+    trigger: { kind: choice, text: "付き合うと決めた続き" }
+    domains: [同意, 避妊の知識, STIの知識]
+    requires: "flags.dating == true"
+    statCard: [S32, S34]
+    stage: { place: station, time: dusk, cast: [{ id: self, x: 28 }, { id: partner, x: 62 }] }
+    summary: "付き合って半年の人と、性のことを話した。"
+    status: draft
+    scenes:
+      - id: start
+        lines:
+          - { who: narration, text: "秋。%partner%と付き合って、半年になる。" }
+          - { who: narration, text: "学校の帰り、駅のベンチで電車を一本見送った。" }
+          - { who: partner, text: "クラスのやつらがさ、「もうしたの？」とか聞いてくるんだよね。" }
+          - { who: self, kind: inner, text: "（……その話か）", face: anxious }
+        choices:
+          - id: wait
+            label: "黙って、続きを聞く"
+            canonical: true
+            next: asked
+          - id: askFirst
+            label: "「……そういうこと、考えたりする？」"
+            next: selfAsk
+      # ── 相手から聞かれる ──
+      - id: asked
+        lines:
+          - { who: partner, text: "いつかは、って思ってる。でも、どう思ってるか聞きたくて。" }
+          - { who: self, kind: inner, text: "（しんどいときは、しんどいと言っていい家だった。ここでも言えるかな）", when: "up.bodyRespect == 'respected'" }
+          - { who: self, kind: inner, text: "（嫌だって言ったら、大げさだと思われるかな）", when: "up.bodyRespect == 'dismissed'", face: anxious }
+          - { who: self, kind: inner, text: "（自分がどうしたいのか、すぐに言葉が出てこない）", when: "up.bodyRespect == 'managed'", face: anxious }
+          - { who: self, kind: inner, text: "（保健の授業で、気持ちはあとから変わってもいいって聞いた）", when: "flags.knowsConsent == true" }
+          - { who: self, kind: inner, text: "（こういうとき、どうするのが「ふつう」なんだろう）", when: "flags.knowsConsent == false", face: anxious }
+        choices:
+          - id: notYet
+            label: "「まだ、したくない」"
+            canonical: true
+            neutral: true
+            effects:
+              - { param: autonomy, sign: 1, size: M, source: choice, note: "気持ちを言えた" }
+            next: notYet
+          - id: talk
+            label: "「いつかはね。でも、その前にちゃんと話したい」"
+            neutral: true
+            effects:
+              - { param: autonomy, sign: 1, size: M, source: choice, note: "話し合おうと言えた" }
+              - { param: connection, sign: 1, size: S, source: choice, note: "安心して話せた" }
+            next: talk
+          - id: silent
+            label: "何も言えない"
+            effects:
+              - { param: autonomy, sign: -1, size: S, source: society, statRef: S06, when: "cond.sexEducation == 'notTaught'", note: "学ぶ機会がなかった" }
+            next: silent
+      - id: notYet
+        effects:
+          - { param: connection, sign: 1, size: S, source: others, note: "相手が受けとめた" }
+        lines:
+          - { who: partner, text: "わかった。話せてよかった。", face: smile }
+          - { who: self, kind: inner, text: "（……ちゃんと、聞いてくれた）", face: relieved }
+          - { who: narration, text: "次の電車が来るまで、週末に見る映画の話をした。" }
+        next: END
+      - id: talk
+        effects:
+          - { param: connection, sign: 1, size: S, source: others, note: "相手が確かめてくれた" }
+        lines:
+          - { who: self, text: "避妊のこととか、ちゃんと調べたことある？", when: "flags.pregnancyPossible == true" }
+          - { who: self, text: "性感染症のこととか、ちゃんと調べたことある？", when: "flags.pregnancyPossible == false" }
+          - { who: partner, text: "実は、ちょっとだけ。ちゃんと知りたいと思ってた。" }
+          - { who: partner, text: "どっちかが嫌になったら、すぐ言うことにしよう。" }
+          - { who: narration, text: "その日は、話すだけで夕方が終わった。" }
+          - { who: self, kind: inner, text: "（……前より、近くなった気がする）", face: smile }
+        next: END
+      - id: silent
+        effects:
+          - { param: connection, sign: 1, size: S, source: others, note: "相手が確かめてくれた" }
+        lines:
+          - { who: narration, text: "何も言えないまま、電車が一本、通り過ぎた。" }
+          - { who: partner, text: "……急に変なこと言って、ごめん。答えなくていいよ。" }
+          - { who: self, kind: inner, text: "（……顔に出てたのかな）" }
+          - { who: self, kind: inner, text: "（ほっとした。でも、言えなかったのが少しくやしい）", face: relieved }
+        next: END
+      # ── 自分から聞く ──
+      - id: selfAsk
+        lines:
+          - { who: partner, text: "……正直、まだ考えられない。", face: anxious }
+          - { who: self, kind: inner, text: "（……そっか）" }
+        choices:
+          - id: accept
+            label: "「わかった。聞けてよかった」"
+            canonical: true
+            effects:
+              - { param: connection, sign: 1, size: M, source: choice, note: "気持ちを受けとめた" }
+            next: accept
+          - id: press
+            label: "「なんで？　付き合ってるのに」"
+            effects:
+              - { param: connection, sign: -1, size: M, source: choice, note: "相手を追いつめた" }
+            next: press
+      - id: accept
+        lines:
+          - { who: partner, text: "……ちゃんと聞いてくれて、うれしい。", face: smile }
+          - { who: narration, text: "次の電車が来るまで、週末に見る映画の話をした。" }
+          - { who: self, kind: inner, text: "（こうやって話してるだけで、けっこう楽しい）", face: smile }
+        next: END
+      - id: press
+        lines:
+          - { who: partner, text: "ごめん。今日は、先に帰るね。", face: anxious }
+          - { who: narration, text: "ひとりでホームに残された。電車の音が、やけに大きい。" }
+          - { who: self, kind: inner, text: "（……いま、何を言った？）", face: sad }
+        # 押し切ろうとした側にも、学び直す選択肢を置く（付録B-30、§11-4）
+        choices:
+          - id: apologize
+            label: "メッセージで謝る"
+            canonical: true
+            effects:
+              - { param: autonomy, sign: 1, size: M, source: choice, note: "自分の行動を見直した" }
+            next: apologize
+          - id: blame
+            label: "（はっきりしないほうが悪い）"
+            effects:
+              - { param: connection, sign: -1, size: S, source: choice, note: "関係がぎくしゃくした" }
+            next: blame
+      - id: apologize
+        lines:
+          - { who: self, kind: message, text: "さっきはごめん。まだって言ってくれたのに、聞かなかった。" }
+          - { who: partner, kind: message, text: "……うん。次は、ちゃんと聞いてほしい。" }
+          - { who: self, kind: inner, text: "（返事が来ただけで、少しほっとした）" }
+        next: END
+      - id: blame
+        lines:
+          - { who: narration, text: "その夜、%partner%からのメッセージは来なかった。" }
+          - { who: self, kind: inner, text: "（……こっちから送る気にも、なれない）" }
         next: END
 
   # ───────── 誰にでも：自分で選べない出来事（こころ。付録B-43） ─────────
@@ -352,15 +395,16 @@ events:
     age: 17
     characters: [me]
     kind: chance
+    trigger: { kind: chance, text: "統計の確率で決まる" }
     domains: [メンタルヘルス, 選べない出来事]
     statCard: [S54, S57]
     stage: { place: bedroom, time: day, cast: [{ id: self, x: 34 }] }
-    summary: "秋になった。朝、起きるのがつらい日があった。"
+    summary: "秋が深まるころ、心の不調が起きることがある。"
     status: draft
     scenes:
       - id: start
         lines:
-          - { who: narration, text: "夏が終わり、秋になった。" }
+          - { who: narration, text: "秋が深まってきた。" }
         chance:
           id: CH-MIND
           label: "この1年のあいだに、うつ病を経験する確率"
@@ -380,7 +424,7 @@ events:
             notHappens: { next: fine }
       - id: fine
         lines:
-          - { who: self, kind: inner, text: "（今日も、なんとか起きられた）" }
+          - { who: narration, text: "この年は、起きなかった。いつもの朝が続いた。" }
         next: END
       - id: happened
         lines:
@@ -391,7 +435,7 @@ events:
           - { who: narration, text: "誰にでも起こり得ることで、あなたのせいではない。" }
         choices:
           - id: clinic
-            label: "保健室で話して、病院につないでもらう"
+            label: "保健室に行って、森先生に話す"
             canonical: true
             effects:
               - { param: body, sign: 1, size: S, source: choice, note: "受診した" }
@@ -401,9 +445,12 @@ events:
             label: "誰にも言わず、やり過ごす"
             next: alone
       - id: helped
+        stage: { place: nurse, time: day, cast: [{ id: self, x: 30, face: sad }, { id: mori, x: 64 }] }
         lines:
-          - { who: mori, text: "よく来たね。休むことも、治療のうちだよ。" }
+          - { who: self, text: "朝、起きられなくて。何もする気が起きないんです。" }
+          - { who: mori, text: "それはつらかったね。一度、病院で相談してみようか。" }
           - { who: mori, text: "お家の人にどう話すかも、一緒に考えよう。" }
+          - { who: narration, text: "数日後、病院に行った。「まず休みましょう」と医師は言った。" }
           - { who: self, kind: inner, text: "（休んでいいって、言ってもらえた）", face: relieved }
         next: END
       - id: alone
@@ -417,6 +464,7 @@ events:
     age: 17
     characters: [me]
     kind: chance
+    trigger: { kind: chance, text: "統計の確率で決まる" }
     domains: [性暴力, 選べない出来事]
     statCard: [S33, S02]
     resources: [violence]
@@ -453,7 +501,7 @@ events:
           - { who: narration, text: "性暴力は、誰にでも起こり得る。あなたのせいではない。" }
         choices:
           - id: tell
-            label: "信頼できる人に、話してみる"
+            label: "保健室に行って、森先生に話す"
             canonical: true
             effects:
               - { param: connection, sign: 1, size: S, source: choice, note: "人に話した" }
@@ -462,10 +510,12 @@ events:
             label: "今は、誰にも話さない"
             next: notYet
       - id: told
+        stage: { place: nurse, time: day, cast: [{ id: self, x: 30, face: sad }, { id: mori, x: 64 }] }
         effects:
           - { param: connection, sign: 1, size: S, source: others, note: "話を聞いてもらえた" }
         lines:
-          - { who: mori, text: "話してくれて、ありがとう。あなたは、何も悪くない。" }
+          - { who: narration, text: "何日かして、保健室のドアを開けた。" }
+          - { who: mori, text: "来てくれて、よかった。あなたは、何も悪くない。" }
           - { who: mori, text: "これからのこと、あなたのペースで考えよう。" }
         next: END
       - id: notYet

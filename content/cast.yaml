@@ -27,6 +27,7 @@
 # ── 脇役（16歳）。名前は仮（付録B-5。REPORT.md で確認を受ける） ──
 - id: riko
   name: ルイ
+  relation: 友だち
   role: ミナミの友だち
   age: 16
   look: { skin: "#eec3a0", hair: "#2b2622", hairStyle: tied, clothes: ["#7a9e3b", "#7a9e3b", "#7a9e3b"], pants: "#3a3f4a" }
@@ -37,11 +38,13 @@
   look: { skin: "#e9bf9c", hair: "#4a3a30", hairStyle: short, clothes: ["#8d6e63", "#8d6e63", "#8d6e63"], pants: "#4a4038" }
 - id: mori
   name: 森先生
+  relation: 保健室の先生
   role: 養護教諭
   age: 38
   look: { skin: "#f0c8a6", hair: "#3a2c26", hairStyle: tied, clothes: ["#e8eef0", "#e8eef0", "#e8eef0"], pants: "#5b6170" }
 - id: tamura
   name: 田村先生
+  relation: 担任
   role: ケイの担任
   age: 52
   look: { skin: "#e2b28e", hair: "#8a8a8a", hairStyle: bob, clothes: ["#3e4a5c", "#3e4a5c", "#3e4a5c"], pants: "#2f3542" }
@@ -57,11 +60,13 @@
   look: { skin: "#e3b38f", hair: "#1f1f24", hairStyle: short, clothes: ["#3e4a5c", "#3e4a5c", "#3e4a5c"], pants: "#2b2b2b" }
 - id: sora
   name: ソラ
+  relation: 弟
   role: ケイの弟
   peerOffset: -11
   look: { skin: "#dca782", hair: "#2a2320", hairStyle: short, clothes: ["#e0a526", "#e0a526", "#e0a526"], pants: "#3d5a80" }
 - id: mio
   name: アサヒ
+  relation: 妹
   role: ケイの妹
   peerOffset: -7
   look: { skin: "#dca782", hair: "#2a2320", hairStyle: long, clothes: ["#2a9d8f", "#2a9d8f", "#2a9d8f"], pants: "#34404f" }
@@ -79,6 +84,7 @@
 # ── 脇役（17歳以降）。名前は仮（付録B-5） ──
 - id: senpai
   name: 先輩
+  relation: 部活の先輩
   role: 21歳の飲み会にいる先輩（サークル・職場。名前は付けない）
   peerOffset: 2
   look: { skin: "#e6b896", hair: "#4a3a30", hairStyle: short, clothes: ["#b0704a", "#b0704a", "#b0704a"], pants: "#3a3f4a" }
@@ -89,11 +95,13 @@
   look: { skin: "#e6b48e", hair: "#3a2a22", hairStyle: mid, clothes: ["#4c7a8a", "#4c7a8a", "#4c7a8a"], pants: "#2f3542" }
 - id: netFriend
   name: SNSの相手
+  relation: 会ったことのない人
   role: ユウがSNSで知り合った相手（顔アイコンだけ。画面には描かない）
   peerOffset: 0
   look: { skin: "#d9c2ad", hair: "#55505a", hairStyle: short, clothes: ["#6a6f7a", "#6a6f7a", "#6a6f7a"], pants: "#3a3f4a" }
 - id: saki
   name: サキ
+  relation: クラスメイト
   role: ケイの交際相手
   peerOffset: 0
   look: { skin: "#f0c6a4", hair: "#5a3a2a", hairStyle: long, clothes: ["#e0a526", "#7a9e3b", "#9c6644"], pants: "#3d5a80" }
@@ -104,8 +112,9 @@
   look: { skin: "#e9bf9c", hair: "#2b2622", hairStyle: short, clothes: ["#3d5a80", "#8d6e63", "#5e8c61"], pants: "#4a4a5a" }
 - id: sou
   name: ソウ
+  relation: クラスメイト
   role: ミナミのパートナー
-  peerOffset: 2
+  peerOffset: 0
   look: { skin: "#e3b38f", hair: "#3a2c26", hairStyle: mid, clothes: ["#5e8c61", "#5e8c61", "#4c7a8a"], pants: "#3a3f4a" }
 - id: nao
   name: ナオ

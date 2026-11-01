@@ -31,10 +31,26 @@ export const PARAM_LABELS: Record<ParamKey, string> = {
 
 /** 4軸の意味（付録B-47） */
 export const PARAM_HINTS: Record<ParamKey, string> = {
-  body: '健康、からだの感覚、医療へのアクセス',
-  autonomy: '情報と選択肢を持って、自分で決められること',
-  connection: '自分の感覚や境界線を尊重してくれる人や居場所',
-  living: 'お金、暮らしの安定、安心して過ごせること、時間と制度のゆとり',
+  body: '体調はどうか。からだの変化に気づけるか。病院に行きやすいか。',
+  autonomy: '知りたいことを知れるか。いくつかの道から、自分で選べるか。',
+  connection: '困ったときに話せる人や、いていい場所があるか。',
+  living: 'お金と住まいは安定しているか。安心して過ごせるか。時間にゆとりはあるか。',
+};
+
+/** ステータスに常に出す、ひとことの意味（付録B-48） */
+export const PARAM_SHORT: Record<ParamKey, string> = {
+  body: '健康と受診',
+  autonomy: '自分で選べる',
+  connection: '頼れる人と場',
+  living: 'お金と安心',
+};
+
+/** 場面が起きた理由の見出し（付録B-48） */
+export const TRIGGER_LABELS: Record<'story' | 'profile' | 'choice' | 'chance', string> = {
+  story: '物語の決まり',
+  profile: 'ランダムな属性',
+  choice: 'あなたの選択',
+  chance: '偶然',
 };
 
 export const SOURCE_LABELS: Record<Source, string> = {

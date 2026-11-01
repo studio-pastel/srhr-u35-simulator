@@ -81,6 +81,19 @@ describe('属性で出来事が変わる（付録B-43）', () => {
     for (const attractedTo of ['none', 'unsure'] as const) expect(events({ attractedTo })).not.toContain('E17-TALK');
     for (const attractedTo of ['men', 'women', 'any'] as const) expect(events({ attractedTo })).toContain('E17-TALK');
   });
+  it('性の話は、付き合うと決めたあとにだけ出る。付き合わなければ出ない（付録B-48）', () => {
+    const s = playThrough(real, run(), picking({ 'E17-ASKOUT/start': 'no' }));
+    expect(s.completedEvents).toContain('E17-ASKOUT');
+    expect(s.completedEvents).not.toContain('E17-TALK');
+  });
+  it('気になる人を秘密にしても、付き合うかどうかの場面は来る（付録B-48）', () => {
+    for (const [attractedTo, pick] of [['men', 'dodgeSou'], ['women', 'dodgeSaki']] as const) {
+      const s = playThrough(real, run({ attractedTo }), picking({ 'E16-CRUSH/start': pick }));
+      expect(s.completedEvents).toContain('E17-ASKOUT');
+    }
+    const any = playThrough(real, run({ attractedTo: 'any' }), picking({ 'E16-CRUSH/start': 'dodgeAny', 'E16-CRUSH/dodgeWho': 'thinkSaki' }));
+    expect(any.flags.partnerId).toBe('saki');
+  });
   it('学校で学んだかどうかのフラグは、最初から入る', () => {
     expect(run({}, { conditions: { sexEducation: 'taught' } }).flags.knowsConsent).toBe(true);
     expect(run({}, { conditions: { sexEducation: 'notTaught' } }).flags.knowsConsent).toBe(false);
@@ -100,7 +113,7 @@ describe('するかどうか（付録B-30）', () => {
       expect(s.ledger.some((e) => e.eventId === 'E17-TALK' && e.source === 'choice' && e.delta < 0)).toBe(false);
     }
   });
-  it('自分から聞いて押すと、相手は帰り、学び直す選択肢が出る', () => {
+  it('自分から聞いて押すと、相手は先に帰り、学び直す選択肢が出る', () => {
     const s = playThrough(real, run(), picking({ 'E17-TALK/start': 'askFirst', 'E17-TALK/selfAsk': 'press', 'E17-TALK/press': 'apologize' }));
     expect(s.choices['E17-TALK/press']).toBe('apologize');
     expect(s.ledger).toContainEqual(expect.objectContaining({ eventId: 'E17-TALK', param: 'autonomy', source: 'choice', note: '自分の行動を見直した' }));

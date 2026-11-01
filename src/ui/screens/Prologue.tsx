@@ -2,8 +2,8 @@
 import { useEffect, useMemo, useRef, useState } from 'preact/hooks';
 import { navigate, useApp } from '../app';
 import { lifeStory } from '../../engine/lifestory';
-import { PARAM_LABELS, SOURCE_LABELS, type Params } from '../../engine/types';
-import { StatusBar } from '../components/ParamIcons';
+import { SOURCE_LABELS, type Params } from '../../engine/types';
+import { DeltaText, ParamGuide, StatusBar } from '../components/ParamIcons';
 import { PixelStage } from '../components/PixelStage';
 import { sceneSpec } from '../stage';
 
@@ -46,6 +46,8 @@ export function Prologue() {
   const params = paramsAt(content.characters[0]!.initial, story.slice(0, shown));
   const stage = [...content.prologue.stages].reverse().find((s) => s.from <= age)?.stage;
   const at = { ...run, position: { ...run.position, age } };
+  // いま出た行で動いたパラメーターに、色を付ける（全部を一度に出すときは付けない）
+  const latest = animate && !done ? (story[shown - 1]?.effects ?? []) : [];
 
   return (
     <section class="fade-in prologue">
@@ -56,7 +58,7 @@ export function Prologue() {
         <div class="stage-wrap">
           <PixelStage spec={sceneSpec(content, at, stage)} label={`${p.name}、${age}歳`} animate={animate} />
         </div>
-        <StatusBar params={params} change={null} animate={animate} />
+        <StatusBar params={params} change={latest.length ? { entries: latest, stamp: shown } : null} animate={animate} />
       </div>
 
       <ol class="life-log" aria-live="polite">
@@ -67,10 +69,7 @@ export function Prologue() {
               <p class={e.kind === 'inner' ? 'inner' : ''}>{e.text}</p>
               {e.effects.map((x, k) => (
                 <p key={k} class="reason f-upbringing">
-                  <strong class="num">
-                    {PARAM_LABELS[x.param]} {x.delta > 0 ? `+${x.delta}` : x.delta}
-                  </strong>{' '}
-                  {x.note}（{SOURCE_LABELS.upbringing}）
+                  <DeltaText param={x.param} delta={x.delta} /> {x.note}（{SOURCE_LABELS.upbringing}）
                 </p>
               ))}
             </div>
@@ -80,6 +79,8 @@ export function Prologue() {
 
       {done ? (
         <>
+          <h2 class="prologue-guide-title">15歳の{p.name}のパラメーター</h2>
+          <ParamGuide params={params} />
           <p class="sub">どれも、選んだことではありません。ランダムに決まりました（ひとり親になった理由の割合は統計に基づき、ほかは遊びのための値です）。</p>
           <button type="button" class="btn primary" onClick={() => navigate('play')}>
             16歳へ

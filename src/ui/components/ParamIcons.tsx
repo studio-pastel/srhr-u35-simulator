@@ -2,7 +2,7 @@
 import { useEffect, useRef, useState } from 'preact/hooks';
 import { PARAM_KEYS } from '../../engine/constants';
 import type { ParamKey } from '../../engine/schema';
-import { PARAM_LABELS, SOURCE_LABELS, type LedgerEntry, type Params } from '../../engine/types';
+import { PARAM_HINTS, PARAM_LABELS, PARAM_SHORT, SOURCE_LABELS, type LedgerEntry, type Params } from '../../engine/types';
 import { displayValue } from '../../engine/effects';
 
 const PATHS: Record<ParamKey, string> = {
@@ -48,31 +48,36 @@ function CountUp({ value, animate }: { value: number; animate: boolean }) {
 }
 
 /**
- * 場面の下にいつも出す4つのパラメーター（付録B-40・B-47）。名前・数字・ゲージを常に見せる。
- * 動いたときは、増減の数字が飛び出し、数字が数え上がり、ゲージが伸び縮みする。
+ * 場面の下にいつも出す4つのパラメーター（付録B-40・B-47・B-48）。名前・意味・数字・ゲージを常に見せる。
+ * ふだんのゲージは無彩色にし、色は変化だけに使う（増えると緑、減ると朱。▲▼を併記）。変化は次へ進むまで残す。
+ * 暴力を扱う場面では、減少を強調しない（§16.6）。
  */
-export function StatusBar({ params, change, animate, onOpen }: { params: Params; change: { entries: LedgerEntry[]; stamp: number } | null; animate: boolean; onOpen?: () => void }) {
+export function StatusBar({ params, change, animate, quiet, onOpen }: { params: Params; change: { entries: { param: ParamKey; delta: number }[]; stamp: number } | null; animate: boolean; quiet?: boolean; onOpen?: () => void }) {
   const items = PARAM_KEYS.map((k) => {
-        const v = displayValue(params[k]).value;
-        const delta = (change?.entries ?? []).filter((e) => e.param === k).reduce((a, e) => a + e.delta, 0);
-        const dir = delta > 0 ? 'up' : delta < 0 ? 'down' : '';
-        return (
-          <span key={`${k}-${delta ? change!.stamp : 0}`} class={`status-item ${dir}`}>
-            <span class="status-head">
-              <ParamIcon param={k} size={16} />
-              <span class="status-name">{PARAM_LABELS[k]}</span>
-              <CountUp value={v} animate={animate} />
-            </span>
-            <span class="status-gauge" aria-hidden="true">
-              <span style={{ width: `${v}%` }} />
-            </span>
-            {delta !== 0 && (
-              <span class={`status-float ${dir} num`} aria-hidden="true">
-                {delta > 0 ? `+${delta}` : delta}
-              </span>
-            )}
+    const v = displayValue(params[k]).value;
+    const delta = (change?.entries ?? []).filter((e) => e.param === k).reduce((a, e) => a + e.delta, 0);
+    const dir = delta === 0 ? '' : quiet ? 'quiet' : delta > 0 ? 'up' : 'down';
+    const before = displayValue(params[k] - delta).value;
+    return (
+      <span key={`${k}-${delta ? change!.stamp : 0}`} class={`status-item ${dir}`}>
+        <span class="status-head">
+          <ParamIcon param={k} size={16} />
+          <span class="status-name">{PARAM_LABELS[k]}</span>
+          <CountUp value={v} animate={animate} />
+        </span>
+        <span class="status-gauge" aria-hidden="true">
+          <span class="status-fill" style={{ width: `${Math.min(v, before)}%` }} />
+          {dir && dir !== 'quiet' && <span class="status-diff" style={{ width: `${Math.abs(v - before)}%` }} />}
+        </span>
+        <span class="status-hint">{PARAM_SHORT[k]}</span>
+        {delta !== 0 && (
+          <span class={`status-delta ${dir} num`}>
+            {dir === 'up' ? '▲' : dir === 'down' ? '▼' : ''}
+            {delta > 0 ? `+${delta}` : delta}
           </span>
-        );
+        )}
+      </span>
+    );
   });
   // 開くものがない画面（生い立ち）では、押せる形にしない
   if (!onOpen)
@@ -88,6 +93,34 @@ export function StatusBar({ params, change, animate, onOpen }: { params: Params;
   );
 }
 
+/** 4つのパラメーターの意味。点数ではないことも伝える */
+export function ParamGuide({ params }: { params?: Params }) {
+  return (
+    <div class="param-guide">
+      <ul>
+        {PARAM_KEYS.map((k) => (
+          <li key={k}>
+            <ParamIcon param={k} size={18} />
+            <strong>{PARAM_LABELS[k]}</strong>
+            {params && <span class="num">{displayValue(params[k]).value}</span>}
+            <span>{PARAM_HINTS[k]}</span>
+          </li>
+        ))}
+      </ul>
+      <p class="sub">数字は点数ではなく、いまの状況です。高いほど良い人生、という意味ではありません。</p>
+    </div>
+  );
+}
+
+/** 増減の数字。色と▲▼で向きを見せる */
+export function DeltaText({ param, delta }: { param: ParamKey; delta: number }) {
+  return (
+    <strong class={`num delta-${delta > 0 ? 'up' : 'down'}`}>
+      {PARAM_LABELS[param]} {delta > 0 ? `▲+${delta}` : `▼${delta}`}
+    </strong>
+  );
+}
+
 /** 変化の理由。絵をふさがず、ステータスのすぐ下に出す */
 export function ChangeNotes({ entries }: { entries: LedgerEntry[] }) {
   if (entries.length === 0) return null;
@@ -95,10 +128,7 @@ export function ChangeNotes({ entries }: { entries: LedgerEntry[] }) {
     <ul class="change-notes" role="status" aria-live="polite">
       {entries.map((e, i) => (
         <li key={i} class={`reason f-${e.source}`}>
-          <strong class="num">
-            {PARAM_LABELS[e.param]} {e.delta > 0 ? `+${e.delta}` : e.delta}
-          </strong>{' '}
-          {e.note}（{SOURCE_LABELS[e.source]}）
+          <DeltaText param={e.param} delta={e.delta} /> {e.note}（{SOURCE_LABELS[e.source]}）
         </li>
       ))}
     </ul>

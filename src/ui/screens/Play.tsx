@@ -17,7 +17,7 @@ import {
 } from '../../engine/progression';
 import { breakdown, displayValue, paramsFrom } from '../../engine/effects';
 import { PARAM_KEYS } from '../../engine/constants';
-import { PARAM_LABELS, SOURCE_LABELS, type BondEntry, type LedgerEntry, type RunState } from '../../engine/types';
+import { PARAM_LABELS, SOURCE_LABELS, TRIGGER_LABELS, type BondEntry, type LedgerEntry, type RunState } from '../../engine/types';
 import { BondNotes, ChapterBondChanges } from '../components/Bonds';
 import { Hud } from '../components/Hud';
 import { Modal } from '../components/Modal';
@@ -26,9 +26,9 @@ import { ProbabilityCard, StatCard } from '../components/Cards';
 import { RichText, plainText } from '../components/RichText';
 import { PixelStage } from '../components/PixelStage';
 import { OverallReview } from './OverallReview';
-import { ageOf, linesOf, lookOf, sceneSpec, stageOf, type ShownLine } from '../stage';
+import { ageOf, fillText, linesOf, lookOf, sceneSpec, stageOf, type ShownLine } from '../stage';
 import { FaceIcon } from '../components/Faces';
-import { ChangeNotes, StatusBar } from '../components/ParamIcons';
+import { ChangeNotes, ParamGuide, StatusBar } from '../components/ParamIcons';
 import { LifeMap, LifeStrip } from '../components/LifeMap';
 import { chapterHighlights, chosenLines, mainStage } from '../review';
 
@@ -137,6 +137,7 @@ export function Play() {
         <Modal title="これまでの記録" onClose={() => setShowParams(false)}>
           <h3>いまのパラメーター</h3>
           <Hud params={run.params} onOpen={() => undefined} quiet />
+          <ParamGuide />
           <h3>人生の地図</h3>
           <LifeMap run={run} />
           <h3>この章の変化の理由</h3>
@@ -222,7 +223,10 @@ export function ChatLine({ run, line, typing, typed }: { run: RunState; line: Sh
     <div class={`chat ${mine ? 'mine' : 'theirs'} kind-${line.kind}`}>
       {look && <FaceIcon look={look} age={age} face={line.face} />}
       <div class="chat-body">
-        <span class="chat-name">{line.name}</span>
+        <span class="chat-name">
+          {line.name}
+          {line.relation && <span class="chat-relation">{line.relation}</span>}
+        </span>
         <span class="chat-text">{body}</span>
       </div>
     </div>
@@ -297,9 +301,8 @@ function SceneView(props: {
     if (choices.length > 0) return;
     go(advanceScene(content, run), false);
   };
-  // パラメーターが動いた瞬間に、絵にも反応を出す（下がると揺れ、上がると光る）
-  const net = props.change ? props.change.entries.reduce((a, e) => a + e.delta, 0) : 0;
-  const impact = net < 0 ? 'down' : net > 0 ? 'up' : null;
+  // 暴力を扱う場面では、減少を強調しない（§16.6）
+  const quiet = (ev.resources ?? []).includes('violence');
 
   return (
     <section class="scene" key={pos.eventId}>
@@ -307,10 +310,15 @@ function SceneView(props: {
         場面
       </h2>
       <div class="stage-sticky">
-        <div class={`stage-wrap${line.kind === 'fade' ? ' faded' : ''}${impact ? ` hit-${impact}` : ''}`} key={impact ? props.change!.stamp : 'still'}>
+        <div class={`stage-wrap${line.kind === 'fade' ? ' faded' : ''}`}>
           <PixelStage spec={spec} label={`${me.name}の場面`} animate={animate} />
+          {ev.trigger && (
+            <p class={`trigger-tag t-${ev.trigger.kind}`}>
+              <strong>{TRIGGER_LABELS[ev.trigger.kind]}</strong> {ev.trigger.text}
+            </p>
+          )}
         </div>
-        <StatusBar params={run.params} change={props.change} animate={animate} onOpen={props.openParams} />
+        <StatusBar params={run.params} change={props.change} animate={animate} quiet={quiet} onOpen={props.openParams} />
         {props.change && <ChangeNotes entries={props.change.entries} />}
         {props.change && <BondNotes run={run} entries={props.change.bonds} />}
       </div>
@@ -327,7 +335,7 @@ function SceneView(props: {
         <div role="group" aria-label="選択肢" class="choices">
           {choices.map((c) => (
             <button key={c.id} type="button" class="btn choice" onClick={() => go(choose(content, run, c.id), true)}>
-              <RichText text={c.label} />
+              <RichText text={fillText(content, run, c.label)} />
             </button>
           ))}
           {choices.some((c) => c.neutral) && <p class="sub">どれを選んでも、正解・不正解はありません。</p>}

@@ -6,6 +6,7 @@ import { check } from '../engine/flags';
 import type { Actor, Face, Look, Place, SceneSpec } from './pixel/render';
 
 export interface ShownLine {
+  relation?: string;
   who: string;
   /** 画面に出す名前（地の文では空） */
   name: string;
@@ -39,6 +40,17 @@ export function resolveWho(run: RunState, id: string): string {
   if (id === 'self') return 'me';
   if (id === 'partner') return typeof run.flags.partnerId === 'string' ? run.flags.partnerId : '';
   return id;
+}
+
+/** 本文の %partner% を、この周回のパートナーの名前に置きかえる */
+export function fillText(content: Content, run: RunState, text: string): string {
+  return text.replaceAll('%partner%', nameOf(content, run, resolveWho(run, 'partner')));
+}
+
+/** 主人公から見た関係（付録B-48）。付き合い始めたら、パートナーの関係も変わる */
+export function relationOf(content: Content, run: RunState, id: string): string | undefined {
+  if (id === run.flags.partnerId && run.flags.dating === true) return '付き合っている人';
+  return content.cast.find((c) => c.id === id)?.relation;
 }
 
 /** 人物の見た目。主人公はプレイヤーが選んだ見た目を使う */
@@ -91,6 +103,6 @@ export function linesOf(content: Content, run: RunState, scene: Scene): ShownLin
     const kind = l.kind ?? (l.who === 'narration' ? 'narration' : 'say');
     const base = l.who === 'narration' ? '' : nameOf(content, run, who);
     const name = kind === 'inner' ? `${base}（心の声）` : kind === 'message' ? `${base}（メッセージ）` : base;
-    return { who, name, text: l.text, kind, face: l.face };
+    return { who, name, relation: relationOf(content, run, who), text: fillText(content, run, l.text), kind, face: l.face };
   });
 }

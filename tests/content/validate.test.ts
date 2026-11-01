@@ -115,3 +115,24 @@ describe('警告（ビルドは通す）', () => {
     expect(r.drafts.length).toBeGreaterThan(0);
   });
 });
+
+describe('セリフの決まり（付録B-48）', () => {
+  const events: any[] = (rawContent() as any).chapters.flatMap((c: any) => c.events);
+  it('話す人は、その場面の舞台にいる（メッセージを除く）', () => {
+    const offstage = events.flatMap((ev) =>
+      ev.scenes.flatMap((sc: any) => {
+        const cast: string[] = (sc.stage ?? ev.stage)?.cast.map((c: any) => c.id) ?? [];
+        return (sc.lines ?? [])
+          .filter((l: any) => !['self', 'narration'].includes(l.who) && l.kind !== 'message' && !cast.includes(l.who))
+          .map((l: any) => `${ev.id}/${sc.id}：${l.who}`);
+      }),
+    );
+    expect(offstage).toEqual([]);
+  });
+  it('どの場面にも、なぜ起きたのかが書いてある', () => {
+    expect(events.filter((ev) => !ev.trigger).map((ev) => ev.id)).toEqual([]);
+  });
+  it('確率で決まる場面だけが「偶然」になっている', () => {
+    for (const ev of events) expect(ev.trigger?.kind === 'chance').toBe(ev.kind === 'chance');
+  });
+});

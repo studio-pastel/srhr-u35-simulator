@@ -132,11 +132,15 @@ export const sceneSchema = z.strictObject({
   next: z.string().optional(),
 });
 
+export const TRIGGER_KINDS = ['story', 'profile', 'choice', 'chance'] as const;
+
 export const eventSchema = z.strictObject({
   id: z.string().regex(/^E\d{2}-[A-Z0-9-]+$/, 'イベントIDは E16-ALL-SEXED の形式'),
   age: z.number().refine((a) => (AGES as readonly number[]).includes(a), '年齢は 16/17/19/21/24/27/30/35 のどれか'),
   characters: z.array(characterId).min(1),
   kind: z.enum(['fixed', 'chance', 'branch']),
+  /** なぜこの場面が起きたか（付録B-48）。物語の決まり／ランダムに決まった属性／選択の続き／確率 */
+  trigger: z.strictObject({ kind: z.enum(TRIGGER_KINDS), text: z.string().min(1) }).optional(),
   domains: z.array(z.string()),
   requires: z.string().optional(),
   triggerWarning: z.string().optional(),
@@ -189,6 +193,8 @@ export const castSchema = z.strictObject({
   id: z.string().regex(/^[a-z][a-zA-Z0-9]*$/),
   name: z.string().min(1),
   role: z.string().optional(),
+  /** 主人公から見た関係。吹き出しの名前に添える（付録B-48） */
+  relation: z.string().optional(),
   /** 脇役の年齢（見た目の計算に使う）。主人公は周回の年齢を使う */
   age: z.number().optional(),
   /** 主人公と同じ年ごろの人物（パートナーなど）。周回の年齢＋この差で描く */
