@@ -13,7 +13,7 @@ import { emptyBreakdown } from '../../engine/effects';
 
 const SAMPLE: ChanceNode = {
   id: 'DEV-SAMPLE-EC',
-  label: '妊娠が成立する確率（見本）',
+  label: '妊娠が成立する可能性（見本）',
   base: { value: 1.0, statRef: 'S25' },
   modifiers: [{ when: 'flags.usedEC == true', op: 'mul', value: 0.16, source: 'choice', statRef: 'S26', note: '緊急避妊薬を使った' }],
   outcomes: { happens: { effects: [], next: 'END' }, notHappens: { effects: [], next: 'END' } },
@@ -60,7 +60,7 @@ export function DevPreview() {
         シードを変える
       </button>
       <ProbabilityCard entry={entry} content={content} animate={animate} />
-      <ProbabilityCard entry={{ ...entry, nodeId: 'actor' + seed, label: '人工妊娠中絶を選ぶ確率（見本）', actorLabel: 'サキの決定', base: 0.441, baseStatRef: 'S27', modifiersApplied: [], finalP: 0.441, happened: u < 0.441 }} content={content} animate={animate} />
+      <ProbabilityCard entry={{ ...entry, nodeId: 'actor' + seed, label: '人工妊娠中絶を選ぶ可能性（見本）', actorLabel: 'サキの決定', base: 0.441, baseStatRef: 'S27', modifiersApplied: [], finalP: 0.441, happened: u < 0.441 }} content={content} animate={animate} />
       <div class="panel">
         <FactorChart data={bd} title="要因分解（見本）" hasActor />
       </div>

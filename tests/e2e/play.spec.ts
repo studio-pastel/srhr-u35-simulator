@@ -87,6 +87,36 @@ for (const n of [1, 2, 3, 4]) {
   });
 }
 
+test('スマホの幅で、押すボタンが画面に収まり、パラメーターは場面の終わりに動く（付録B-50）', async ({ page }) => {
+  await page.setViewportSize({ width: 375, height: 667 });
+  await start(page, 2);
+  await page.getByRole('button', { name: 'はじめる' }).click();
+  let sawDelta = false;
+  for (let i = 0; i < 400; i++) {
+    if (await page.locator('main h1', { hasText: 'ふりかえり' }).count()) break;
+    const choice = page.locator('.choices button.btn').last();
+    const next = page.locator('button.next-tap');
+    const target = (await choice.count()) ? choice : next;
+    if (!(await target.count())) {
+      await page.locator('main button.btn.primary').first().click();
+      continue;
+    }
+    await expect(target).toBeInViewport({ ratio: 1 });
+    if (await choice.count()) await expect(page.locator('.status-delta')).toHaveCount(0);
+    if (await page.locator('.status-delta').count()) sawDelta = true;
+    await target.click();
+  }
+  expect(sawDelta).toBe(true);
+});
+
+test('早送りは選択肢の手前で止まる（付録B-50）', async ({ page }) => {
+  await start(page, 2);
+  await page.getByRole('button', { name: 'はじめる' }).click();
+  await page.getByRole('button', { name: /早送り/ }).click();
+  await expect(page.locator('.choices button.btn').first()).toBeVisible();
+  await expect(page.getByRole('button', { name: /早送り/ })).toBeDisabled();
+});
+
 test('Esc キーで exitUrl に移動し、ブラウザの「戻る」で戻れない', async ({ page }) => {
   // トップページから、画面の操作だけで進む（サイト内の移動では履歴を増やさない）
   await page.goto('/');

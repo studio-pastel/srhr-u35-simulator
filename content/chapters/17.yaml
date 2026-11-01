@@ -18,7 +18,7 @@ events:
     age: 17
     characters: [me]
     kind: fixed
-    trigger: { kind: profile, text: "好きになる人から起きた" }
+    trigger: { kind: profile, text: "クラスに気になる人がいるから起きた" }
     domains: [関係性]
     requires: "flags.partnerId == 'sou' || flags.partnerId == 'saki'"
     stage: { place: gate, time: dusk, cast: [{ id: self, x: 28 }, { id: partner, x: 62 }] }
@@ -223,9 +223,9 @@ events:
               - { param: autonomy, sign: 1, size: M, source: choice, note: "自分で断った" }
             next: refuse
           - id: record
-            label: "画面を保存して、保健室で相談する"
+            label: "やりとりをスクショして、保健室で相談する"
             effects:
-              - { param: autonomy, sign: 1, size: M, source: choice, note: "記録して相談した" }
+              - { param: autonomy, sign: 1, size: M, source: choice, note: "やりとりを残して相談した" }
               - { param: connection, sign: 1, size: S, source: choice, note: "一人で抱えなかった" }
             next: record
           - id: send
@@ -241,15 +241,43 @@ events:
         effects:
           - { param: connection, sign: 1, size: S, source: others, note: "保健室で受け止められた" }
         lines:
-          - { who: narration, text: "画面を保存して、相手をブロックした。次の日、保健室へ。" }
+          - { who: narration, text: "やりとりをスクショして、相手をブロックした。次の日、保健室へ。" }
           - { who: self, text: "SNSで、こんなのが来て……。" }
-          - { who: mori, text: "嫌な思いをしたね。保存しておいてくれて、助かるよ。" }
+          - { who: mori, text: "嫌な思いをしたね。スクショを残してくれて、助かるよ。" }
           - { who: self, kind: inner, text: "（……来て、よかった）", face: relieved }
         next: END
+      # 送ったことを責めない。負の効果の要因は、求めた相手の行動にする（付録B-50）
       - id: send
+        effects:
+          - { param: autonomy, sign: -1, size: M, source: others, note: "画像が相手の手元に残った" }
+          - { param: connection, sign: -1, size: S, source: others, note: "相手を信じられなくなった" }
         lines:
-          - { who: narration, text: "送ったあと、胸がざわざわして眠れない。" }
-          - { who: self, kind: inner, text: "（どうしよう。消してもらえるのかな）", face: sad }
+          - { who: netFriend, kind: message, text: "ありがと。もう1枚、送って。" }
+          - { who: narration, text: "胸がざわざわして、眠れない。" }
+          - { who: self, kind: inner, text: "（断ったら、あの写真をどうされるんだろう）", face: sad }
+        choices:
+          - id: tellAfter
+            label: "保健室に行って、森先生に話す"
+            canonical: true
+            effects:
+              - { param: connection, sign: 1, size: S, source: choice, note: "一人で抱えなかった" }
+            next: sentTold
+          - id: blockAlone
+            label: "相手をブロックして、誰にも言わない"
+            next: sentAlone
+      - id: sentTold
+        stage: { place: nurse, time: day, cast: [{ id: self, x: 30, face: sad }, { id: mori, x: 64 }] }
+        effects:
+          - { param: autonomy, sign: 1, size: S, source: others, note: "消す方法を一緒に調べた" }
+        lines:
+          - { who: self, text: "写真を、送ってしまって……。もっと送れって言われて。" }
+          - { who: mori, text: "話してくれてよかった。悪いのは、求めてきた人だよ。" }
+          - { who: mori, text: "もう送らなくていい。消してもらう方法を、一緒に調べよう。" }
+          - { who: self, kind: inner, text: "（怒られなかった）", face: relieved }
+        next: END
+      - id: sentAlone
+        lines:
+          - { who: self, kind: inner, text: "（あの写真、消してもらえたのかな）", face: sad }
           - { who: narration, text: "送ってしまったあとでも、相談できる場所がある。" }
         next: END
 
@@ -395,7 +423,7 @@ events:
     age: 17
     characters: [me]
     kind: chance
-    trigger: { kind: chance, text: "統計の確率で決まる" }
+    trigger: { kind: chance, text: "統計の割合をもとに決まる" }
     domains: [メンタルヘルス, 選べない出来事]
     statCard: [S54, S57]
     stage: { place: bedroom, time: day, cast: [{ id: self, x: 34 }] }
@@ -407,7 +435,10 @@ events:
           - { who: narration, text: "秋が深まってきた。" }
         chance:
           id: CH-MIND
-          label: "この1年のあいだに、うつ病を経験する確率"
+          label: "1年のあいだに、うつ病になる可能性"
+          result:
+            happens: "うつ病になりました。"
+            notHappens: "うつ病になるかもしれませんでしたが、今回はなりませんでした。"
           # S54 の12か月有病率（成人の調査。高校生の値は確認できなかった）を、1年に1回の判定に使う。
           # トランスジェンダー・ノンバイナリーは、全体の値に、S57 の「気分・不安障害にあてはまる可能性」の比（37.5÷13.3）を掛ける（解釈。付録B-46）
           base: { value: 0.021, statRef: S54 }
@@ -424,7 +455,7 @@ events:
             notHappens: { next: fine }
       - id: fine
         lines:
-          - { who: narration, text: "この年は、起きなかった。いつもの朝が続いた。" }
+          - { who: narration, text: "心の調子を大きく崩すことはなかった。いつもの朝が続いた。" }
         next: END
       - id: happened
         lines:
@@ -464,7 +495,7 @@ events:
     age: 17
     characters: [me]
     kind: chance
-    trigger: { kind: chance, text: "統計の確率で決まる" }
+    trigger: { kind: chance, text: "統計の割合をもとに決まる" }
     domains: [性暴力, 選べない出来事]
     statCard: [S33, S02]
     resources: [violence]
@@ -477,7 +508,10 @@ events:
           - { who: narration, text: "冬が近づいてきた。" }
         chance:
           id: CH-HARM
-          label: "16〜19歳で、性交を伴う性暴力にあう確率"
+          label: "16〜19歳で、性交を伴う性暴力にあう可能性"
+          result:
+            happens: "性暴力の被害にあいました。"
+            notHappens: "被害にあうかもしれませんでしたが、今回はあいませんでした。"
           # S33 は性自認で集計している（女性、男性、Xジェンダー・ノンバイナリー）。トランスジェンダーの人は、自認する性別の値を使う（付録B-46）
           base: { value: 0.075, statRef: S33 }
           modifiers:

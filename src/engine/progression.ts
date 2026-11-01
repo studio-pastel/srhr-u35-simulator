@@ -220,7 +220,7 @@ function endEvent(content: Content, s: RunState, ev: GameEvent): void {
   enterNextEvent(content, s, s.position.eventIndex + 1);
 }
 
-function nextOf(content: Content, s: RunState, scene: Scene): string {
+export function nextOf(content: Content, s: RunState, scene: Scene): string {
   const ctx = contextOf(content, s);
   for (const b of scene.branches ?? []) if (check(b.when, ctx)) return b.next;
   if (!scene.next) throw new ProgressionError(`${s.position.eventId}/${scene.id}：次のシーンがありません`);
@@ -255,6 +255,7 @@ function doChance(content: Content, s: RunState, scene: Scene, override?: Chance
     finalP: r.finalP,
     u: r.u,
     happened: r.happened,
+    ...(node.result ? { resultText: r.happened ? node.result.happens : node.result.notHappens } : {}),
     ...(node.actorLabel ? { actorLabel: node.actorLabel } : {}),
   });
   const outcome = r.happened ? node.outcomes.happens : node.outcomes.notHappens;

@@ -1,4 +1,4 @@
-// 統計カード（§7.6）、確率カード（§7.5）、相談窓口の一覧（§7.11）。
+// 統計カード（§7.6）、選べない出来事の結果（§7.5）、相談窓口の一覧（§7.11）。
 import { useEffect, useState } from 'preact/hooks';
 import type { Content, Resource, Stat } from '../../engine/schema';
 import type { ChanceLogEntry } from '../../engine/types';
@@ -85,9 +85,17 @@ export function ResourceList({ items }: { items: Resource[] }) {
   );
 }
 
+/** 割合を「100人に◯人」で言う。1%未満は「1000人に◯人」（付録B-50） */
+export function peopleOf(p: number): { denom: number; count: number; text: string } {
+  const denom = p > 0 && p < 0.01 ? 1000 : 100;
+  const exact = Math.round(p * denom * 10) / 10;
+  const count = Math.round(exact);
+  return { denom, count, text: `${denom}人に${count}人${exact === count ? '' : 'くらい'}` };
+}
+
 /**
- * 確率カード。ゲージが最終確率まで伸び、針が u の位置で止まって結果を出す（§16.6、800ms）。
- * 演出オフのときは結果を即時に出す。
+ * 自分では選べない出来事の結果（§7.5、付録B-50）。可能性を人数で見せ、結果を文で言う。数字の根拠は開いて読む。
+ * 結果は短い間のあとに出す（§16.6、800ms）。演出オフのときは即時に出す。
  */
 export function ProbabilityCard({ entry, content, animate }: { entry: ChanceLogEntry; content: Content; animate: boolean }) {
   const [phase, setPhase] = useState<'start' | 'fill' | 'done'>(animate ? 'start' : 'done');
@@ -101,60 +109,58 @@ export function ProbabilityCard({ entry, content, animate }: { entry: ChanceLogE
     };
   }, [entry.nodeId, animate]);
 
-  const stat = (id: string) => content.stats.find((s) => s.id === id);
-  const baseStat = stat(entry.baseStatRef);
-  const kind = entry.actorLabel ? `${entry.actorLabel}（統計にもとづく）` : '偶然';
-  const shown = phase !== 'start';
+  const baseStat = content.stats.find((s) => s.id === entry.baseStatRef);
+  const kind = entry.actorLabel ? `${entry.actorLabel}（統計にもとづく）` : '自分では選べない出来事';
+  const people = peopleOf(entry.finalP);
+  const lit = phase === 'start' ? 0 : Math.max(people.count, entry.finalP > 0 ? 1 : 0);
 
   return (
-    <article class="panel" aria-labelledby="prob-title">
+    <article class="panel chance-card" aria-labelledby="prob-title">
       <p class="sub" style={{ margin: 0 }}>
-        確率カード：{kind}
+        {kind}
       </p>
       <h2 id="prob-title" style={{ marginTop: 4 }}>
         {entry.label}
       </h2>
-      <dl style={{ margin: 0 }}>
-        <dt class="sub">基本の確率</dt>
-        <dd class="num" style={{ margin: '0 0 8px' }}>
-          {pct(entry.base)}（根拠：{entry.baseStatRef}
-          {baseStat ? `　${baseStat.label}` : ''}）{baseStat && <StatLabels stat={baseStat} />}
-        </dd>
-        <dt class="sub">確率を変えた要因</dt>
-        <dd style={{ margin: '0 0 8px' }}>
-          {entry.modifiersApplied.length === 0 ? (
-            'なし'
-          ) : (
-            <ul style={{ margin: 0, paddingLeft: '1.2em' }}>
-              {entry.modifiersApplied.map((m, i) => (
-                <li key={i} class="num">
-                  {SOURCE_LABELS[m.source]}：{m.note}　{pct(m.from)} → {pct(m.to)}（{m.op === 'odds' ? `オッズ比${m.value}、` : ''}{m.statRef}）
-                </li>
-              ))}
-            </ul>
-          )}
-        </dd>
-        <dt class="sub">最終の確率</dt>
-        <dd class="num" style={{ margin: 0, fontWeight: 700 }}>
-          {pct(entry.finalP)}
-        </dd>
-      </dl>
-      <div class="prob-gauge" aria-hidden="true">
-        <div class="prob-fill" style={{ width: shown ? pct(entry.finalP) : '0%' }} />
-        <div class="prob-needle" style={{ left: shown ? `calc(${(entry.u * 100).toFixed(2)}% - 1px)` : '0%' }}>
-          <span>出た値</span>
-        </div>
+      <p class="chance-people num">{people.text}</p>
+      <div class={`people-dots d${people.denom}`} aria-hidden="true">
+        {Array.from({ length: people.denom }, (_, i) => (
+          <span key={i} class={i < lit ? 'lit' : ''} />
+        ))}
       </div>
       <div aria-live="polite">
-        {phase === 'done' && (
-          <p class="result">
-            結果：{entry.happened ? '起きた' : '起きなかった'}
-            <span class="sub num" style={{ display: 'block', fontWeight: 400, fontSize: 13 }}>
-              出た値 {entry.u.toFixed(3)} が {pct(entry.finalP)} の範囲{entry.happened ? 'に入った' : 'の外だった'}
-            </span>
-          </p>
-        )}
+        {phase === 'done' && <p class="result">{entry.resultText ?? (entry.happened ? '起きました。' : '起きませんでした。')}</p>}
       </div>
+      <details>
+        <summary>数字の根拠を見る</summary>
+        <dl style={{ margin: 0 }}>
+          <dt class="sub">もとになる割合</dt>
+          <dd class="num" style={{ margin: '0 0 8px' }}>
+            {pct(entry.base)}（{entry.baseStatRef}
+            {baseStat ? `　${baseStat.label}` : ''}）{baseStat && <StatLabels stat={baseStat} />}
+          </dd>
+          <dt class="sub">割合を変えた要因</dt>
+          <dd style={{ margin: '0 0 8px' }}>
+            {entry.modifiersApplied.length === 0 ? (
+              'なし'
+            ) : (
+              <ul style={{ margin: 0, paddingLeft: '1.2em' }}>
+                {entry.modifiersApplied.map((m, i) => (
+                  <li key={i} class="num">
+                    {SOURCE_LABELS[m.source]}：{m.note}　{pct(m.from)} → {pct(m.to)}（{m.op === 'odds' ? `オッズ比${m.value}、` : ''}{m.statRef}）
+                  </li>
+                ))}
+              </ul>
+            )}
+          </dd>
+          <dt class="sub">この人の場合</dt>
+          <dd class="num" style={{ margin: 0, fontWeight: 700 }}>
+            {pct(entry.finalP)}
+          </dd>
+        </dl>
+        {baseStat?.definition && <p class="sub">注：{baseStat.definition}</p>}
+        {baseStat && <StatSource stat={baseStat} />}
+      </details>
     </article>
   );
 }

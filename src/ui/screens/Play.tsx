@@ -1,4 +1,4 @@
-// プレイ画面（付録B）：幕間、会話中心の場面、確率カード、暴力の場面のあとの支援カード、章のふりかえり。
+// プレイ画面（付録B）：幕間、会話中心の場面、選べない出来事の結果、暴力の場面のあとの支援カード、章のふりかえり。
 import { useEffect, useRef, useState } from 'preact/hooks';
 import { navigate, useApp } from '../app';
 import {
@@ -11,13 +11,14 @@ import {
   eventApplies,
   currentScene,
   getChapter,
+  nextOf,
   skipEvent,
   sortedChapters,
   visibleChoices,
 } from '../../engine/progression';
 import { breakdown, displayValue, paramsFrom } from '../../engine/effects';
 import { PARAM_KEYS } from '../../engine/constants';
-import { PARAM_LABELS, SOURCE_LABELS, TRIGGER_LABELS, type BondEntry, type LedgerEntry, type RunState } from '../../engine/types';
+import { PARAM_LABELS, SOURCE_LABELS, TRIGGER_LABELS, type RunState } from '../../engine/types';
 import { BondNotes, ChapterBondChanges } from '../components/Bonds';
 import { Hud } from '../components/Hud';
 import { Modal } from '../components/Modal';
@@ -49,14 +50,27 @@ interface HistEntry {
   visited: string[];
 }
 
-/** 選んだ直後の変化（付録B-28） */
-interface Change {
-  entries: LedgerEntry[];
-  before: RunState['params'];
-  /** 人との距離の変化（付録B-9） */
-  bonds: BondEntry[];
-  /** 同じ増減が続いても、アニメーションを出し直すための番号 */
-  stamp: number;
+/** いまのイベントの変化。パラメーターは場面の終わりにまとめて動かす（付録B-50） */
+function eventChanges(run: RunState) {
+  const id = run.position.eventId;
+  return {
+    entries: run.ledger.filter((e) => e.eventId === id && !e.skipped),
+    bonds: run.bondLog.filter((e) => e.eventId === id && !e.skipped),
+    stamp: id,
+  };
+}
+
+/** まだ見せていない変化を除いたパラメーター */
+function paramsBeforeEvent(run: RunState): RunState['params'] {
+  const out = { ...run.params };
+  for (const e of eventChanges(run).entries) out[e.param] -= e.delta;
+  return out;
+}
+
+/** このシーンでイベントが終わるか（選択肢も確率もなく、次がない） */
+function isFinalScene(content: ReturnType<typeof useApp>['content'], run: RunState): boolean {
+  const scene = currentScene(content, run);
+  return Boolean(scene && !scene.choices?.length && !scene.chance && nextOf(content, run, scene) === 'END');
 }
 
 export function Play() {
@@ -68,7 +82,6 @@ export function Play() {
   const [skipped, setSkipped] = useState<string | null>(null);
   /** いまのイベントで、すでに読み終えた場面（会話を積み重ねて見せるため。付録B-27） */
   const [visited, setVisited] = useState<string[]>([]);
-  const [change, setChange] = useState<Change | null>(null);
 
   if (!run) {
     return (
@@ -95,9 +108,6 @@ export function Play() {
     }
     const sameEvent = next.position.eventId === run.position.eventId;
     setVisited(sameEvent && run.position.step === 'scene' ? [...visited, run.position.sceneId] : []);
-    const fresh = next.ledger.slice(run.ledger.length).filter((e) => !e.skipped);
-    const freshBonds = next.bondLog.slice(run.bondLog.length).filter((e) => !e.skipped);
-    setChange((fresh.length || freshBonds.length) && next.runId === run.runId ? { entries: fresh, before: run.params, bonds: freshBonds, stamp: next.ledger.length + next.bondLog.length } : null);
     setLineIndex(0);
     setSkipped(null);
     setRun(next);
@@ -107,7 +117,6 @@ export function Play() {
   const top = hist[hist.length - 1];
   const canBackState = Boolean(top && (!top.viaChoice || !crossedChoice));
   const back = () => {
-    setChange(null);
     if (canBackLine) {
       setLineIndex(lineIndex - 1);
       return;
@@ -126,23 +135,39 @@ export function Play() {
     setCrossedChoice(false);
     setLineIndex(0);
     setVisited([]);
-    setChange(null);
     setRun(skipEvent(content, run));
     setSkipped(ev?.summary ?? 'この場面をとばしました。');
   };
+
+  /** 選択肢か場面の終わりまで、会話を一度に出す（付録B-50）。選択はとばさない */
+  const fastForward = () => {
+    let s = run;
+    const read = [...visited];
+    while (!currentScene(content, s)!.choices?.length && !currentScene(content, s)!.chance && !isFinalScene(content, s)) {
+      read.push(s.position.sceneId);
+      s = advanceScene(content, s);
+    }
+    if (s !== run) setHist((h) => [...h, { state: run, viaChoice: false, lineIndex, visited }]);
+    setVisited(read);
+    setLineIndex(linesOf(content, s, currentScene(content, s)!).length - 1);
+    setRun(s);
+  };
+
+  // 記録の画面でも、場面が終わるまで変化を先に見せない
+  const heldEvent = step === 'scene' && !(isFinalScene(content, run) && lineIndex >= linesOf(content, run, currentScene(content, run)!).length - 1);
 
   return (
     <>
       {showParams && (
         <Modal title="これまでの記録" onClose={() => setShowParams(false)}>
           <h3>いまのパラメーター</h3>
-          <Hud params={run.params} onOpen={() => undefined} quiet />
+          <Hud params={heldEvent ? paramsBeforeEvent(run) : run.params} onOpen={() => undefined} quiet />
           <ParamGuide />
           <h3>人生の地図</h3>
           <LifeMap run={run} />
           <h3>この章の変化の理由</h3>
           <FactorChart
-            data={breakdown(run.ledger, (e) => e.age === run.position.age)}
+            data={breakdown(run.ledger, (e) => e.age === run.position.age && !(heldEvent && e.eventId === run.position.eventId))}
             title={`${run.position.age}歳の章の要因分解（途中経過）`}
             hasActor={run.chanceLog.some((c) => c.age === run.position.age && c.actorLabel)}
           />
@@ -158,17 +183,13 @@ export function Play() {
         <SceneView
           run={run}
           lineIndex={lineIndex}
-          setLineIndex={(n) => {
-            setChange(null);
-            setLineIndex(n);
-          }}
+          setLineIndex={setLineIndex}
+          fastForward={fastForward}
           visited={visited}
           go={go}
           back={back}
           canBack={canBackLine || canBackState}
           skip={skip}
-          change={change}
-          closeChange={() => setChange(null)}
           animate={animate}
           openParams={() => setShowParams(true)}
         />
@@ -242,8 +263,7 @@ function SceneView(props: {
   back: () => void;
   canBack: boolean;
   skip: () => void;
-  change: Change | null;
-  closeChange: () => void;
+  fastForward: () => void;
   animate: boolean;
   openParams: () => void;
 }) {
@@ -267,31 +287,54 @@ function SceneView(props: {
   });
   // 最新の行は、文字が流れるように出す（演出を減らす設定では一度に出す）
   const full = Array.from(plainText(line.text)).length;
-  const [typed, setTyped] = useState(animate ? 0 : full);
   const lineKey = `${pos.eventId}/${pos.sceneId}/${i}`;
+  // 行ごとに数える（前の行の字数が、次の行に一瞬でも残らないように）
+  const [typedOf, setTypedOf] = useState({ key: lineKey, n: animate ? 0 : full });
+  const typed = typedOf.key === lineKey ? typedOf.n : animate ? 0 : full;
+  const instant = useRef(false);
   useEffect(() => {
-    if (!animate) {
-      setTyped(full);
+    if (!animate || instant.current) {
+      instant.current = false;
+      setTypedOf({ key: lineKey, n: full });
       return;
     }
-    setTyped(0);
     let n = 0;
+    setTypedOf({ key: lineKey, n });
     const id = setInterval(() => {
       n += 1;
-      setTyped(n);
+      setTypedOf({ key: lineKey, n });
       if (n >= full) clearInterval(id);
-    }, 35);
+    }, 16);
     return () => clearInterval(id);
   }, [lineKey, animate]);
   const typing = typed < full;
+
+  // 会話が伸びても、選択肢とボタンが画面の中に収まるように、いちばん下まで送る（付録B-50）
+  const sectionRef = useRef<HTMLElement>(null);
   const endRef = useRef<HTMLDivElement>(null);
   useEffect(() => {
-    endRef.current?.scrollIntoView({ block: 'end', behavior: animate ? 'smooth' : 'auto' });
-  }, [lineKey, typing]);
+    const toEnd = () => endRef.current?.scrollIntoView({ block: 'end', behavior: animate ? 'smooth' : 'auto' });
+    toEnd();
+    const ro = new ResizeObserver(toEnd);
+    if (sectionRef.current) ro.observe(sectionRef.current);
+    return () => ro.disconnect();
+  }, [pos.eventId, animate]);
+
+  const finalScene = isFinalScene(content, run);
+  // パラメーターは、場面を最後まで読んだときに動かす（付録B-50）
+  const revealed = finalScene && atLast && !typing;
+  const changes = eventChanges(run);
+  const canFastForward = !atLast || typing || (choices.length === 0 && !scene.chance && !finalScene);
+  const fastForward = () => {
+    instant.current = true;
+    setTypedOf({ key: lineKey, n: full });
+    props.fastForward();
+  };
 
   const advance = () => {
-    if (typing) {
-      setTyped(full);
+    // 文字が流れている途中で押したら、次の行へ（最後の行では、全文を出す）
+    if (typing && atLast) {
+      setTypedOf({ key: lineKey, n: full });
       return;
     }
     if (!atLast) {
@@ -305,7 +348,7 @@ function SceneView(props: {
   const quiet = (ev.resources ?? []).includes('violence');
 
   return (
-    <section class="scene" key={pos.eventId}>
+    <section class="scene" key={pos.eventId} ref={sectionRef}>
       <h2 class="sr-only" tabIndex={-1} ref={h}>
         場面
       </h2>
@@ -318,9 +361,7 @@ function SceneView(props: {
             </p>
           )}
         </div>
-        <StatusBar params={run.params} change={props.change} animate={animate} quiet={quiet} onOpen={props.openParams} />
-        {props.change && <ChangeNotes entries={props.change.entries} />}
-        {props.change && <BondNotes run={run} entries={props.change.bonds} />}
+        <StatusBar params={revealed ? run.params : paramsBeforeEvent(run)} change={revealed ? changes : null} animate={animate} quiet={quiet} onOpen={props.openParams} />
       </div>
       <div class="chat-log" aria-live="polite">
         {earlier.map((l, k) => (
@@ -329,8 +370,13 @@ function SceneView(props: {
         {lines.slice(0, i + 1).map((l, k) => (
           <ChatLine key={`c${k}`} run={run} line={l} typing={k === i && typing} typed={typed} />
         ))}
-        <div ref={endRef} />
       </div>
+      {revealed && (changes.entries.length > 0 || changes.bonds.length > 0) && (
+        <div class="scene-result">
+          <ChangeNotes entries={changes.entries} quiet={quiet} />
+          <BondNotes run={run} entries={changes.bonds} />
+        </div>
+      )}
       {atLast && !typing && choices.length > 0 ? (
         <div role="group" aria-label="選択肢" class="choices">
           {choices.map((c) => (
@@ -342,12 +388,15 @@ function SceneView(props: {
         </div>
       ) : (
         <button type="button" class="next-tap" onClick={advance}>
-          {typing ? '▼' : atLast ? (scene.chance ? 'どうなるかを見る ▼' : '次へ ▼') : '▼ 次へ'}
+          {typing && atLast ? '▼' : atLast ? (scene.chance ? 'どうなるかを見る ▼' : '次へ ▼') : '▼ 次へ'}
         </button>
       )}
-      <div class="scene-tools">
+      <div class="scene-tools" ref={endRef}>
         <button type="button" class="tool" onClick={props.back} disabled={!props.canBack} aria-label="ひとつ前に戻る">
           ◀ 戻る
+        </button>
+        <button type="button" class="tool" onClick={fastForward} disabled={!canFastForward} aria-label="選択肢か場面の終わりまで、会話を早送りする">
+          ▶▶ 早送り
         </button>
         <button type="button" class="tool" onClick={props.openParams}>
           記録
@@ -360,7 +409,7 @@ function SceneView(props: {
   );
 }
 
-// ── 確率カード（§7.5） ──
+// ── 選べない出来事の結果（§7.5、付録B-50） ──
 function ChanceView({ run, go, back, canBack }: { run: RunState; go: (s: RunState, v: boolean) => void; back: () => void; canBack: boolean }) {
   const { content, animate } = useApp();
   const entry = run.chanceLog[run.chanceLog.length - 1]!;
@@ -368,7 +417,7 @@ function ChanceView({ run, go, back, canBack }: { run: RunState; go: (s: RunStat
   return (
     <section class="fade-in">
       <h1 class="sr-only" tabIndex={-1} ref={h}>
-        確率カード
+        自分では選べない出来事
       </h1>
       <ProbabilityCard entry={entry} content={content} animate={animate} />
       <div class="scene-tools">

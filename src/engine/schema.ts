@@ -73,6 +73,8 @@ export const chanceNodeSchema = z.strictObject({
   base: z.strictObject({ value: z.number().min(0).max(1), statRef: statIdSchema }),
   modifiers: z.array(chanceModifierSchema).default([]),
   outcomes: z.strictObject({ happens: outcomeSchema, notHappens: outcomeSchema }),
+  /** 結果の文。何が起きた／起きなかったのかを、言葉にする（付録B-50） */
+  result: z.strictObject({ happens: z.string().min(1), notHappens: z.string().min(1) }).optional(),
   actorLabel: z.string().optional(),
 });
 

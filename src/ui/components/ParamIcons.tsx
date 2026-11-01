@@ -25,9 +25,9 @@ export function ParamIcon({ param, size = 18 }: { param: ParamKey; size?: number
 }
 
 /** 数字を、もとの値から新しい値へ数え上げる */
-function CountUp({ value, animate }: { value: number; animate: boolean }) {
-  const [shown, setShown] = useState(value);
-  const prev = useRef(value);
+function CountUp({ value, from: start, animate }: { value: number; from: number; animate: boolean }) {
+  const [shown, setShown] = useState(animate ? start : value);
+  const prev = useRef(start);
   useEffect(() => {
     const from = prev.current;
     prev.current = value;
@@ -49,10 +49,10 @@ function CountUp({ value, animate }: { value: number; animate: boolean }) {
 
 /**
  * 場面の下にいつも出す4つのパラメーター（付録B-40・B-47・B-48）。名前・意味・数字・ゲージを常に見せる。
- * ふだんのゲージは無彩色にし、色は変化だけに使う（増えると緑、減ると朱。▲▼を併記）。変化は次へ進むまで残す。
+ * ふだんのゲージは無彩色にし、色は変化だけに使う（増えると緑、減ると朱。▲▼を併記）。
  * 暴力を扱う場面では、減少を強調しない（§16.6）。
  */
-export function StatusBar({ params, change, animate, quiet, onOpen }: { params: Params; change: { entries: { param: ParamKey; delta: number }[]; stamp: number } | null; animate: boolean; quiet?: boolean; onOpen?: () => void }) {
+export function StatusBar({ params, change, animate, quiet, onOpen }: { params: Params; change: { entries: { param: ParamKey; delta: number }[]; stamp: number | string } | null; animate: boolean; quiet?: boolean; onOpen?: () => void }) {
   const items = PARAM_KEYS.map((k) => {
     const v = displayValue(params[k]).value;
     const delta = (change?.entries ?? []).filter((e) => e.param === k).reduce((a, e) => a + e.delta, 0);
@@ -63,7 +63,7 @@ export function StatusBar({ params, change, animate, quiet, onOpen }: { params: 
         <span class="status-head">
           <ParamIcon param={k} size={16} />
           <span class="status-name">{PARAM_LABELS[k]}</span>
-          <CountUp value={v} animate={animate} />
+          <CountUp value={v} from={before} animate={animate} />
         </span>
         <span class="status-gauge" aria-hidden="true">
           <span class="status-fill" style={{ width: `${Math.min(v, before)}%` }} />
@@ -113,7 +113,14 @@ export function ParamGuide({ params }: { params?: Params }) {
 }
 
 /** 増減の数字。色と▲▼で向きを見せる */
-export function DeltaText({ param, delta }: { param: ParamKey; delta: number }) {
+export function DeltaText({ param, delta, quiet }: { param: ParamKey; delta: number; quiet?: boolean }) {
+  // 暴力を扱う場面では、色と記号で強調しない（§16.6）
+  if (quiet)
+    return (
+      <strong class="num">
+        {PARAM_LABELS[param]} {delta > 0 ? `+${delta}` : delta}
+      </strong>
+    );
   return (
     <strong class={`num delta-${delta > 0 ? 'up' : 'down'}`}>
       {PARAM_LABELS[param]} {delta > 0 ? `▲+${delta}` : `▼${delta}`}
@@ -121,14 +128,14 @@ export function DeltaText({ param, delta }: { param: ParamKey; delta: number }) 
   );
 }
 
-/** 変化の理由。絵をふさがず、ステータスのすぐ下に出す */
-export function ChangeNotes({ entries }: { entries: LedgerEntry[] }) {
+/** 変化の理由。場面の終わりに、会話の下に出す（付録B-50） */
+export function ChangeNotes({ entries, quiet }: { entries: LedgerEntry[]; quiet?: boolean }) {
   if (entries.length === 0) return null;
   return (
     <ul class="change-notes" role="status" aria-live="polite">
       {entries.map((e, i) => (
         <li key={i} class={`reason f-${e.source}`}>
-          <DeltaText param={e.param} delta={e.delta} /> {e.note}（{SOURCE_LABELS[e.source]}）
+          <DeltaText param={e.param} delta={e.delta} quiet={quiet} /> {e.note}（{SOURCE_LABELS[e.source]}）
         </li>
       ))}
     </ul>

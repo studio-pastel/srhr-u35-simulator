@@ -132,6 +132,15 @@ describe('セリフの決まり（付録B-48）', () => {
   it('どの場面にも、なぜ起きたのかが書いてある', () => {
     expect(events.filter((ev) => !ev.trigger).map((ev) => ev.id)).toEqual([]);
   });
+  it('パラメーターは場面の終わりに見せるので、選んですぐ終わる選択肢に効果を付けない（付録B-50）', () => {
+    const silent = events.flatMap((ev) =>
+      ev.scenes.flatMap((sc: any) =>
+        (sc.choices ?? []).filter((c: any) => c.next === 'END' && (c.effects?.length || c.closeness?.length)).map((c: any) => `${ev.id}/${sc.id}/${c.id}`),
+      ),
+    );
+    expect(silent).toEqual([]);
+  });
+
   it('確率で決まる場面だけが「偶然」になっている', () => {
     for (const ev of events) expect(ev.trigger?.kind === 'chance').toBe(ev.kind === 'chance');
   });

@@ -128,6 +128,8 @@ export interface ChanceLogEntry {
   finalP: number;
   u: number;
   happened: boolean;
+  /** 結果の文（付録B-50） */
+  resultText?: string;
   actorLabel?: string;
 }
 
