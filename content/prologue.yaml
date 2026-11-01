@@ -82,7 +82,7 @@ entries:
   - { age: 11, text: "「女子は」「男子は」と言われるたび、どちらの話にも自分が入っていない気がした。", when: "up.gender == 'nonbinary'" }
   - { age: 13, text: "どちらかに決められないのは、自分がおかしいからだろうか。誰にも聞けなかった。", when: "up.gender == 'nonbinary'" }
   - { age: 14, text: "「ノンバイナリー」という言葉を知った。自分のことなのか、まだわからない。", when: "up.gender == 'nonbinary'" }
-  - { age: 15, kind: inner, text: "（どっちでもない、でいいのかもしれない。いまは、そう思っている）", when: "up.gender == 'nonbinary'" }
+  - { age: 15, kind: inner, text: "（男でも女でもない、でいいのかもしれない。いまは、そう思っている）", when: "up.gender == 'nonbinary'" }
 
   # ── 好きになる人 ──
   - { age: 12, text: "気がつくと、同じクラスの男の子を目で追っていた。", when: "up.attractedTo == 'men'" }
