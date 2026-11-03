@@ -3,7 +3,7 @@ import { describe, expect, it } from 'vitest';
 import { makeProfile, rawContent, realContent } from '../helpers';
 import { advanceScene, beginChapter, choose, createRun, currentScene, skipEvent, visibleChoices } from '../../src/engine/progression';
 import { validateContent } from '../../src/engine/validate';
-import { chapterPeople, linesOf, sceneSpec, stageOf, fillText, relationOf } from '../../src/ui/stage';
+import { chapterPeople, chosenLine, linesOf, sceneSpec, stageOf, fillText, relationOf } from '../../src/ui/stage';
 import { peopleOf, youIndex } from '../../src/ui/components/Cards';
 import type { ChanceLogEntry } from '../../src/engine/types';
 import type { Profile } from '../../src/engine/profile';
@@ -146,5 +146,17 @@ describe('選べない出来事の「この人生」の点（付録B-52）', () 
         expect(i < lit).toBe(e.happened);
       }
     }
+  });
+});
+
+describe('選んだせりふを会話に残す（付録B-54）', () => {
+  it('「」は口に出した言葉、記号なしは行動として残る', () => {
+    const ev = real.chapters.flatMap((c) => c.events).find((e) => e.id === 'E17-TALK')!;
+    const selfAsk = ev.scenes.find((s) => s.id === 'selfAsk')!;
+    const start = ev.scenes.find((s) => s.id === 'start')!;
+    const base = createRun(real, { profile: makeProfile({ attractedTo: 'women' }), seed: SEED });
+    const run = { ...base, choices: { 'E17-TALK/selfAsk': 'press', 'E17-TALK/start': 'wait' } };
+    expect(chosenLine(real, run, ev, selfAsk)).toMatchObject({ who: 'me', kind: 'say', text: 'なんで？　付き合ってるのに' });
+    expect(chosenLine(real, run, ev, start)).toMatchObject({ kind: 'action', text: '黙って、続きを聞く' });
   });
 });

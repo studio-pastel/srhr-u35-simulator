@@ -11,7 +11,8 @@ export interface ShownLine {
   /** 画面に出す名前（地の文では空） */
   name: string;
   text: string;
-  kind: 'say' | 'inner' | 'message' | 'narration' | 'fade';
+  /** action は、選んだ行動（「」も（）もない選択肢）。会話の記録に残す（付録B-54） */
+  kind: 'say' | 'inner' | 'message' | 'narration' | 'fade' | 'action';
   face?: Face;
 }
 
@@ -49,8 +50,14 @@ export function fillText(content: Content, run: RunState, text: string): string 
 
 /** 主人公から見た関係（付録B-48）。付き合い始めたら、パートナーの関係も変わる */
 export function relationOf(content: Content, run: RunState, id: string): string | undefined {
-  if (id === run.flags.partnerId && run.flags.dating === true) return '付き合っている人';
+  if (id === run.flags.partnerId && run.flags.dating === true && !startedDatingHere(content, run)) return '付き合っている人';
   return content.cast.find((c) => c.id === id)?.relation;
+}
+
+/** いまのイベントの中で付き合い始めた（告白の場面）。その場面の吹き出しは、付き合う前の関係のまま出す */
+function startedDatingHere(content: Content, run: RunState): boolean {
+  const ev = content.chapters.flatMap((c) => c.events).find((e) => e.id === run.position.eventId);
+  return !!ev?.scenes.some((sc) => sc.choices?.some((c) => c.setFlags?.dating === true && run.choices[`${ev.id}/${sc.id}`] === c.id));
 }
 
 /** 人物の見た目。主人公はプレイヤーが選んだ見た目を使う */
@@ -161,4 +168,24 @@ export function chanceDeck(content: Content, run: RunState): { id: string; state
       id: e.id,
       state: run.completedEvents.includes(e.id) ? 'done' : run.position.eventId === e.id && run.position.step !== 'chapterTop' ? 'active' : 'pending',
     }));
+}
+
+/**
+ * その場面で選んだ選択肢を、会話の1行として返す（付録B-54）。選んだせりふが記録に残らないと、
+ * 何も言っていないのに相手が反応したように見えるため。「」は口に出した言葉、（）は心の声、記号なしは行動。
+ * 直前の行がメッセージなら、口に出した言葉もメッセージとして出す。
+ */
+export function chosenLine(content: Content, run: RunState, ev: GameEvent, scene: Scene): ShownLine | undefined {
+  const id = run.choices[`${ev.id}/${scene.id}`];
+  const choice = scene.choices?.find((c) => c.id === id);
+  if (!choice) return undefined;
+  const label = fillText(content, run, choice.label);
+  const name = nameOf(content, run, 'me');
+  const spoken = label.match(/^「(.*)」$/s);
+  if (spoken) {
+    const message = linesOf(content, run, scene).at(-1)?.kind === 'message';
+    return { who: 'me', name: message ? `${name}（メッセージ）` : name, text: spoken[1]!, kind: message ? 'message' : 'say' };
+  }
+  if (label.startsWith('（')) return { who: 'me', name: `${name}（心の声）`, text: label, kind: 'inner' };
+  return { who: 'me', name, text: label, kind: 'action' };
 }

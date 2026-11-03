@@ -5,6 +5,7 @@ import { lifeStory } from '../../engine/lifestory';
 import { SOURCE_LABELS, type Params } from '../../engine/types';
 import { DeltaText, ParamGuide, StatusBar } from '../components/ParamIcons';
 import { PixelStage } from '../components/PixelStage';
+import { FamilyNow } from '../components/FamilyNow';
 import { sceneSpec } from '../stage';
 
 /** 1行を見せる時間。読める長さに合わせる */
@@ -59,6 +60,7 @@ export function Prologue() {
           <PixelStage spec={sceneSpec(content, at, stage)} label={`${p.name}、${age}歳`} animate={animate} />
         </div>
         <StatusBar params={params} change={latest.length ? { entries: latest, stamp: shown } : null} animate={animate} />
+        <FamilyNow run={run} age={age} />
       </div>
 
       <ol class="life-log" aria-live="polite">

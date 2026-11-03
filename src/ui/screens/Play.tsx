@@ -22,14 +22,14 @@ import { PARAM_LABELS, SOURCE_LABELS, TRIGGER_LABELS, type RunState } from '../.
 import { BondNotes, ChapterBondChanges } from '../components/Bonds';
 import { Hud } from '../components/Hud';
 import { Modal } from '../components/Modal';
-import { PeopleMap, PeopleStrip } from '../components/People';
+import { PeopleList, PeopleMap } from '../components/People';
 import { ChanceDeck } from '../components/ChanceDeck';
 import { FactorChart } from '../components/FactorChart';
 import { ProbabilityCard, StatCard } from '../components/Cards';
 import { RichText, plainText } from '../components/RichText';
 import { PixelStage } from '../components/PixelStage';
 import { OverallReview } from './OverallReview';
-import { ageOf, fillText, linesOf, lookOf, sceneSpec, stageOf, type ShownLine } from '../stage';
+import { ageOf, chosenLine, fillText, linesOf, lookOf, sceneSpec, stageOf, type ShownLine } from '../stage';
 import { FaceIcon } from '../components/Faces';
 import { ChangeNotes, ParamGuide, StatusBar } from '../components/ParamIcons';
 import { LifeMap, LifeStrip } from '../components/LifeMap';
@@ -231,6 +231,7 @@ function Interlude({ run, onStart }: { run: RunState; onStart: () => void }) {
       <p class="interlude-news">
         <RichText text={ch.intro.me ?? ''} />
       </p>
+      <ChanceDeck run={run} caption />
       <h2 class="interlude-people">この年のまわりの人</h2>
       <PeopleMap run={run} age={ch.age} />
       <button type="button" class="btn primary" onClick={onStart}>
@@ -246,6 +247,8 @@ export function ChatLine({ run, line, typing, typed }: { run: RunState; line: Sh
   const text = typing ? Array.from(plainText(line.text)).slice(0, typed).join('') : null;
   const body = text !== null ? text : <RichText text={line.text} />;
   if (line.kind === 'narration') return <p class="chat narration">{body}</p>;
+  // 選んだ行動（付録B-54）
+  if (line.kind === 'action') return <p class="chat action">{body}</p>;
   // 暗転（付録B-30）：行為は描かず、時間が過ぎたことだけを伝える
   if (line.kind === 'fade') return <p class="chat fade-line">{body}</p>;
   const mine = line.who === 'me';
@@ -293,9 +296,12 @@ function SceneView(props: {
   const h = useFocusHeading(pos.eventId);
   const me = { name: run.profile.name };
   // これまでに読んだ場面の会話（同じイベントの中だけ）
+  // 選んだせりふや行動も、その場面の最後に残す（付録B-54）
   const earlier = props.visited.flatMap((id) => {
     const sc = ev.scenes.find((x) => x.id === id);
-    return sc ? linesOf(content, run, sc) : [];
+    if (!sc) return [];
+    const picked = chosenLine(content, run, ev, sc);
+    return picked ? [...linesOf(content, run, sc), picked] : linesOf(content, run, sc);
   });
   // 最新の行は、文字が流れるように出す（演出を減らす設定では一度に出す）
   const full = Array.from(plainText(line.text)).length;
@@ -375,7 +381,7 @@ function SceneView(props: {
           )}
         </div>
         <StatusBar params={revealed ? run.params : paramsBeforeEvent(run)} change={revealed ? changes : null} animate={animate} quiet={quiet} onOpen={props.openParams} />
-        <PeopleStrip run={run} />
+        <PeopleList run={run} />
       </div>
       <div class="chat-log" aria-live="polite">
         {earlier.map((l, k) => (

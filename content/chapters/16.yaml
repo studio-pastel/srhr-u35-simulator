@@ -28,8 +28,10 @@ events:
     trigger: { kind: story, text: "誰にでも起きる" }
     domains: [関係性, 性の多様性]
     stage: { place: classroom, time: day, cast: [{ id: self, x: 30 }, { id: riko, x: 64 }] }
-    summary: "昼休み、友だちと恋愛の話になった。"
+    summary: "昼休み、友だちに好きな人のことをしつこく聞かれた。"
     status: draft
+    # 踏み込んだ質問に答えるかどうかは、本人が決める。話すことに「つながり」の加点を付けない。
+    # 話したくないと断ることを、自己決定として肯定的に扱う（付録B-54）
     scenes:
       - id: start
         lines:
@@ -40,65 +42,69 @@ events:
           - { who: self, kind: inner, text: "（ソウとも、サキとも、話してると楽しい。どっちが、とかじゃなく）", when: "up.attractedTo == 'any'" }
           - { who: self, kind: inner, text: "（みんなが言う「好き」が、自分にはよくわからない）", when: "up.attractedTo == 'none'" }
           - { who: self, kind: inner, text: "（好きって、どういう気持ちなんだろう）", when: "up.attractedTo == 'unsure'" }
+          - { who: self, kind: inner, text: "（ルイが話したからって、こっちも話さなきゃいけないのかな）" }
         choices:
           - id: sou
             label: "「実は、ソウのことが気になってて」"
             requires: "up.attractedTo == 'men' || up.attractedTo == 'any'"
-            canonical: true
-            effects:
-              - { param: connection, sign: 1, size: S, source: choice, note: "気持ちを話せた" }
             setFlags: { partnerId: sou }
             next: told
           - id: saki
             label: "「実は、サキのことが気になってて」"
             requires: "up.attractedTo == 'women' || up.attractedTo == 'any'"
-            canonical: true
-            effects:
-              - { param: connection, sign: 1, size: S, source: choice, note: "気持ちを話せた" }
             setFlags: { partnerId: saki }
             next: told
-          # 言わなくても、気持ちがなくなるわけではない。だから、秘密にしてもパートナーの話は続く
-          - id: dodgeSou
-            label: "「えー、秘密」"
-            requires: "up.attractedTo == 'men'"
-            setFlags: { partnerId: sou }
-            next: dodge
-          - id: dodgeSaki
-            label: "「えー、秘密」"
-            requires: "up.attractedTo == 'women'"
-            setFlags: { partnerId: saki }
-            next: dodge
-          - id: dodgeAny
-            label: "「えー、秘密」"
-            requires: "up.attractedTo == 'any'"
-            next: dodgeWho
-          - id: dodge
-            label: "「えー、秘密」"
-            requires: "up.attractedTo == 'none' || up.attractedTo == 'unsure'"
-            next: dodge
           - id: honest
             label: "「そういうの、あんまりピンとこなくて」"
             requires: "up.attractedTo == 'none' || up.attractedTo == 'unsure'"
-            canonical: true
             effects:
               - { param: autonomy, sign: 1, size: S, source: choice, note: "自分の感じ方を言えた" }
             next: honest
+          # 断っても、気持ちがなくなるわけではない。だから、断ってもパートナーの話は続く
+          - id: refuseSou
+            label: "「それは、言いたくない」"
+            requires: "up.attractedTo == 'men'"
+            canonical: true
+            effects:
+              - { param: autonomy, sign: 1, size: S, source: choice, note: "話したくないと断れた" }
+            setFlags: { partnerId: sou }
+            next: refuse
+          - id: refuseSaki
+            label: "「それは、言いたくない」"
+            requires: "up.attractedTo == 'women'"
+            canonical: true
+            effects:
+              - { param: autonomy, sign: 1, size: S, source: choice, note: "話したくないと断れた" }
+            setFlags: { partnerId: saki }
+            next: refuse
+          - id: refuseAny
+            label: "「それは、言いたくない」"
+            requires: "up.attractedTo == 'any'"
+            canonical: true
+            effects:
+              - { param: autonomy, sign: 1, size: S, source: choice, note: "話したくないと断れた" }
+            next: refuseWho
+          - id: refuse
+            label: "「それは、言いたくない」"
+            requires: "up.attractedTo == 'none' || up.attractedTo == 'unsure'"
+            canonical: true
+            effects:
+              - { param: autonomy, sign: 1, size: S, source: choice, note: "話したくないと断れた" }
+            next: refuse
       - id: told
-        closeness:
-          - { who: riko, delta: 1, note: "話を聞いてくれた" }
         lines:
           - { who: riko, text: "えっ、%partner%？　いいじゃん。今度くわしく聞かせて。", face: smile }
           - { who: riko, text: "大丈夫、誰にも言わないから。" }
-          - { who: self, kind: inner, text: "（言っちゃった。でも、ルイの顔は変わらなかった）", face: relieved }
+          - { who: self, kind: inner, text: "（言っちゃった。……ほんとに、誰にも言わないでいてくれるかな）", face: anxious }
         next: END
-      - id: dodge
+      - id: refuse
         lines:
-          - { who: riko, text: "えー、ずるい。まあいいけど。" }
-          - { who: self, kind: inner, text: "（……言わなくても、いいよね）" }
+          - { who: riko, text: "あ……ごめん。しつこかったね。" }
+          - { who: self, kind: inner, text: "（言わなくても、ルイは怒らなかった）", face: relieved }
         next: END
-      - id: dodgeWho
+      - id: refuseWho
         lines:
-          - { who: riko, text: "えー、ずるい。まあいいけど。" }
+          - { who: riko, text: "あ……ごめん。しつこかったね。" }
           - { who: self, kind: inner, text: "（……ほんとは、最近よく考えてしまう人がいる）" }
         choices:
           - id: thinkSou
@@ -111,8 +117,6 @@ events:
             setFlags: { partnerId: saki }
             next: END
       - id: honest
-        closeness:
-          - { who: riko, delta: 1, note: "否定しないでくれた" }
         lines:
           - { who: riko, text: "そっか。じゃあ、購買の新しいパンの話しよ。", face: smile }
           - { who: self, kind: inner, text: "（なんだ、そんな感じでいいのか）", face: relieved }
@@ -185,18 +189,18 @@ events:
     age: 16
     characters: [me]
     kind: fixed
-    trigger: { kind: profile, text: "からだの条件から起きた" }
-    domains: [からだ, 性の知識]
+    trigger: { kind: profile, text: "からだの条件で分かれた場面" }
+    domains: [からだ, 情報の見きわめ]
     requires: "up.body == 'cannot'"
     stage: { place: bedroom, time: night, cast: [{ id: self, x: 34, pose: phone }] }
-    summary: "からだのことをネットで調べて、不安になった。"
+    summary: "身長を伸ばすサプリの広告を見て、不安になった。"
     status: draft
     scenes:
       - id: start
         lines:
-          - { who: narration, text: "夜、スマホを見ていたら、からだの悩みの広告が出てきた。" }
-          - { who: self, kind: inner, text: "（「高校生のうちに対策しないと手遅れ」って……ほんと？）", face: anxious }
-          - { who: self, kind: inner, text: "（友だちにも親にも、こんなこと聞けない）" }
+          - { who: narration, text: "夜、動画の合間に、身長を伸ばすサプリの広告が流れた。" }
+          - { who: self, kind: inner, text: "（「高校生で飲まないと、もう伸びない」って……ほんと？）", face: anxious }
+          - { who: self, kind: inner, text: "（背のこと気にしてるって、友だちには知られたくない）" }
         choices:
           - id: official
             label: "広告じゃないページで、調べ直す"
@@ -205,18 +209,19 @@ events:
               - { param: body, sign: 1, size: S, source: choice, note: "正しい情報を探した" }
             next: official
           - id: buy
-            label: "とりあえず、広告の商品を買ってみる"
+            label: "とりあえず、広告のサプリを買ってみる"
             effects:
               - { param: living, sign: -1, size: S, source: choice, note: "お小遣いを使った" }
             next: buy
       - id: official
         lines:
           - { who: narration, text: "病院や公的機関のページを、いくつか読んだ。" }
-          - { who: self, kind: inner, text: "（なんだ、心配しなくていいことも多いんだ）", face: relieved }
+          - { who: self, kind: inner, text: "（背には、よく寝ることや食事のほうが大事らしい）" }
+          - { who: self, kind: inner, text: "（サプリの効き目は、はっきりしないみたいだ）", face: relieved }
         next: END
       - id: buy
         lines:
-          - { who: narration, text: "届いたのは、よくわからないサプリだった。" }
+          - { who: narration, text: "届いたサプリは、思っていたより高かった。" }
           - { who: self, kind: inner, text: "（……なんか、損した気がする）", face: sad }
         next: END
 
@@ -305,7 +310,7 @@ events:
     characters: [me]
     requires: "up.body == 'canBePregnant'"
     kind: fixed
-    trigger: { kind: profile, text: "からだの条件から起きた" }
+    trigger: { kind: profile, text: "からだの条件で分かれた場面" }
     domains: [栄養, 月経]
     statCard: [S14]
     stage: { place: classroom, time: day, cast: [{ id: self, x: 30 }, { id: riko, x: 64 }] }
@@ -316,8 +321,9 @@ events:
         lines:
           - { who: narration, text: "昼休み。" }
           - { who: riko, text: "今日もお昼サラダだけ？" }
-          - { who: self, text: "うん。もうちょっと頑張りたくて。" }
-          - { who: riko, text: "そっか……。無理しないでね。" }
+          # ダイエットを始めたことは物語の前提。主人公に、選んでいない言葉を言わせない（付録B-54）
+          - { who: self, kind: inner, text: "（SNSで見る子は、みんな細い。もう少しやせたい）" }
+          - { who: riko, text: "……無理しないでね。" }
         next: start
       - id: start
         stage: { place: bedroom, time: night, cast: [{ id: self, x: 34 }] }
@@ -459,11 +465,14 @@ events:
           - { who: self, text: "ちょっと待って、先にごはん作るから。" }
           - { who: self, kind: inner, text: "（お母さんが帰るのは、夜の十時すぎ）" }
         next: teacher
+      # 担任は人のいない場所で声をかけ、責めずに、本人が困っていることを聞く。
+      # ほかの人に伝えるときは先に本人に確かめる、と約束する（付録B-54）
       - id: teacher
-        stage: { place: hallway, time: dusk, cast: [{ id: self, x: 30 }, { id: tamura, x: 64 }] }
+        stage: { place: classroom, time: dusk, cast: [{ id: self, x: 30 }, { id: tamura, x: 64 }] }
         lines:
-          - { who: narration, text: "次の日の放課後、廊下で担任に呼び止められた。" }
-          - { who: tamura, text: "最近、早退が多いな。何かあったか？" }
+          - { who: narration, text: "次の日の放課後。みんなが帰った教室で、担任に声をかけられた。" }
+          - { who: tamura, text: "最近、早退が続いてるな。責めてるんじゃないんだ。" }
+          - { who: tamura, text: "何か、困ってることはないか？" }
         choices:
           - id: tell
             label: "「実は、家のことで……」"
@@ -480,19 +489,22 @@ events:
             setFlags: { toldTeacher: false }
             next: silent
       - id: tell
-        stage: { place: hallway, time: dusk, cast: [{ id: self, x: 30 }, { id: tamura, x: 64 }] }
+        stage: { place: classroom, time: dusk, cast: [{ id: self, x: 30 }, { id: tamura, x: 64 }] }
         effects:
-          - { param: autonomy, sign: 1, size: S, source: others, note: "担任が支援を調べた" }
+          - { param: autonomy, sign: 1, size: S, source: others, note: "提出の期限を相談できた" }
         lines:
           - { who: self, text: "弟と妹の世話があって。母の帰りが遅いので。" }
-          - { who: tamura, text: "そうだったのか。気づかなくて、悪かった。" }
-          - { who: tamura, text: "スクールカウンセラーや地域の支援のこと、調べてみる。" }
-          - { who: self, kind: inner, text: "（一人で抱えなくても、いいのかな）", face: relieved }
+          - { who: tamura, text: "そうか。毎日、それをやってたんだな。" }
+          - { who: tamura, text: "学校のことで、いちばん困ってるのは何だ？" }
+          - { who: self, text: "……課題が、夜までできなくて。" }
+          - { who: tamura, text: "提出の期限は、相談しよう。ほかのことは、話したくなったらでいい。" }
+          - { who: tamura, text: "ほかの先生に話すときは、先に必ず聞くから。" }
+          - { who: self, kind: inner, text: "（勝手に話を大きくされないなら、また話せるかも）", face: relieved }
         next: END
       - id: silent
-        stage: { place: hallway, time: dusk, cast: [{ id: self, x: 30 }, { id: tamura, x: 64 }] }
+        stage: { place: classroom, time: dusk, cast: [{ id: self, x: 30 }, { id: tamura, x: 64 }] }
         lines:
-          - { who: tamura, text: "……そうか。何かあったら、いつでも言えよ。" }
+          - { who: tamura, text: "……そうか。話したくなったら、いつでもいい。" }
           - { who: self, kind: inner, text: "（家のことを話すのは、まだこわい）", face: anxious }
         next: END
 

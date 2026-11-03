@@ -2,8 +2,8 @@
 import { describe, expect, it } from 'vitest';
 import fc from 'fast-check';
 import { invariantHolds, makeProfile, playThrough, realContent } from '../helpers';
-import { beginChapter, chapterResourceTags, createRun, currentScene, visibleChoices } from '../../src/engine/progression';
-import { ATTRACTION_COUNTS, ATTRACTIONS, BODY_RESPECTS, FAMILY_STORIES, GENDER_COUNTS, GENDERS, historyOf, initialOf, pregnancyPossible, randomProfile, SINGLE_PARENT_REASONS, singleParentOf, upOf, type Profile } from '../../src/engine/profile';
+import { advanceReview, beginChapter, chapterResourceTags, createRun, currentScene, skipEvent, visibleChoices } from '../../src/engine/progression';
+import { ATTRACTION_COUNTS, ATTRACTIONS, BODY_RESPECTS, FAMILY_STORIES, GENDER_COUNTS, GENDERS, historyOf, initialOf, pregnancyPossible, randomProfile, SIBLING_BIRTH_AGES, SINGLE_PARENT_REASONS, singleParentOf, upOf, type Profile } from '../../src/engine/profile';
 import { lifeStory } from '../../src/engine/lifestory';
 import { compareRuns, startReplay } from '../../src/engine/replay';
 import { autoPlay, trajectory } from '../../src/engine/standard';
@@ -92,13 +92,32 @@ describe('属性で出来事が変わる（付録B-43）', () => {
     expect(s.completedEvents).toContain('E17-ASKOUT');
     expect(s.completedEvents).not.toContain('E17-TALK');
   });
-  it('気になる人を秘密にしても、付き合うかどうかの場面は来る（付録B-48）', () => {
-    for (const [attractedTo, pick] of [['men', 'dodgeSou'], ['women', 'dodgeSaki']] as const) {
+  it('気になる人のことを言いたくないと断っても、付き合うかどうかの場面は来る（付録B-48・B-54）', () => {
+    for (const [attractedTo, pick] of [['men', 'refuseSou'], ['women', 'refuseSaki']] as const) {
       const s = playThrough(real, run({ attractedTo }), picking({ 'E16-CRUSH/start': pick }));
       expect(s.completedEvents).toContain('E17-ASKOUT');
     }
-    const any = playThrough(real, run({ attractedTo: 'any' }), picking({ 'E16-CRUSH/start': 'dodgeAny', 'E16-CRUSH/dodgeWho': 'thinkSaki' }));
+    const any = playThrough(real, run({ attractedTo: 'any' }), picking({ 'E16-CRUSH/start': 'refuseAny', 'E16-CRUSH/refuseWho': 'thinkSaki' }));
     expect(any.flags.partnerId).toBe('saki');
+  });
+  it('踏み込んだ質問に答えても、つながりは増えない。断ると自己決定が増える（付録B-54）', () => {
+    const told = playThrough(real, run({ attractedTo: 'women' }), picking({ 'E16-CRUSH/start': 'saki' }));
+    expect(told.ledger.filter((e) => e.eventId === 'E16-CRUSH')).toEqual([]);
+    const refused = playThrough(real, run({ attractedTo: 'women' }), picking({ 'E16-CRUSH/start': 'refuseSaki' }));
+    expect(refused.ledger.filter((e) => e.eventId === 'E16-CRUSH').map((e) => [e.param, Math.sign(e.delta)])).toEqual([['autonomy', 1]]);
+  });
+  it('告白の場面をとばしても、本人の代わりに付き合うことを決めない（付録B-54）', () => {
+    let s = beginChapter(real, run({ attractedTo: 'women' }), false);
+    for (let i = 0; i < 400 && s.position.eventId !== 'E17-ASKOUT' && s.position.step !== 'finished'; i++) s = s.position.step === 'scene' || s.position.step === 'chance' ? skipEvent(real, s) : s.position.step === 'review' ? advanceReview(real, s) : beginChapter(real, s, false);
+    expect(s.position.eventId).toBe('E17-ASKOUT');
+    s = skipEvent(real, s);
+    expect(s.flags.dating).not.toBe(true);
+  });
+  it('進路面談では、どの性別でも「性別と関係あるのか」と問い返せる（付録B-54）', () => {
+    for (const gender of GENDERS) {
+      const s = playThrough(real, run({ gender }), picking({ 'E17-CAREER/start': 'question' }));
+      expect(s.choices['E17-CAREER/start']).toBe('question');
+    }
   });
   it('学校で学んだかどうかのフラグは、最初から入る', () => {
     expect(run({}, { conditions: { sexEducation: 'taught' } }).flags.knowsConsent).toBe(true);
@@ -233,6 +252,13 @@ describe('ランダムな主人公（付録B-45）', () => {
     expect(cisStraight / lots.length).toBeGreaterThan(0.85);
     expect(lots.some((p) => p.gender !== 'woman' && p.gender !== 'man')).toBe(true);
     for (const a of ATTRACTIONS) expect(lots.some((p) => p.attractedTo === a)).toBe(true);
+  });
+
+  it('きょうだいの世話がある家では、離婚や死別は弟が生まれたあとに起きる（付録B-54）', () => {
+    const lots = Array.from({ length: 4000 }, (_, i) => randomProfile(`fam-${i}`));
+    const broken = lots.filter((p) => p.familyCare && (p.familyStory === 'divorceMoved' || p.familyStory === 'divorceRelief' || p.familyStory === 'bereaved'));
+    expect(broken.length).toBeGreaterThan(0);
+    for (const p of broken) expect(p.familyAge).toBeGreaterThan(SIBLING_BIRTH_AGES.sora);
   });
 
   it('性自認とからだの組み合わせが合っている', () => {

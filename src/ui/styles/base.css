@@ -732,16 +732,17 @@ ul.plain {
 /* ── 偶然のカードと、小さな関係図（付録B-53） ── */
 .chance-deck {
   display: inline-flex;
+  flex-wrap: wrap;
   align-items: center;
-  gap: 4px;
-  padding: 3px 8px;
-  border: 1px solid var(--line);
-  border-left: 4px solid var(--f-chance);
-  border-radius: 6px;
+  gap: 4px 8px;
+  padding: 6px 10px;
+  border: 2px solid var(--f-chance);
+  border-radius: 8px;
   background: var(--surface);
-  font-size: 12px;
-  color: var(--text-sub);
+  font-size: 13px;
+  color: var(--text);
   margin-bottom: 8px;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.12);
 }
 
 .stage-wrap .chance-deck {
@@ -751,32 +752,52 @@ ul.plain {
   margin: 0;
 }
 
-.chance-deck-label {
-  font-weight: 700;
-  margin-right: 2px;
+.chance-deck.with-caption {
+  display: flex;
+  max-width: 520px;
+  margin: 12px auto;
+  text-align: left;
 }
 
+.chance-deck-label {
+  font-weight: 700;
+}
+
+.deck-cards {
+  display: inline-flex;
+  gap: 5px;
+}
+
+.chance-deck-caption {
+  flex-basis: 100%;
+  font-size: 13px;
+  color: var(--text-sub);
+}
+
+/* カードの裏面：斜めの縞で「伏せたカード」に見せる */
 .deck-card {
   display: inline-grid;
   place-items: center;
-  width: 16px;
-  height: 22px;
-  border-radius: 3px;
-  background: var(--f-chance);
+  width: 30px;
+  height: 42px;
+  border-radius: 4px;
+  border: 2px solid #8a6a12;
+  background: repeating-linear-gradient(45deg, var(--f-chance) 0 5px, #edc25a 5px 10px);
   color: #1e1f24;
-  font-size: 11px;
+  font-size: 16px;
   font-weight: 700;
   line-height: 1;
 }
 
 .deck-card.done {
+  border-color: var(--line);
   background: var(--track);
   color: var(--text-sub);
 }
 
 .deck-card.empty {
   background: none;
-  border: 1px dashed var(--line);
+  border: 2px dashed var(--line);
 }
 
 .deck-card.active {
@@ -795,37 +816,148 @@ ul.plain {
   }
 }
 
-.people-strip {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 4px;
-  margin: 6px 0 0;
-  padding: 0;
-  list-style: none;
+/* 場面の横に常に出す、まわりの人の一覧（付録B-54）。家族・交友関係・その他に分け、顔と名前と関係を並べる */
+.people-list {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 6px;
+  margin-top: 6px;
+  padding: 6px 8px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: var(--surface);
   font-size: 12px;
 }
 
-.people-strip li {
-  flex: none;
-  display: inline-flex;
-  align-items: baseline;
-  gap: 3px;
-  padding: 1px 7px;
-  border: 1px solid var(--line);
-  border-radius: 999px;
-  background: var(--surface);
+.people-list h3 {
+  margin: 0 0 2px;
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--text-sub);
 }
 
-.people-strip li.is-partner {
-  border-color: var(--text);
+.people-list li {
+  display: grid;
+  grid-template-columns: 24px minmax(0, 1fr);
+  column-gap: 5px;
+  align-items: center;
+  padding: 2px 0;
 }
 
-.people-strip-name {
+.people-list .person-face {
+  grid-row: span 2;
+  width: 24px;
+  height: 24px;
+}
+
+.people-list-name {
+  font-weight: 700;
+  line-height: 1.2;
+  overflow-wrap: anywhere;
+}
+
+.people-list-tie {
+  line-height: 1.2;
+  color: var(--text-sub);
+}
+
+.people-list li.is-partner .people-list-tie {
+  color: var(--text);
   font-weight: 700;
 }
 
-.people-strip-tie {
+@media (min-width: 900px) {
+  .people-list {
+    font-size: 13px;
+  }
+  .people-list li {
+    grid-template-columns: 30px minmax(0, 1fr);
+  }
+  .people-list .person-face {
+    width: 30px;
+    height: 30px;
+  }
+}
+
+/* 生い立ちの家族の構成（付録B-54） */
+.family-now {
+  margin-top: 6px;
+  padding: 6px 10px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: var(--surface);
+  font-size: 13px;
+}
+
+.family-now h2 {
+  margin: 0 0 4px;
+  font-size: 12px;
   color: var(--text-sub);
+}
+
+.family-now ul {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 14px;
+}
+
+.family-now li {
+  display: grid;
+  grid-template-columns: 26px auto;
+  column-gap: 6px;
+  align-items: center;
+}
+
+.family-now .person-face {
+  grid-row: span 2;
+  width: 26px;
+  height: 26px;
+}
+
+.family-name {
+  font-weight: 700;
+}
+
+.family-tie {
+  margin-left: 4px;
+  font-weight: 400;
+  color: var(--text-sub);
+}
+
+.family-note {
+  font-size: 11px;
+  color: var(--text-sub);
+}
+
+.family-now li.gone .person-face,
+.family-now li.gone .family-name {
+  opacity: 0.45;
+}
+
+.family-now li.changed {
+  animation: family-change 1.2s ease;
+}
+
+@keyframes family-change {
+  0% {
+    background: var(--caution-bg);
+  }
+  100% {
+    background: transparent;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .family-now li.changed {
+    animation: none;
+  }
+}
+
+@media (min-width: 720px) {
+  .family-now ul {
+    display: grid;
+    gap: 6px;
+  }
 }
 
 /* ── 人物の一覧（付録B-52）：主人公を中心に、家族と学校に分けて並べる ── */
@@ -1342,6 +1474,18 @@ ul.plain {
 .chat.kind-message .chat-body {
   border-color: var(--accent);
   border-width: 2px;
+}
+
+/* 選んだ行動（付録B-54）。自分の側に、選択の色の線で残す */
+.chat.action {
+  align-self: flex-end;
+  max-width: 85%;
+  margin: 2px 0;
+  padding: 4px 10px;
+  border-right: 4px solid var(--f-choice);
+  font-size: 15px;
+  color: var(--text);
+  text-align: right;
 }
 
 .chat.narration {
@@ -2352,4 +2496,42 @@ body {
 .life-log .reason {
   display: block;
   margin-top: 4px;
+}
+
+/* 人物の顔は、入れものの大きさに合わせる（付録B-54） */
+.person-face .face-icon {
+  width: 100%;
+  height: 100%;
+  box-sizing: border-box;
+  border-width: 1px;
+}
+
+/* スマホでは、まわりの人を1人1行に詰め、偶然のカードは絵の右上に置く（人物の足もとに重ならないように） */
+@media (max-width: 899px) {
+  .people-list li {
+    grid-template-columns: 20px minmax(0, 1fr);
+    column-gap: 4px;
+    padding: 1px 0;
+  }
+  .people-list .person-face {
+    width: 20px;
+    height: 20px;
+  }
+  .people-list-name,
+  .people-list-tie {
+    font-size: 11px;
+  }
+  .stage-wrap .chance-deck {
+    top: 8px;
+    bottom: auto;
+    padding: 4px 8px;
+  }
+  .stage-wrap .chance-deck .deck-card {
+    width: 24px;
+    height: 34px;
+    font-size: 14px;
+  }
+  .stage-wrap .trigger-tag {
+    max-width: calc(100% - 185px);
+  }
 }

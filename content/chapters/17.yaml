@@ -34,12 +34,13 @@ events:
         choices:
           - id: yes
             label: "「うん。付き合おう」"
-            canonical: true
             neutral: true
             setFlags: { dating: true }
             next: yes
+          # 「この場面をとばす」では、本人の代わりに付き合うことを決めない（付録B-54）
           - id: no
             label: "「ごめん。友だちのままでいたい」"
+            canonical: true
             neutral: true
             next: no
       - id: yes
@@ -90,6 +91,11 @@ events:
             effects:
               - { param: autonomy, sign: 1, size: M, source: choice, note: "進路を自分で考えた" }
             next: say
+          - id: question
+            label: "「それって、性別と関係あるんですか？」"
+            effects:
+              - { param: autonomy, sign: 1, size: M, source: choice, note: "おかしいと言い返せた" }
+            next: question
           - id: follow
             label: "「……そうですね。考え直します」"
             effects:
@@ -99,6 +105,15 @@ events:
         lines:
           - { who: tamura, text: "……そうか。わかった。入試の資料、探しておくよ。" }
           - { who: self, kind: inner, text: "（言ってみるものだな）", face: relieved }
+        branches:
+          - when: "up.economy == 'hardship'"
+            next: scholarship
+        next: END
+      - id: question
+        lines:
+          - { who: tamura, text: "……いや、そういうつもりじゃ。" }
+          - { who: tamura, text: "そうだな。決めつけて悪かった。行きたい学部の話を聞かせてくれ。" }
+          - { who: self, kind: inner, text: "（言い返せた。手のひらが、まだ汗ばんでる）" }
         branches:
           - when: "up.economy == 'hardship'"
             next: scholarship
@@ -304,7 +319,7 @@ events:
         effects:
           - { param: connection, sign: 1, size: S, source: others, note: "保健室で受け止められた" }
         lines:
-          - { who: narration, text: "やりとりをスクショして、相手をブロックした。次の日、保健室へ。" }
+          - { who: narration, text: "相手をブロックして、次の日、保健室へ行った。" }
           - { who: self, text: "SNSで、こんなのが来て……。" }
           - { who: mori, text: "嫌な思いをしたね。スクショを残してくれて、助かるよ。" }
           - { who: self, kind: inner, text: "（……来て、よかった）", face: relieved }
@@ -422,7 +437,7 @@ events:
         effects:
           - { param: connection, sign: 1, size: S, source: others, note: "相手が確かめてくれた" }
         lines:
-          - { who: narration, text: "何も言えないまま、電車が一本、通り過ぎた。" }
+          - { who: narration, text: "電車が一本、通り過ぎた。" }
           - { who: partner, text: "……急に変なこと言って、ごめん。答えなくていいよ。" }
           - { who: self, kind: inner, text: "（……顔に出てたのかな）" }
           - { who: self, kind: inner, text: "（ほっとした。でも、言えなかったのが少しくやしい）", face: relieved }
@@ -531,7 +546,7 @@ events:
             label: "保健室に行って、森先生に話す"
             canonical: true
             effects:
-              - { param: body, sign: 1, size: S, source: choice, note: "受診した" }
+              - { param: body, sign: 1, size: S, source: choice, note: "相談して受診した" }
               - { param: connection, sign: 1, size: S, source: choice, note: "一人で抱えなかった" }
             next: helped
           - id: alone
@@ -541,9 +556,11 @@ events:
         stage: { place: nurse, time: day, cast: [{ id: self, x: 30, face: sad }, { id: mori, x: 64 }] }
         lines:
           - { who: self, text: "朝、起きられなくて。何もする気が起きないんです。" }
-          - { who: mori, text: "それはつらかったね。一度、病院で相談してみようか。" }
-          - { who: mori, text: "お家の人にどう話すかも、一緒に考えよう。" }
-          - { who: narration, text: "数日後、病院に行った。「まず休みましょう」と医師は言った。" }
+          - { who: mori, text: "そっか。いつごろから、そうなってる？" }
+          - { who: self, text: "ひと月くらい。夜も、あんまり眠れなくて。" }
+          - { who: mori, text: "眠れない日が続くと、からだもしんどいよね。" }
+          - { who: mori, text: "病院で相談する方法もある。行くかどうか、一緒に考えよう。" }
+          - { who: narration, text: "何日か考えて、病院に行くことにした。「まず休みましょう」と医師は言った。" }
           - { who: self, kind: inner, text: "（休んでいいって、言ってもらえた）", face: relieved }
         next: END
       - id: alone

@@ -169,6 +169,19 @@ const FAMILY_AGE_RANGE: Record<FamilyStory, readonly [number, number]> = {
   twoTense: [8, 8],
   twoHardship: [8, 8],
 };
+/** 弟と妹が生まれる年齢（cast.yaml の peerOffset：妹 -7、弟 -11） */
+export const SIBLING_BIRTH_AGES = { mio: 7, sora: 11 } as const;
+
+/**
+ * きょうだいの世話がある家では、離婚や死別は弟が生まれたあとに置く（付録B-54）。
+ * 父がいなくなったあとに、弟や妹が生まれる話にならないように。
+ */
+function familyAgeRange(s: FamilyStory, familyCare: boolean): readonly [number, number] {
+  const [lo, hi] = FAMILY_AGE_RANGE[s];
+  if (!familyCare || s === 'unmarried' || !singleParentOf(s)) return [lo, hi];
+  return [Math.max(lo, SIBLING_BIRTH_AGES.sora + 1), hi];
+}
+
 /** 家族の歩みを画面で選び直したときの年齢 */
 export function defaultFamilyAge(s: FamilyStory): number {
   const [lo, hi] = FAMILY_AGE_RANGE[s];
@@ -264,7 +277,8 @@ export function randomProfile(seed: string): Profile {
   const body = pick('body', BODIES);
   const gender = genderFor(body, u('gender'));
   const familyStory = pickFamilyStory(u);
-  const [lo, hi] = FAMILY_AGE_RANGE[familyStory];
+  const familyCare = yes('familyCare', 0.25);
+  const [lo, hi] = familyAgeRange(familyStory, familyCare);
   const clothes = pick('clothes', CLOTHES);
   const item = yes('hasItem', 0.5) ? pick('item', ACCESSORIES) : undefined;
   return {
@@ -275,7 +289,7 @@ export function randomProfile(seed: string): Profile {
     familyStory,
     familyAge: lo + Math.floor(u('familyAge') * (hi - lo + 1)),
     bodyRespect: pick('bodyRespect', BODY_RESPECTS),
-    familyCare: yes('familyCare', 0.25),
+    familyCare,
     look: {
       skin: pick('skin', SKINS),
       hair: pick('hair', HAIRS),

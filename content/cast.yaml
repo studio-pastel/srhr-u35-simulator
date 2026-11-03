@@ -5,7 +5,7 @@
 # hairStyle：short／mid／bob／long／tied（結んだ髪）
 # clothes：[〜19歳, 20〜30歳, 31歳〜] の服の色
 # tie：常に出す小さな関係図での関係（付録B-53）。付き合うと「恋人」、別れると「元恋人」に変わる
-# about／circle：人物の一覧（付録B-52）に出す、ひとことの説明と分け方（family：家族／school：学校）。about がある人だけを出す
+# about／circle：人物の一覧（付録B-52）に出す、ひとことの説明と分け方（family：家族／friends：交友関係／other：その他）。about がある人だけを出す
 # accessory：見分けやすくするための持ち物（glasses／cap／headphones／beanie。付録B-36）。accent はその色
 
 # ── 主人公 ──
@@ -31,7 +31,7 @@
   name: ルイ
   about: "同じクラス。昼休みは、たいていいっしょにいる。"
   tie: 友だち
-  circle: school
+  circle: friends
   relation: 友だち
   role: ミナミの友だち
   age: 16
@@ -45,7 +45,7 @@
   name: 森先生
   about: "体のことも、それ以外のことも話せる。"
   tie: 先生
-  circle: school
+  circle: other
   relation: 保健室の先生
   role: 養護教諭
   age: 38
@@ -54,7 +54,7 @@
   name: 田村先生
   about: "進路の面談をする。"
   tie: 先生
-  circle: school
+  circle: other
   relation: 担任
   role: ケイの担任
   age: 52
@@ -126,7 +126,7 @@
   name: サキ
   about: "最近、よく話す。"
   tie: クラスメイト
-  circle: school
+  circle: friends
   relation: クラスメイト
   role: ケイの交際相手
   peerOffset: 0
@@ -140,7 +140,7 @@
   name: ソウ
   about: "最近、よく話す。"
   tie: クラスメイト
-  circle: school
+  circle: friends
   relation: クラスメイト
   role: ミナミのパートナー
   peerOffset: 0
