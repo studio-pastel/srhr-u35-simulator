@@ -314,23 +314,48 @@ events:
     domains: [栄養, 月経]
     statCard: [S14]
     stage: { place: classroom, time: day, cast: [{ id: self, x: 30 }, { id: riko, x: 64 }] }
-    summary: "ダイエットで月経が止まり、どうするかを考えた。"
+    summary: "やせたほうがいいのか迷い、どうするかを決めた。"
     status: draft
+    # ダイエットを始めるかどうかから、本人が選ぶ（付録B-55）。始めた人だけが、月経が止まる流れに進む。
+    # 始めた人を責める言葉は書かない。からだへの影響は、食事を減らしたことの結果として出す
     scenes:
       - id: lunch
         lines:
-          - { who: narration, text: "昼休み。" }
-          - { who: riko, text: "今日もお昼サラダだけ？" }
-          # ダイエットを始めたことは物語の前提。主人公に、選んでいない言葉を言わせない（付録B-54）
-          - { who: self, kind: inner, text: "（SNSで見る子は、みんな細い。もう少しやせたい）" }
-          - { who: riko, text: "……無理しないでね。" }
-        next: start
+          - { who: narration, text: "昼休み。ルイが、スマホの画面を見せてきた。" }
+          - { who: riko, text: "見て、この子。夏までに、すごくやせたんだって。" }
+          - { who: riko, text: "うちらも、お昼減らしてみる？" }
+          - { who: self, kind: inner, text: "（SNSで見る子は、みんな細い）" }
+        choices:
+          - id: diet
+            label: "「やってみようかな。お昼、サラダだけにする」"
+            effects:
+              - { param: body, sign: -1, size: S, source: choice, note: "食事を減らし続けた" }
+            next: start
+          - id: asIs
+            label: "「いまのままで、いいかな」"
+            canonical: true
+            next: asIs
+          - id: doubt
+            label: "「その写真、加工してるかもよ」"
+            effects:
+              - { param: autonomy, sign: 1, size: S, source: choice, note: "写真をうのみにしなかった" }
+            next: doubt
+      - id: asIs
+        lines:
+          - { who: riko, text: "そっか。……じゃあ、わたしもやめとこ。" }
+          - { who: self, kind: inner, text: "（食べたいものを食べよう）" }
+        next: END
+      - id: doubt
+        lines:
+          - { who: riko, text: "あー、たしかに。足、ちょっと伸びてるかも。" }
+          - { who: self, kind: inner, text: "（画面の中の体と比べても、しかたないのかも）" }
+        next: END
       - id: start
         stage: { place: bedroom, time: night, cast: [{ id: self, x: 34 }] }
         lines:
-          - { who: narration, text: "その夜、自分の部屋。" }
-          - { who: self, kind: inner, text: "（ダイエットを始めて、もう二か月）" }
-          - { who: self, kind: inner, text: "（体重は減った。でも……先月から、月経が来てない）", face: anxious }
+          - { who: narration, text: "二か月後の夜、自分の部屋。" }
+          - { who: self, kind: inner, text: "（お昼を減らして、体重は減った）" }
+          - { who: self, kind: inner, text: "（でも……先月から、月経が来てない）", face: anxious }
         next: noTalk
       - id: noTalk
         stage: { place: bedroom, time: night, cast: [{ id: self, x: 34, face: anxious }] }

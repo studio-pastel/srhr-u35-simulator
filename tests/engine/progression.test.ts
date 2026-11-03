@@ -64,6 +64,13 @@ describe('属性で出来事が変わる（付録B-43）', () => {
     expect(events({ gender: 'man', body: 'cannot' })).not.toContain('E16-DIET');
     expect(events({ gender: 'man', body: 'cannot' })).toContain('E16-BODYWORRY');
   });
+  it('ダイエットは始めるかどうかから選び、始めた人だけが月経の止まる流れに進む（付録B-55）', () => {
+    const asIs = playThrough(real, run({ body: 'canBePregnant' }), picking({ 'E16-DIET/lunch': 'asIs' }));
+    expect(asIs.ledger.filter((e) => e.eventId === 'E16-DIET')).toEqual([]);
+    expect(Object.keys(asIs.choices).filter((k) => k.startsWith('E16-DIET/'))).toEqual(['E16-DIET/lunch']);
+    const diet = playThrough(real, run({ body: 'canBePregnant' }), picking({ 'E16-DIET/lunch': 'diet' }));
+    expect(diet.choices['E16-DIET/choose']).toBeDefined();
+  });
   it('制服の場面は、トランスジェンダーとノンバイナリーの人に出る', () => {
     for (const gender of ['transWoman', 'transMan', 'nonbinary'] as const) expect(events({ gender })).toContain('E16-UNIFORM');
     for (const gender of ['woman', 'man'] as const) expect(events({ gender })).not.toContain('E16-UNIFORM');
