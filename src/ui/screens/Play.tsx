@@ -22,6 +22,7 @@ import { PARAM_LABELS, SOURCE_LABELS, TRIGGER_LABELS, type RunState } from '../.
 import { BondNotes, ChapterBondChanges } from '../components/Bonds';
 import { Hud } from '../components/Hud';
 import { Modal } from '../components/Modal';
+import { PeopleMap } from '../components/People';
 import { FactorChart } from '../components/FactorChart';
 import { ProbabilityCard, StatCard } from '../components/Cards';
 import { RichText, plainText } from '../components/RichText';
@@ -76,6 +77,7 @@ function isFinalScene(content: ReturnType<typeof useApp>['content'], run: RunSta
 export function Play() {
   const { run, content, setRun, animate } = useApp();
   const [showParams, setShowParams] = useState(false);
+  const [showPeople, setShowPeople] = useState(false);
   const [lineIndex, setLineIndex] = useState(0);
   const [hist, setHist] = useState<HistEntry[]>([]);
   const [crossedChoice, setCrossedChoice] = useState(false);
@@ -173,6 +175,11 @@ export function Play() {
           />
         </Modal>
       )}
+      {showPeople && (
+        <Modal title={`${run.position.age}歳のまわりの人`} onClose={() => setShowPeople(false)}>
+          <PeopleMap run={run} age={run.position.age} />
+        </Modal>
+      )}
       {skipped && (
         <p class="skipped-note" role="status">
           とばした場面：{skipped}
@@ -192,6 +199,7 @@ export function Play() {
           skip={skip}
           animate={animate}
           openParams={() => setShowParams(true)}
+          openPeople={() => setShowPeople(true)}
         />
       )}
       {step === 'chance' && <ChanceView run={run} go={go} back={back} canBack={canBackState} />}
@@ -222,6 +230,8 @@ function Interlude({ run, onStart }: { run: RunState; onStart: () => void }) {
       <p class="interlude-news">
         <RichText text={ch.intro.me ?? ''} />
       </p>
+      <h2 class="interlude-people">この年のまわりの人</h2>
+      <PeopleMap run={run} age={ch.age} />
       <button type="button" class="btn primary" onClick={onStart}>
         はじめる
       </button>
@@ -266,6 +276,7 @@ function SceneView(props: {
   fastForward: () => void;
   animate: boolean;
   openParams: () => void;
+  openPeople: () => void;
 }) {
   const { run, lineIndex, setLineIndex, go, animate } = props;
   const { content } = useApp();
@@ -401,6 +412,9 @@ function SceneView(props: {
         <button type="button" class="tool" onClick={props.openParams}>
           記録
         </button>
+        <button type="button" class="tool" onClick={props.openPeople}>
+          人物
+        </button>
         <button type="button" class="tool" onClick={props.skip}>
           この場面をとばす
         </button>
@@ -414,12 +428,13 @@ function ChanceView({ run, go, back, canBack }: { run: RunState; go: (s: RunStat
   const { content, animate } = useApp();
   const entry = run.chanceLog[run.chanceLog.length - 1]!;
   const h = useFocusHeading(`chance-${entry.nodeId}`);
+  const quiet = (currentEvent(content, run)?.resources ?? []).includes('violence');
   return (
     <section class="fade-in">
       <h1 class="sr-only" tabIndex={-1} ref={h}>
         自分では選べない出来事
       </h1>
-      <ProbabilityCard entry={entry} content={content} animate={animate} />
+      <ProbabilityCard entry={entry} content={content} animate={animate} quiet={quiet} />
       <div class="scene-tools">
         <button type="button" class="tool" onClick={back} disabled={!canBack}>
           ◀ 戻る

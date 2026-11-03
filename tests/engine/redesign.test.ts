@@ -3,7 +3,9 @@ import { describe, expect, it } from 'vitest';
 import { makeProfile, rawContent, realContent } from '../helpers';
 import { advanceScene, beginChapter, choose, createRun, currentScene, skipEvent, visibleChoices } from '../../src/engine/progression';
 import { validateContent } from '../../src/engine/validate';
-import { linesOf, sceneSpec, stageOf, fillText, relationOf } from '../../src/ui/stage';
+import { chapterPeople, linesOf, sceneSpec, stageOf, fillText, relationOf } from '../../src/ui/stage';
+import { peopleOf, youIndex } from '../../src/ui/components/Cards';
+import type { ChanceLogEntry } from '../../src/engine/types';
 import type { Profile } from '../../src/engine/profile';
 import type { RunState } from '../../src/engine/types';
 
@@ -111,5 +113,38 @@ describe('吹き出しと舞台の組み立て', () => {
     const s = createRun(real, { profile: makeProfile(), seed: SEED });
     const spec = sceneSpec(real, s, { place: 'living', time: 'dusk', cast: [{ id: 'self' }, { id: 'sora' }] });
     expect(spec.actors.map((a) => a.age)).toEqual([16, 5]);
+  });
+});
+
+describe('人物の一覧（付録B-52）', () => {
+  it('16歳の章のはじめに、名前だけ先に出てくる人も含めて紹介する', () => {
+    const run = createRun(real, { profile: makeProfile({ attractedTo: 'any', familyCare: true }), seed: SEED });
+    const ids = chapterPeople(real, run, 16);
+    expect(ids).toEqual(expect.arrayContaining(['riko', 'sou', 'saki', 'mori', 'yuMother', 'sora', 'mio']));
+    // 説明のない人（SNSの相手など）は出さない
+    expect(ids).not.toContain('netFriend');
+  });
+  it('好きになる人によって、心の声に名前が出ない人は紹介しない', () => {
+    const run = createRun(real, { profile: makeProfile({ attractedTo: 'none' }), seed: SEED });
+    const ids = chapterPeople(real, run, 16);
+    expect(ids).not.toContain('sou');
+    expect(ids).not.toContain('saki');
+  });
+});
+
+describe('選べない出来事の「この人生」の点（付録B-52）', () => {
+  const entry = (finalP: number, u: number): ChanceLogEntry => ({ nodeId: 'X', label: '', age: 17, eventId: 'E', base: finalP, baseStatRef: 'S54', modifiersApplied: [], finalP, u, happened: u < finalP });
+  it('起きたときは灯った点、起きなかったときは灯っていない点に止まる', () => {
+    for (const p of [0.003, 0.021, 0.059, 0.5]) {
+      const { denom, count } = peopleOf(p);
+      for (let k = 0; k < 200; k++) {
+        const e = entry(p, k / 200);
+        const lit = Math.max(count, e.happened ? 1 : 0);
+        const i = youIndex(e, denom, lit);
+        expect(i).toBeGreaterThanOrEqual(0);
+        expect(i).toBeLessThan(denom);
+        expect(i < lit).toBe(e.happened);
+      }
+    }
   });
 });

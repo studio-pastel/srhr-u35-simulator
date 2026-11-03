@@ -73,15 +73,14 @@ events:
     scenes:
       - id: start
         effects:
-          - { param: autonomy, sign: -1, size: S, source: society, statRef: S43, when: "up.gender == 'woman' || up.gender == 'transWoman' || up.gender == 'transMan'", note: "性別で期待が変わる" }
+          - { param: autonomy, sign: -1, size: S, source: society, statRef: S43, when: "up.gender == 'woman' || up.gender == 'transWoman' || up.gender == 'transMan' || up.gender == 'nonbinary'", note: "性別で期待が変わる" }
         lines:
           - { who: narration, text: "放課後の進路面談。担任に、行きたい学部のことを話した。" }
-          # 先生には本人の性自認が伝わっていない。出生時の性別で見て話している
-          - { who: tamura, text: "女の子なんだし、そんなに頑張らなくても、近くの短大でいいんじゃないか。", when: "up.gender == 'woman' || up.gender == 'transMan'" }
-          - { who: tamura, text: "男なら、ちゃんと稼げるところに行かないとな。その学部でいいのか？", when: "up.gender == 'man' || up.gender == 'transWoman'" }
-          - { who: tamura, text: "その学部、願書の性別欄は男か女かだぞ。それでも受けるのか？", when: "up.gender == 'nonbinary'" }
-          - { who: self, kind: inner, text: "（「女の子」か。先生には、そう見えている）", when: "up.gender == 'transMan'" }
-          - { who: self, kind: inner, text: "（「男なら」か。先生には、そう見えている）", when: "up.gender == 'transWoman'" }
+          # 先生には本人の性自認が伝わっていない。誰に対しても、出生時の性別で見て話している（付録B-52）
+          - { who: tamura, text: "女の子なんだし、そんなに頑張らなくても、近くの短大でいいんじゃないか。", when: "up.gender == 'woman' || up.gender == 'transMan' || (up.gender == 'nonbinary' && up.body == 'canBePregnant')" }
+          - { who: tamura, text: "男なら、ちゃんと稼げるところに行かないとな。その学部でいいのか？", when: "up.gender == 'man' || up.gender == 'transWoman' || (up.gender == 'nonbinary' && up.body == 'cannot')" }
+          - { who: self, kind: inner, text: "（「女の子」か。先生には、そう見えている）", when: "up.gender == 'transMan' || (up.gender == 'nonbinary' && up.body == 'canBePregnant')" }
+          - { who: self, kind: inner, text: "（「男なら」か。先生には、そう見えている）", when: "up.gender == 'transWoman' || (up.gender == 'nonbinary' && up.body == 'cannot')" }
           - { who: self, kind: inner, text: "（……自分の話を、聞いてくれてない気がする）", face: anxious }
           - { who: self, kind: inner, text: "（それに、うちの家計で、学費はどうするんだろう）", when: "up.economy == 'hardship'" }
         choices:
@@ -342,7 +341,6 @@ events:
       - id: sentAlone
         lines:
           - { who: self, kind: inner, text: "（あの写真、消してもらえたのかな）", face: sad }
-          - { who: narration, text: "送ってしまったあとでも、相談できる場所がある。" }
         next: END
 
   # ───────── 付き合っている場合：その話をする（半年たってから） ─────────

@@ -197,6 +197,10 @@ export const castSchema = z.strictObject({
   role: z.string().optional(),
   /** 主人公から見た関係。吹き出しの名前に添える（付録B-48） */
   relation: z.string().optional(),
+  /** 人物の一覧に出す、ひとことの説明（付録B-52）。これがある人だけを一覧に出す */
+  about: z.string().optional(),
+  /** 人物の一覧での分け方 */
+  circle: z.enum(['family', 'school']).optional(),
   /** 脇役の年齢（見た目の計算に使う）。主人公は周回の年齢を使う */
   age: z.number().optional(),
   /** 主人公と同じ年ごろの人物（パートナーなど）。周回の年齢＋この差で描く */

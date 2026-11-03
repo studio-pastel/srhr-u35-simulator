@@ -263,6 +263,11 @@ test('最初の画面の「はじめる」から、生まれた日を通って16
   await page.getByRole('button', { name: '16歳へ' }).click();
   await expect(page.locator('.topbar-me')).toContainText('16歳');
   await expect(page.locator('.life-gauge')).toHaveAttribute('aria-valuenow', '16');
+  // 章のはじめに、この年に出てくる人を紹介する（付録B-52）
+  await expect(page.locator('.people-map')).toContainText('ルイ');
+  await page.getByRole('button', { name: 'はじめる' }).click();
+  await page.getByRole('button', { name: '人物' }).click();
+  await expect(page.getByRole('dialog')).toContainText('ルイ');
   expect(errors).toEqual([]);
 });
 

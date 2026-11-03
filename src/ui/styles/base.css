@@ -393,6 +393,72 @@ h3 {
   background: var(--f-chance);
 }
 
+/* 選べない出来事の演出（付録B-52）：入ってくる → 灯る → 印が動いて止まる → 結果 */
+.chance-kind {
+  display: inline-block;
+  margin: 0;
+  padding: 2px 10px;
+  border-left: 4px solid var(--f-chance);
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.chance-enter {
+  animation: chance-in 450ms cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+
+@keyframes chance-in {
+  from {
+    opacity: 0;
+    transform: translateY(18px) scale(0.97);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+.people-dots span.pick,
+.people-dots span.you {
+  outline: 2px solid var(--text);
+  outline-offset: 1px;
+  position: relative;
+  z-index: 1;
+}
+
+.people-dots span.you {
+  animation: you-pop 400ms ease;
+}
+
+@keyframes you-pop {
+  0% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.8);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+
+.chance-you {
+  margin: -4px 0 4px;
+  min-height: 1.5em;
+}
+
+.result-in {
+  animation: chance-in 350ms ease;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .chance-enter,
+  .people-dots span.you,
+  .result-in {
+    animation: none;
+  }
+}
+
 .chance-card details {
   margin-top: 12px;
 }
@@ -644,6 +710,89 @@ ul.plain {
 
 .interlude-news {
   margin: 12px 0;
+}
+
+/* ── 人物の一覧（付録B-52）：主人公を中心に、家族と学校に分けて並べる ── */
+.interlude-people {
+  font-size: 16px;
+  margin: 20px 0 8px;
+}
+
+.people-map {
+  margin-bottom: 16px;
+  text-align: left;
+}
+
+.people-center {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0 auto;
+  padding: 6px 12px;
+  width: fit-content;
+  border: 2px solid var(--text);
+  border-radius: 8px;
+  background: var(--surface);
+}
+
+.people-circles {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 12px;
+  margin-top: 18px;
+  position: relative;
+}
+
+/* 中心から各グループへの線 */
+.people-circles::before {
+  content: '';
+  position: absolute;
+  top: -18px;
+  left: 50%;
+  height: 18px;
+  border-left: 2px solid var(--line);
+}
+
+.people-circle {
+  border: 1px solid var(--line);
+  border-top: 3px solid var(--line);
+  border-radius: 8px;
+  padding: 8px 12px;
+  background: var(--surface);
+}
+
+.people-circle h3 {
+  margin: 0 0 6px;
+  font-size: 13px;
+  color: var(--text-sub);
+}
+
+.person {
+  display: flex;
+  gap: 10px;
+  align-items: flex-start;
+  padding: 6px 0;
+}
+
+.person + .person {
+  border-top: 1px dashed var(--line);
+}
+
+.person-face {
+  flex: none;
+  width: 36px;
+  height: 36px;
+}
+
+.person-face > * {
+  width: 100%;
+  height: 100%;
+}
+
+.person-about {
+  display: block;
+  font-size: 13px;
+  color: var(--text-sub);
 }
 
 .skipped-note {

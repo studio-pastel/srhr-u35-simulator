@@ -1,7 +1,7 @@
 // 場面の舞台と吹き出しを、コンテンツから組み立てる（付録B-1・B-2）。
 import type { Content, GameEvent, Scene, Stage } from '../engine/schema';
 import type { RunState } from '../engine/types';
-import { contextOf, visibleLines } from '../engine/progression';
+import { applicableEvents, contextOf, visibleLines } from '../engine/progression';
 import { check } from '../engine/flags';
 import type { Actor, Face, Look, Place, SceneSpec } from './pixel/render';
 
@@ -105,4 +105,31 @@ export function linesOf(content: Content, run: RunState, scene: Scene): ShownLin
     const name = kind === 'inner' ? `${base}（心の声）` : kind === 'message' ? `${base}（メッセージ）` : base;
     return { who, name, relation: relationOf(content, run, who), text: fillText(content, run, l.text), kind, face: l.face };
   });
+}
+
+/**
+ * 人物の一覧（付録B-52）に出す、その年の章に出てくる人（舞台にいる人、話す人、本文で名前が出る人）。about がある人だけ。
+ * 選択肢の名前は見ない（前の選択でしか出ない選択肢があり、出ない人まで紹介してしまうため）
+ */
+export function chapterPeople(content: Content, run: RunState, age: number): string[] {
+  const ctx = contextOf(content, run);
+  const listed = content.cast.filter((c) => c.about);
+  const found = new Set<string>();
+  const add = (who: string) => found.add(resolveWho(run, who));
+  const mention = (text: string) => {
+    if (text.includes('%partner%')) add('partner');
+    for (const c of listed) if (text.includes(c.name)) found.add(c.id);
+  };
+  for (const ev of applicableEvents(content, run, age)) {
+    ev.stage?.cast.forEach((c) => add(c.id));
+    for (const sc of ev.scenes) {
+      sc.stage?.cast.forEach((c) => add(c.id));
+      for (const l of sc.lines ?? []) {
+        if (!check(l.when, ctx)) continue;
+        add(l.who);
+        mention(l.text);
+      }
+    }
+  }
+  return listed.filter((c) => found.has(c.id)).map((c) => c.id);
 }
