@@ -127,15 +127,30 @@ events:
     domains: [性の多様性, 学校]
     requires: "up.gender == 'transWoman' || up.gender == 'transMan' || up.gender == 'nonbinary'"
     statCard: [S24]
-    stage: { place: hallway, time: day, cast: [{ id: self, x: 34, face: anxious }] }
-    summary: "制服や更衣室のことで、毎日少し疲れている。"
+    stage: { place: bedroom, time: day, cast: [{ id: self, x: 34 }] }
+    summary: "制服や呼ばれ方、更衣室のことで、毎日少し疲れている。"
     status: draft
     scenes:
+      # 1日の中で、小さな引っかかりが重なっていく（付録B-51）
       - id: start
         lines:
-          - { who: narration, text: "体育の前。決められた更衣室の入り口で、足が止まる。" }
+          - { who: narration, text: "朝。制服に着替えて、鏡の前に立つ。" }
+          - { who: self, kind: inner, text: "（リボンを結ぶ手が、毎朝少しずつ遅くなる）", when: "up.gender == 'transMan'" }
+          - { who: self, kind: inner, text: "（ネクタイを締めると、鏡の自分が少し遠くなる）", when: "up.gender == 'transWoman'" }
+          - { who: self, kind: inner, text: "（昨日はしっくりきた制服が、今日は少し重い）", when: "up.gender == 'nonbinary'" }
+        next: roll
+      - id: roll
+        stage: { place: classroom, time: day, cast: [{ id: self, x: 34 }] }
+        lines:
+          - { who: narration, text: "朝のホームルーム。先生が、男子を「くん」、女子を「さん」で呼んでいく。" }
+          - { who: self, kind: inner, text: "（「さん」と呼ばれて、返事がひと呼吸遅れた）", when: "up.gender == 'transMan' || (up.gender == 'nonbinary' && up.body == 'canBePregnant')" }
+          - { who: self, kind: inner, text: "（「くん」と呼ばれて、返事がひと呼吸遅れた）", when: "up.gender == 'transWoman' || (up.gender == 'nonbinary' && up.body == 'cannot')" }
+        next: locker
+      - id: locker
+        stage: { place: hallway, time: day, cast: [{ id: self, x: 34, face: anxious }] }
+        lines:
+          - { who: narration, text: "午後。体育の前、決められた更衣室の入り口で、足が止まる。" }
           - { who: self, kind: inner, text: "（ここで着替えるたび、なんだか息が詰まる）", face: anxious }
-          - { who: self, kind: inner, text: "（制服も、名簿の呼ばれ方も、毎日少しずつ疲れる）" }
           - { who: self, kind: inner, text: "（今日は、どうしよう）" }
         choices:
           - id: nurse

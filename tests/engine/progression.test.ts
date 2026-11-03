@@ -68,6 +68,12 @@ describe('属性で出来事が変わる（付録B-43）', () => {
     for (const gender of ['transWoman', 'transMan', 'nonbinary'] as const) expect(events({ gender })).toContain('E16-UNIFORM');
     for (const gender of ['woman', 'man'] as const) expect(events({ gender })).not.toContain('E16-UNIFORM');
   });
+  it('誰かに話すかどうかの場面は、トランスジェンダーとノンバイナリーの人に出て、話さない選択で何も下がらない（付録B-51）', () => {
+    for (const gender of ['transWoman', 'transMan', 'nonbinary'] as const) expect(events({ gender })).toContain('E17-WORDS');
+    for (const gender of ['woman', 'man'] as const) expect(events({ gender })).not.toContain('E17-WORDS');
+    const s = playThrough(real, run({ gender: 'transMan' }), picking({ 'E17-WORDS/start': 'notYet' }));
+    expect(s.ledger.filter((e) => e.eventId === 'E17-WORDS')).toEqual([]);
+  });
   it('家庭の条件の場面は、選んだときだけ出る', () => {
     expect(events({ familyCare: true })).toContain('E16-CARE');
     expect(events({})).not.toContain('E16-CARE');

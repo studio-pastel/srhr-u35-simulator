@@ -133,6 +133,7 @@ events:
         lines:
           - { who: narration, text: "夏休みの少し前。" }
           - { who: riko, text: "ねえ、夏休み、みんなで海に行かない？　泊まりで！", face: smile }
+          - { who: self, kind: inner, text: "（泊まりか。部屋割りとお風呂は、どうなるんだろう）", when: "up.gender == 'transWoman' || up.gender == 'transMan' || up.gender == 'nonbinary'" }
         branches:
           - when: "up.economy == 'hardship'"
             next: hard
@@ -173,7 +174,9 @@ events:
           - { who: riko, delta: 1, note: "いっしょに旅行した" }
         lines:
           - { who: narration, text: "海は、思っていたより冷たくて、思っていたより楽しかった。" }
+          - { who: self, kind: inner, text: "（お風呂は、部屋のシャワーにした。誰も何も聞かなかった）", when: "up.gender == 'transWoman' || up.gender == 'transMan' || up.gender == 'nonbinary'" }
         next: END
+
       - id: saved
         lines:
           - { who: riko, text: "そっか。じゃあ、写真いっぱい送るね。" }
@@ -190,6 +193,67 @@ events:
         lines:
           - { who: riko, text: "そっか。じゃあ、日帰りで近くの海にしない？" }
           - { who: self, kind: inner, text: "（言って、よかった）", face: relieved }
+        next: END
+
+  # ───────── トランスジェンダー・ノンバイナリー：誰かに話すかどうか ─────────
+  # 話すことも、まだ話さないことも、本人が決めることとして対等に書く。話さない選択に負の効果を付けない（付録B-51）
+  - id: E17-WORDS
+    age: 17
+    characters: [me]
+    kind: fixed
+    trigger: { kind: profile, text: "性自認から起きた" }
+    domains: [性の多様性, 関係性]
+    requires: "up.gender == 'transWoman' || up.gender == 'transMan' || up.gender == 'nonbinary'"
+    stage: { place: bedroom, time: night, cast: [{ id: self, x: 34, pose: phone }] }
+    summary: "ずっと言えなかったことを、誰かに話すかどうか考えた。"
+    status: draft
+    scenes:
+      - id: start
+        lines:
+          - { who: narration, text: "夏の終わりの夜。ルイとのメッセージが、なかなか終わらない。" }
+          - { who: self, kind: inner, text: "（ずっと、誰かに言ってみたかったことがある）" }
+          - { who: self, kind: inner, text: "（言ったら、前と同じには戻れない気もする）", face: anxious }
+          - { who: riko, kind: message, text: "最近さ、なんか考えごとしてない？" }
+        choices:
+          - id: riko
+            label: "「笑わないで聞いてほしいんだけど」"
+            canonical: true
+            next: riko
+          - id: mori
+            label: "「うん。でも、先に森先生に話してみる」"
+            next: mori
+          - id: notYet
+            label: "「別に。ちょっと眠いだけ」"
+            next: notYet
+      - id: riko
+        closeness:
+          - { who: riko, delta: 1, note: "打ち明け話を聞いてくれた" }
+        effects:
+          - { param: connection, sign: 1, size: S, source: others, note: "友だちが聞いてくれた" }
+        lines:
+          - { who: self, kind: message, text: "「女の子」って言われるの、ずっとしっくりこなくて。", when: "up.gender == 'transMan'" }
+          - { who: self, kind: message, text: "「男子」って言われるの、ずっとしっくりこなくて。", when: "up.gender == 'transWoman'" }
+          - { who: self, kind: message, text: "「女子」とか「男子」とか、しっくりこない日が多くて。", when: "up.gender == 'nonbinary'" }
+          - { who: narration, text: "既読がついてから、返事まで少し時間があった。" }
+          - { who: riko, kind: message, text: "そっか。話してくれて、うれしい。" }
+          - { who: riko, kind: message, text: "正直、まだよくわかってないかも。呼び方とか、どうしたらいい？" }
+          - { who: self, kind: inner, text: "（スマホを持つ手が、まだ少し震えている）", face: relieved }
+        next: END
+      - id: mori
+        stage: { place: nurse, time: day, cast: [{ id: self, x: 30 }, { id: mori, x: 64 }] }
+        effects:
+          - { param: connection, sign: 1, size: S, source: others, note: "先生が聞いてくれた" }
+        lines:
+          - { who: self, text: "あの……自分の性別のことで、話したいことがあって。" }
+          - { who: mori, text: "うん。いつごろから、そう感じてた？" }
+          - { who: self, text: "小さいころから、ちょっとずつ。中学で、もっと強くなって。" }
+          - { who: mori, text: "そっか。ここで聞いたことは、あなたがいいと言うまで誰にも言わない。" }
+          - { who: self, kind: inner, text: "（初めて、声に出して言えた）", face: relieved }
+        next: END
+      - id: notYet
+        lines:
+          - { who: riko, kind: message, text: "そっか。おやすみ。" }
+          - { who: self, kind: inner, text: "（いまは、まだ。言いたくなったら、そのときに）" }
         next: END
 
   # ───────── 誰にでも：SNSで画像を求められる ─────────

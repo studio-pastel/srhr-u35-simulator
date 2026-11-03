@@ -62,26 +62,47 @@ entries:
   - { age: 14, kind: inner, text: "（「女の子」と言われて、引っかかったことは特にない。いまのところ）", when: "up.gender == 'woman'" }
   - { age: 14, kind: inner, text: "（「男の子」と言われて、引っかかったことは特にない。いまのところ）", when: "up.gender == 'man'" }
 
+  # 性別違和は、幼いころの小さな引っかかりが、思春期のからだの変化と学校の男女分けで強まっていく形で書く（付録B-51）。
+  # 違和感を説明せず、出来事で見せる。しっくりきた瞬間も入れる。からだを傷つけかねない対処と、強い嫌悪の言葉は書かない。
   # ── 性自認：トランスジェンダー女性 ──
   - { age: 5, text: "「男の子なんだから」と言われると、何かが引っかかった。理由はわからなかった。", when: "up.gender == 'transWoman'" }
+  - { age: 5, text: "七五三の写真。はかまを着た自分が、知らない子みたいに見えた。", when: "up.gender == 'transWoman'" }
   - { age: 9, text: "着替えも、整列も、男子の側。なんとなく嫌だったけれど、誰にも言わなかった。言いかたがわからなかった。", when: "up.gender == 'transWoman'" }
+  - { age: 10, text: "宿泊学習。男子の部屋で、みんなが寝たあとも、なかなか眠れなかった。", when: "up.gender == 'transWoman'" }
+  - { age: 11, text: "「くん」と呼ばれるたびに、前より少し気になるようになった。", when: "up.gender == 'transWoman'" }
   - { age: 12, kind: inner, text: "（声が変わっていくのが、怖い。止まってほしい）", when: "up.gender == 'transWoman' && up.body == 'cannot'" }
+  - { age: 12, text: "中学の制服の採寸。学生服の袖を合わせているあいだ、ずっと天井を見ていた。", when: "up.gender == 'transWoman'" }
+  - { age: 13, text: "動画に映った自分の声を、聞き返せなかった。", when: "up.gender == 'transWoman' && up.body == 'cannot'" }
   - { age: 13, text: "夜中にスマホで調べて、「トランスジェンダー」という言葉を見つけた。すぐに画面を閉じた。", when: "up.gender == 'transWoman'" }
+  - { age: 14, text: "洗面所でひげを剃る時間が、少しずつ長くなった。", when: "up.gender == 'transWoman' && up.body == 'cannot'" }
+  - { age: 14, text: "オンラインゲームで、女の子のアバターを選んだ。そこでは、誰にも説明しなくていい。", when: "up.gender == 'transWoman'" }
   - { age: 14, kind: inner, text: "（気のせいかもしれない。何度もそう思い直した。でも、何度も同じところに戻ってくる）", when: "up.gender == 'transWoman'" }
+  - { age: 15, text: "合唱コンクールで、低い声のパートに回された。口だけ動かした。", when: "up.gender == 'transWoman' && up.body == 'cannot'" }
   - { age: 15, kind: inner, text: "（「女の子」のほうが、しっくりくる気がする。いまは。まだ誰にも言っていない）", when: "up.gender == 'transWoman'" }
 
   # ── 性自認：トランスジェンダー男性 ──
   - { age: 5, text: "「女の子なんだから」と言われると、何かが引っかかった。理由はわからなかった。", when: "up.gender == 'transMan'" }
+  - { age: 7, text: "七五三の写真。着物を着た自分が、知らない子みたいに見えた。", when: "up.gender == 'transMan'" }
   - { age: 9, text: "スカートをはく日は、朝から気が重かった。みんなそうなのだと思っていた。", when: "up.gender == 'transMan'" }
-  - { age: 12, kind: inner, text: "（月経が来た。自分のからだなのに、自分のことじゃないみたいだ）", when: "up.gender == 'transMan' && up.body == 'canBePregnant'" }
+  - { age: 10, text: "宿泊学習。女子の部屋で、パジャマに着替えるのを最後まで待った。", when: "up.gender == 'transMan'" }
+  - { age: 11, text: "「ちゃん」と呼ばれるたびに、前より少し気になるようになった。", when: "up.gender == 'transMan'" }
+  - { age: 11, text: "胸がふくらみはじめた。猫背で歩くようになった。", when: "up.gender == 'transMan' && up.body == 'canBePregnant'" }
+  - { age: 12, kind: inner, text: "（自分のからだなのに、自分のことじゃないみたいだ）", when: "up.gender == 'transMan' && up.body == 'canBePregnant'" }
+  - { age: 12, text: "中学の制服の採寸。スカート丈を測られているあいだ、ずっと天井を見ていた。", when: "up.gender == 'transMan'" }
+  - { age: 13, text: "汗でシャツが張りつくのが嫌で、夏でも上着を脱がなかった。", when: "up.gender == 'transMan' && up.body == 'canBePregnant'" }
   - { age: 13, text: "夜中にスマホで調べて、「トランスジェンダー」という言葉を見つけた。すぐに画面を閉じた。", when: "up.gender == 'transMan'" }
+  - { age: 14, text: "髪を短くした。鏡の前で、少し息がしやすかった。", when: "up.gender == 'transMan'" }
   - { age: 14, kind: inner, text: "（気のせいかもしれない。何度もそう思い直した。でも、何度も同じところに戻ってくる）", when: "up.gender == 'transMan'" }
   - { age: 15, kind: inner, text: "（「男の子」のほうが、しっくりくる気がする。いまは。まだ誰にも言っていない）", when: "up.gender == 'transMan'" }
 
   # ── 性自認：ノンバイナリー ──
   - { age: 7, text: "男女に分かれて並ぶとき、自分がどちらの列にいるのか、ときどき確かめた。", when: "up.gender == 'nonbinary'" }
+  - { age: 10, text: "宿泊学習。決められた部屋で、なんとなく落ち着かない夜を過ごした。", when: "up.gender == 'nonbinary'" }
   - { age: 11, text: "「女子は」「男子は」と言われるたび、少しだけ落ち着かなかった。", when: "up.gender == 'nonbinary'" }
+  - { age: 12, text: "中学の制服の採寸。鏡に映る自分を、少し遠くから見ている気がした。", when: "up.gender == 'nonbinary'" }
+  - { age: 13, text: "背が伸びて、服のサイズが変わった。大人に近づくのが、うれしい日もこわい日もある。", when: "up.gender == 'nonbinary'" }
   - { age: 13, text: "「女子」も「男子」も、しっくりくる日とこない日がある。誰にも聞けなかった。", when: "up.gender == 'nonbinary'" }
+  - { age: 14, text: "髪型を変えた日。「似合うね」と言われて、少しうれしかった。", when: "up.gender == 'nonbinary'" }
   - { age: 14, text: "「ノンバイナリー」という言葉を知った。自分のことなのか、まだわからない。", when: "up.gender == 'nonbinary'" }
   - { age: 15, kind: inner, text: "（この言葉が合うのかは、まだわからない。いまは、急いで決めなくていい気がする）", when: "up.gender == 'nonbinary'" }
 
