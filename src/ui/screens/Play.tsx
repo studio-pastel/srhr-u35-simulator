@@ -22,7 +22,8 @@ import { PARAM_LABELS, SOURCE_LABELS, TRIGGER_LABELS, type RunState } from '../.
 import { BondNotes, ChapterBondChanges } from '../components/Bonds';
 import { Hud } from '../components/Hud';
 import { Modal } from '../components/Modal';
-import { PeopleMap } from '../components/People';
+import { PeopleMap, PeopleStrip } from '../components/People';
+import { ChanceDeck } from '../components/ChanceDeck';
 import { FactorChart } from '../components/FactorChart';
 import { ProbabilityCard, StatCard } from '../components/Cards';
 import { RichText, plainText } from '../components/RichText';
@@ -366,6 +367,7 @@ function SceneView(props: {
       <div class="stage-sticky">
         <div class={`stage-wrap${line.kind === 'fade' ? ' faded' : ''}`}>
           <PixelStage spec={spec} label={`${me.name}の場面`} animate={animate} />
+          <ChanceDeck run={run} />
           {ev.trigger && (
             <p class={`trigger-tag t-${ev.trigger.kind}`}>
               <strong>{TRIGGER_LABELS[ev.trigger.kind]}</strong> {ev.trigger.text}
@@ -373,6 +375,7 @@ function SceneView(props: {
           )}
         </div>
         <StatusBar params={revealed ? run.params : paramsBeforeEvent(run)} change={revealed ? changes : null} animate={animate} quiet={quiet} onOpen={props.openParams} />
+        <PeopleStrip run={run} />
       </div>
       <div class="chat-log" aria-live="polite">
         {earlier.map((l, k) => (
@@ -434,6 +437,7 @@ function ChanceView({ run, go, back, canBack }: { run: RunState; go: (s: RunStat
       <h1 class="sr-only" tabIndex={-1} ref={h}>
         自分では選べない出来事
       </h1>
+      <ChanceDeck run={run} drawn />
       <ProbabilityCard entry={entry} content={content} animate={animate} quiet={quiet} />
       <div class="scene-tools">
         <button type="button" class="tool" onClick={back} disabled={!canBack}>

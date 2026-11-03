@@ -81,7 +81,7 @@ export function Prologue() {
         <>
           <h2 class="prologue-guide-title">15歳の{p.name}のパラメーター</h2>
           <ParamGuide params={params} />
-          <p class="sub">どれも、選んだことではありません。ランダムに決まりました（ひとり親になった理由の割合は統計に基づき、ほかは遊びのための値です）。</p>
+          <p class="sub">どれも、選んだことではありません。ランダムに決まりました（性自認、好きになる人、ひとり親になった理由の割合は統計に基づき、ほかは遊びのための値です）。</p>
           <button type="button" class="btn primary" onClick={() => navigate('play')}>
             16歳へ
           </button>

@@ -199,6 +199,8 @@ export const castSchema = z.strictObject({
   relation: z.string().optional(),
   /** 人物の一覧に出す、ひとことの説明（付録B-52）。これがある人だけを一覧に出す */
   about: z.string().optional(),
+  /** 常に出す小さな関係図での関係（親／きょうだい／友だち／先生／クラスメイト。付録B-53） */
+  tie: z.string().optional(),
   /** 人物の一覧での分け方 */
   circle: z.enum(['family', 'school']).optional(),
   /** 脇役の年齢（見た目の計算に使う）。主人公は周回の年齢を使う */

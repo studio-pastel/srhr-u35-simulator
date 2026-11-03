@@ -1,8 +1,9 @@
 // 人物の一覧（付録B-52）。その年の章に出てくる人を、主人公を中心に、家族と学校に分けて見せる。
-// 名前だけ先に出てくる人（心の声や選択肢の中の名前）も、ここで先に紹介する。
+// 名前だけ先に出てくる人（心の声の中の名前）も、ここで先に紹介する。
+// PeopleStrip は、場面の上に常に出す小さな関係図（付録B-53）。名前と関係だけを並べ、関係が変わると更新する。
 import { useApp } from '../app';
 import type { RunState } from '../../engine/types';
-import { ageOf, chapterPeople, lookOf, relationOf } from '../stage';
+import { ageOf, chapterPeople, knownPeople, lookOf, relationOf, tieOf } from '../stage';
 import { FaceIcon } from './Faces';
 
 const CIRCLES = [
@@ -57,5 +58,24 @@ export function PeopleMap({ run, age }: { run: RunState; age: number }) {
         })}
       </div>
     </div>
+  );
+}
+
+export function PeopleStrip({ run }: { run: RunState }) {
+  const { content } = useApp();
+  const ids = knownPeople(content, run);
+  if (ids.length === 0) return null;
+  return (
+    <ul class="people-strip" aria-label="まわりの人">
+      {ids.map((id) => {
+        const tie = tieOf(content, run, id);
+        return (
+          <li key={id} class={tie === '恋人' ? 'is-partner' : undefined}>
+            <span class="people-strip-name">{content.cast.find((c) => c.id === id)?.name}</span>
+            {tie && <span class="people-strip-tie">{tie}</span>}
+          </li>
+        );
+      })}
+    </ul>
   );
 }

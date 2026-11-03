@@ -210,15 +210,59 @@ export const ACCESSORIES = [
 ] as const;
 
 /**
+ * 性自認と好きになる人の割合（付録B-53）。大阪市民調査（2019年）の値で、S59・S60 と同じ数（テストで照合する）。
+ * 性自認は出生時の性別ごとの人数：出生時女性 2,517人のうち、男性とする人4人、その他とする人16人。出生時男性 1,754人のうち、女性とする人6人、その他6人。
+ * 「その他」はノンバイナリーとして扱う（解釈）。出生時の性別（からだ）は、半々の設計値。
+ * 好きになる人は、無回答と「質問の意味がわからない」を除いた人数：異性愛者3,567人、同性愛者31人、両性愛者62人、無性愛者33人、決めたくない・決めていない222人。
+ */
+export const GENDER_COUNTS = {
+  canBePregnant: { total: 2517, transMan: 4, nonbinary: 16 },
+  cannot: { total: 1754, transWoman: 6, nonbinary: 6 },
+} as const;
+export const ATTRACTION_COUNTS = { opposite: 3567, same: 31, any: 62, none: 33, unsure: 222 } as const;
+
+/** 割合の表から、u（0〜1）で1つ選ぶ */
+function weighted<T extends string>(u: number, table: [T, number][]): T {
+  const total = table.reduce((a, [, n]) => a + n, 0);
+  let x = u * total;
+  for (const [k, n] of table) {
+    if (x < n) return k;
+    x -= n;
+  }
+  return table[table.length - 1]![0];
+}
+
+function genderFor(body: Body, u: number): Gender {
+  if (body === 'canBePregnant') {
+    const c = GENDER_COUNTS.canBePregnant;
+    return weighted<Gender>(u, [['woman', c.total - c.transMan - c.nonbinary], ['transMan', c.transMan], ['nonbinary', c.nonbinary]]);
+  }
+  const c = GENDER_COUNTS.cannot;
+  return weighted<Gender>(u, [['man', c.total - c.transWoman - c.nonbinary], ['transWoman', c.transWoman], ['nonbinary', c.nonbinary]]);
+}
+
+/** 異性・同性は、性自認から見て決める。ノンバイナリーの人は、男性と女性を半々にする（解釈） */
+function attractionFor(gender: Gender, u: number, u2: number): Attraction {
+  const a = ATTRACTION_COUNTS;
+  const kind = weighted(u, [['opposite', a.opposite], ['same', a.same], ['any', a.any], ['none', a.none], ['unsure', a.unsure]]);
+  if (kind === 'any' || kind === 'none' || kind === 'unsure') return kind;
+  const feminine = gender === 'woman' || gender === 'transWoman';
+  const masculine = gender === 'man' || gender === 'transMan';
+  if (!feminine && !masculine) return u2 < 0.5 ? 'men' : 'women';
+  return (kind === 'opposite') === feminine ? 'men' : 'women';
+}
+
+/**
  * 1周目の主人公を、シードからランダムに決める（付録B-45）。どの家に、どんな自分で生まれるかは選べない。
- * 性自認と好きになる人は、偏りが出ないよう同じ確率にする。家庭の条件の確率も設計値で、現実の割合ではない（画面にもそう書く）。
+ * 性自認と好きになる人は統計の割合で決める（付録B-53）。ほかの性のあり方は、2周目で選んで生きられる。
+ * 家庭の条件の確率は設計値で、現実の割合ではない（画面にもそう書く）。
  */
 export function randomProfile(seed: string): Profile {
   const u = (key: string) => uniformFor(`${seed}:profile:${key}`);
   const pick = <T>(key: string, list: readonly T[]): T => list[Math.floor(u(key) * list.length)]!;
   const yes = (key: string, rate: number) => u(key) < rate;
-  const gender = pick('gender', GENDERS);
-  const body: Body = gender === 'nonbinary' ? pick('body', BODIES) : defaultBody(gender);
+  const body = pick('body', BODIES);
+  const gender = genderFor(body, u('gender'));
   const familyStory = pickFamilyStory(u);
   const [lo, hi] = FAMILY_AGE_RANGE[familyStory];
   const clothes = pick('clothes', CLOTHES);
@@ -227,7 +271,7 @@ export function randomProfile(seed: string): Profile {
     name: pick('name', NAMES),
     gender,
     body,
-    attractedTo: pick('attractedTo', ATTRACTIONS),
+    attractedTo: attractionFor(gender, u('attractedTo'), u('attractedToSide')),
     familyStory,
     familyAge: lo + Math.floor(u('familyAge') * (hi - lo + 1)),
     bodyRespect: pick('bodyRespect', BODY_RESPECTS),

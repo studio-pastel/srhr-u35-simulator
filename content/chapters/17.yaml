@@ -485,7 +485,7 @@ events:
     age: 17
     characters: [me]
     kind: chance
-    trigger: { kind: chance, text: "統計の割合をもとに決まる" }
+    trigger: { kind: chance, text: "伏せたカードを1枚引いた（統計の割合で決まる）" }
     domains: [メンタルヘルス, 選べない出来事]
     statCard: [S54, S57]
     stage: { place: bedroom, time: day, cast: [{ id: self, x: 34 }] }
@@ -557,7 +557,7 @@ events:
     age: 17
     characters: [me]
     kind: chance
-    trigger: { kind: chance, text: "統計の割合をもとに決まる" }
+    trigger: { kind: chance, text: "伏せたカードを1枚引いた（統計の割合で決まる）" }
     domains: [性暴力, 選べない出来事]
     statCard: [S33, S02]
     resources: [violence]

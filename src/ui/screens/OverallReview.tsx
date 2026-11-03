@@ -72,8 +72,14 @@ export function OverallReview({ run, onRestart }: { run: RunState; onRestart: ()
           前の周回と比べる
         </button>
       )}
+      {/* 1周目の性のあり方は統計の割合で決まるので、少ない人生は出にくい。2周目で選べることをここで伝える（付録B-53） */}
+      <div class="panel">
+        <h2 style={{ marginTop: 0 }}>ほかの人生も生きてみる</h2>
+        <p>1周目の性自認と好きになる人は、日本の調査の割合で決まりました。現実に少ない性のあり方ほど、1周目では出にくくなっています。</p>
+        <p style={{ marginBottom: 0 }}>2周目では、性自認、好きになる人、家族の歩みを選んで、同じ偶然のまま、ほかの人生を生きられます。</p>
+      </div>
       <button type="button" class={source ? 'btn' : 'btn primary'} onClick={() => navigate('replay')}>
-        2周目へ
+        性のあり方や家族を選んで、2周目へ
       </button>
       <button
         type="button"

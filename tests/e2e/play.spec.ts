@@ -191,7 +191,8 @@ test('キーボードだけで1章を終えられる', async ({ page }) => {
 
 test('2周目の「同じ偶然で、条件だけ変える」で、比較画面に差分が出る', async ({ page }) => {
   const errors = watchErrors(page);
-  await start(page);
+  // 性教育の条件で差が出る人生になる乱数（主人公は統計の割合で決まるため、乱数によっては差が出ない。付録B-53）
+  await start(page, 4);
   await expect(page.locator('main h1')).toContainText('16歳');
   await playToEnd(page);
   await page.getByRole('button', { name: '2周目へ' }).click();

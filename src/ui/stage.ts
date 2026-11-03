@@ -133,3 +133,32 @@ export function chapterPeople(content: Content, run: RunState, age: number): str
   }
   return listed.filter((c) => found.has(c.id)).map((c) => c.id);
 }
+
+/** 常に出す小さな関係図（付録B-53）での関係。付き合うと恋人、別れると元恋人 */
+export function tieOf(content: Content, run: RunState, id: string): string | undefined {
+  if (id === run.flags.partnerId) {
+    if (run.bonds[id]?.ended) return '元恋人';
+    if (run.flags.dating === true) return '恋人';
+  }
+  return content.cast.find((c) => c.id === id)?.tie;
+}
+
+/** これまでの章と、いまの章で出てくる人。付き合っている人は、必ず入れる */
+export function knownPeople(content: Content, run: RunState): string[] {
+  const ids = new Set<string>();
+  for (const ch of content.chapters) if (ch.age <= run.position.age) chapterPeople(content, run, ch.age).forEach((id) => ids.add(id));
+  const partner = run.flags.dating === true && typeof run.flags.partnerId === 'string' ? run.flags.partnerId : undefined;
+  if (partner) ids.add(partner);
+  // 付き合っている人を先頭に置く
+  return content.cast.filter((c) => ids.has(c.id)).map((c) => c.id).sort((a, b) => Number(b === partner) - Number(a === partner));
+}
+
+/** その年の章の、選べない出来事（付録B-53）。いま起きているもの、終わったもの、これからのもの */
+export function chanceDeck(content: Content, run: RunState): { id: string; state: 'done' | 'active' | 'pending' }[] {
+  return applicableEvents(content, run, run.position.age)
+    .filter((e) => e.kind === 'chance')
+    .map((e) => ({
+      id: e.id,
+      state: run.completedEvents.includes(e.id) ? 'done' : run.position.eventId === e.id && run.position.step !== 'chapterTop' ? 'active' : 'pending',
+    }));
+}

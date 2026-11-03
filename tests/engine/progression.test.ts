@@ -3,7 +3,7 @@ import { describe, expect, it } from 'vitest';
 import fc from 'fast-check';
 import { invariantHolds, makeProfile, playThrough, realContent } from '../helpers';
 import { beginChapter, chapterResourceTags, createRun, currentScene, visibleChoices } from '../../src/engine/progression';
-import { ATTRACTIONS, BODY_RESPECTS, FAMILY_STORIES, GENDERS, historyOf, initialOf, pregnancyPossible, randomProfile, SINGLE_PARENT_REASONS, singleParentOf, upOf, type Profile } from '../../src/engine/profile';
+import { ATTRACTION_COUNTS, ATTRACTIONS, BODY_RESPECTS, FAMILY_STORIES, GENDER_COUNTS, GENDERS, historyOf, initialOf, pregnancyPossible, randomProfile, SINGLE_PARENT_REASONS, singleParentOf, upOf, type Profile } from '../../src/engine/profile';
 import { lifeStory } from '../../src/engine/lifestory';
 import { compareRuns, startReplay } from '../../src/engine/replay';
 import { autoPlay, trajectory } from '../../src/engine/standard';
@@ -217,9 +217,22 @@ describe('ランダムな主人公（付録B-45）', () => {
     expect(randomProfile('abc')).toEqual(randomProfile('abc'));
   });
 
-  it('性自認と好きになる人は、すべての値が偏りなく出る', () => {
-    for (const g of GENDERS) expect(many.filter((p) => p.gender === g).length).toBeGreaterThan(50);
-    for (const a of ATTRACTIONS) expect(many.filter((p) => p.attractedTo === a).length).toBeGreaterThan(50);
+  it('性自認と好きになる人の割合は、統計（S59・S60）と同じ数を使う（付録B-53）', () => {
+    const n59 = real.stats.find((s) => s.id === 'S59')!.numbers!;
+    const n60 = real.stats.find((s) => s.id === 'S60')!.numbers!;
+    expect(ATTRACTION_COUNTS).toEqual(n59);
+    expect(GENDER_COUNTS).toEqual({
+      canBePregnant: { total: n60.femaleTotal, transMan: n60.femaleToMale, nonbinary: n60.femaleOther },
+      cannot: { total: n60.maleTotal, transWoman: n60.maleToFemale, nonbinary: n60.maleOther },
+    });
+  });
+
+  it('多くはシスジェンダーで異性を好きになる人になり、まれにほかの性のあり方も出る', () => {
+    const lots = Array.from({ length: 4000 }, (_, i) => randomProfile(`lot-${i}`));
+    const cisStraight = lots.filter((p) => (p.gender === 'woman' && p.attractedTo === 'men') || (p.gender === 'man' && p.attractedTo === 'women')).length;
+    expect(cisStraight / lots.length).toBeGreaterThan(0.85);
+    expect(lots.some((p) => p.gender !== 'woman' && p.gender !== 'man')).toBe(true);
+    for (const a of ATTRACTIONS) expect(lots.some((p) => p.attractedTo === a)).toBe(true);
   });
 
   it('性自認とからだの組み合わせが合っている', () => {
@@ -227,7 +240,8 @@ describe('ランダムな主人公（付録B-45）', () => {
       if (p.gender === 'woman' || p.gender === 'transMan') expect(p.body).toBe('canBePregnant');
       if (p.gender === 'man' || p.gender === 'transWoman') expect(p.body).toBe('cannot');
     }
-    expect(new Set(many.filter((p) => p.gender === 'nonbinary').map((p) => p.body)).size).toBe(2);
+    const lots = Array.from({ length: 4000 }, (_, i) => randomProfile(`lot-${i}`));
+    expect(new Set(lots.filter((p) => p.gender === 'nonbinary').map((p) => p.body)).size).toBe(2);
   });
 
   it('家族の歩みも、からだの感覚の尊重も、すべて起こり得て、年齢は決めた範囲に入る（付録B-47）', () => {
