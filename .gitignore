@@ -9,3 +9,5 @@ dist/
 test-results/
 playwright-report/
 srhr-check.zip
+# npm run flow の書き出し（開発用の図。付録B-56）
+flow.html
