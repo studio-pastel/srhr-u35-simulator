@@ -213,7 +213,8 @@ function pickFamilyStory(u: (key: string) => number): FamilyStory {
 export const NAMES = ['ヒカル', 'マコト', 'チヒロ', 'カオル', 'ミズキ', 'ツカサ'];
 export const SKINS = ['#f2c9a8', '#e8b896', '#d9a27f', '#b98258'];
 export const HAIRS = ['#1f1f24', '#3a2a22', '#6a4632', '#9c6644'];
-export const CLOTHES = ['#4f86c6', '#6b8e4e', '#d9a23b', '#c0563a', '#6b5b95', '#4a5a6a'];
+// まめはからだ全体が服の色になるので、明るく見分けやすい色にする（付録B-57）
+export const CLOTHES = ['#5b8fd9', '#8bb34a', '#f2b84b', '#e57a6a', '#a77fb5', '#2f9e94'];
 export const HAIR_STYLES = ['short', 'mid', 'bob', 'long', 'tied'] as const;
 export const ACCESSORIES = [
   { id: 'glasses', accent: '#3a2f45' },

@@ -592,12 +592,11 @@ ul.plain {
 
 /* ── 体験の再設計（付録B） ── */
 
-/* ドット絵の場面（付録B-1） */
+/* 場面の絵（付録B-1・B-57） */
 .pixel-stage {
   display: block;
   width: 100%;
   aspect-ratio: 96 / 64;
-  image-rendering: pixelated;
   border-radius: var(--radius);
   background: var(--track);
 }
@@ -1501,7 +1500,6 @@ ul.plain {
   width: 36px;
   height: 36px;
   flex: none;
-  image-rendering: pixelated;
   border-radius: 50%;
   border: 2px solid var(--line);
   background: var(--track);

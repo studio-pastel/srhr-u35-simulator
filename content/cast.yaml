@@ -12,19 +12,19 @@
 # me は既定の見た目。実際はプレイヤーが選んだ見た目を使う。下の4人は「見本」の見た目（付録B-43）
 - id: me
   name: あなた
-  look: { skin: "#f2c9a8", hair: "#3a2a22", hairStyle: mid, clothes: ["#4f86c6", "#4f86c6", "#4f86c6"], pants: "#2f3b52" }
+  look: { skin: "#f2c9a8", hair: "#3a2a22", hairStyle: mid, clothes: ["#5b8fd9", "#5b8fd9", "#5b8fd9"], pants: "#2f3b52" }
 - id: minami
   name: ナツキ
-  look: { skin: "#f2c9a8", hair: "#3a2a22", hairStyle: bob, clothes: ["#4f86c6", "#5b6170", "#8a6d5a"], pants: "#2f3b52", accessory: glasses, accent: "#3a2f45" }
+  look: { skin: "#f2c9a8", hair: "#3a2a22", hairStyle: bob, clothes: ["#5b8fd9", "#7a8fb0", "#c99a72"], pants: "#2f3b52", accessory: glasses, accent: "#3a2f45" }
 - id: haruto
   name: ハル
-  look: { skin: "#e8b896", hair: "#1f1f24", hairStyle: short, clothes: ["#6b8e4e", "#3e4a5c", "#5a6b48"], pants: "#3b3b3b", accessory: cap, accent: "#d9a23b" }
+  look: { skin: "#e8b896", hair: "#1f1f24", hairStyle: short, clothes: ["#8bb34a", "#6f86b8", "#9ab36a"], pants: "#3b3b3b", accessory: cap, accent: "#d9a23b" }
 - id: yu
   name: ユウ
-  look: { skin: "#f0c5a0", hair: "#6a4632", hairStyle: mid, clothes: ["#d9a23b", "#4c7a8a", "#b0704a"], pants: "#4a4a5a", accessory: headphones, accent: "#c0563a" }
+  look: { skin: "#f0c5a0", hair: "#6a4632", hairStyle: mid, clothes: ["#f2b84b", "#4fa9b8", "#e09a64"], pants: "#4a4a5a", accessory: headphones, accent: "#c0563a" }
 - id: kei
   name: ケイ
-  look: { skin: "#d9a27f", hair: "#2a2320", hairStyle: short, clothes: ["#c0563a", "#4a5a6a", "#7a6a4a"], pants: "#34404f", accessory: beanie, accent: "#2a7f86" }
+  look: { skin: "#d9a27f", hair: "#2a2320", hairStyle: short, clothes: ["#e57a6a", "#7f97b3", "#c4a86a"], pants: "#34404f", accessory: beanie, accent: "#2a7f86" }
 
 # ── 脇役（16歳）。名前は仮（付録B-5。REPORT.md で確認を受ける） ──
 - id: riko
@@ -35,12 +35,12 @@
   relation: 友だち
   role: ミナミの友だち
   age: 16
-  look: { skin: "#eec3a0", hair: "#2b2622", hairStyle: tied, clothes: ["#7a9e3b", "#7a9e3b", "#7a9e3b"], pants: "#3a3f4a" }
+  look: { skin: "#eec3a0", hair: "#2b2622", hairStyle: tied, clothes: ["#9cc24e", "#9cc24e", "#9cc24e"], pants: "#3a3f4a" }
 - id: sato
   name: 佐藤先生
   role: 保健の先生
   age: 45
-  look: { skin: "#e9bf9c", hair: "#4a3a30", hairStyle: short, clothes: ["#8d6e63", "#8d6e63", "#8d6e63"], pants: "#4a4038" }
+  look: { skin: "#e9bf9c", hair: "#4a3a30", hairStyle: short, clothes: ["#c49a86", "#c49a86", "#c49a86"], pants: "#4a4038" }
 - id: mori
   name: 森先生
   about: "体のことも、それ以外のことも話せる。"
@@ -49,7 +49,7 @@
   relation: 保健室の先生
   role: 養護教諭
   age: 38
-  look: { skin: "#f0c8a6", hair: "#3a2c26", hairStyle: tied, clothes: ["#e8eef0", "#e8eef0", "#e8eef0"], pants: "#5b6170" }
+  look: { skin: "#f0c8a6", hair: "#3a2c26", hairStyle: tied, clothes: ["#f2a7b8", "#f2a7b8", "#f2a7b8"], pants: "#5b6170" }
 - id: tamura
   name: 田村先生
   about: "進路の面談をする。"
@@ -58,7 +58,7 @@
   relation: 担任
   role: ケイの担任
   age: 52
-  look: { skin: "#e2b28e", hair: "#8a8a8a", hairStyle: bob, clothes: ["#3e4a5c", "#3e4a5c", "#3e4a5c"], pants: "#2f3542" }
+  look: { skin: "#e2b28e", hair: "#8a8a8a", hairStyle: bob, clothes: ["#6f86b8", "#6f86b8", "#6f86b8"], pants: "#2f3542" }
 - id: yuMother
   name: お母さん
   about: "いっしょに暮らしている。"
@@ -66,7 +66,7 @@
   circle: family
   role: 主人公の母
   peerOffset: 30
-  look: { skin: "#efc4a0", hair: "#4a3226", hairStyle: short, clothes: ["#6b5b95", "#6b5b95", "#6b5b95"], pants: "#4a4a5a" }
+  look: { skin: "#efc4a0", hair: "#4a3226", hairStyle: short, clothes: ["#9d8fd0", "#9d8fd0", "#9d8fd0"], pants: "#4a4a5a" }
 - id: father
   name: お父さん
   about: "いっしょに暮らしている。"
@@ -74,7 +74,7 @@
   circle: family
   role: 主人公の父（生まれてから15歳までの場面）
   peerOffset: 32
-  look: { skin: "#e3b38f", hair: "#1f1f24", hairStyle: short, clothes: ["#3e4a5c", "#3e4a5c", "#3e4a5c"], pants: "#2b2b2b" }
+  look: { skin: "#e3b38f", hair: "#1f1f24", hairStyle: short, clothes: ["#6f86b8", "#6f86b8", "#6f86b8"], pants: "#2b2b2b" }
 - id: sora
   name: ソラ
   about: "家にいるとき、世話をすることが多い。"
@@ -83,7 +83,7 @@
   relation: 弟
   role: ケイの弟
   peerOffset: -11
-  look: { skin: "#dca782", hair: "#2a2320", hairStyle: short, clothes: ["#e0a526", "#e0a526", "#e0a526"], pants: "#3d5a80" }
+  look: { skin: "#dca782", hair: "#2a2320", hairStyle: short, clothes: ["#f2c14e", "#f2c14e", "#f2c14e"], pants: "#3d5a80" }
 - id: mio
   name: アサヒ
   about: "家にいるとき、世話をすることが多い。"
@@ -92,17 +92,17 @@
   relation: 妹
   role: ケイの妹
   peerOffset: -7
-  look: { skin: "#dca782", hair: "#2a2320", hairStyle: long, clothes: ["#2a9d8f", "#2a9d8f", "#2a9d8f"], pants: "#34404f" }
+  look: { skin: "#dca782", hair: "#2a2320", hairStyle: long, clothes: ["#3fbfae", "#3fbfae", "#3fbfae"], pants: "#34404f" }
 - id: kanako
   name: カナコ
   role: ケイの母
   peerOffset: 26
-  look: { skin: "#dba580", hair: "#2a2320", hairStyle: tied, clothes: ["#5e8c61", "#5e8c61", "#5e8c61"], pants: "#3a3f4a" }
+  look: { skin: "#dba580", hair: "#2a2320", hairStyle: tied, clothes: ["#7fbf86", "#7fbf86", "#7fbf86"], pants: "#3a3f4a" }
 - id: harutoFather
   name: ハルトの父
   role: ハルトの父（声だけ。画面には描かない）
   age: 48
-  look: { skin: "#e3b38f", hair: "#1f1f24", hairStyle: short, clothes: ["#3b3b3b", "#3b3b3b", "#3b3b3b"], pants: "#2b2b2b" }
+  look: { skin: "#e3b38f", hair: "#1f1f24", hairStyle: short, clothes: ["#8a8f9c", "#8a8f9c", "#8a8f9c"], pants: "#2b2b2b" }
 
 # ── 脇役（17歳以降）。名前は仮（付録B-5） ──
 - id: senpai
@@ -110,18 +110,18 @@
   relation: 部活の先輩
   role: 21歳の飲み会にいる先輩（サークル・職場。名前は付けない）
   peerOffset: 2
-  look: { skin: "#e6b896", hair: "#4a3a30", hairStyle: short, clothes: ["#b0704a", "#b0704a", "#b0704a"], pants: "#3a3f4a" }
+  look: { skin: "#e6b896", hair: "#4a3a30", hairStyle: short, clothes: ["#e09a64", "#e09a64", "#e09a64"], pants: "#3a3f4a" }
 - id: takumi
   name: タクミ
   role: ケイの友だち
   peerOffset: 0
-  look: { skin: "#e6b48e", hair: "#3a2a22", hairStyle: mid, clothes: ["#4c7a8a", "#4c7a8a", "#4c7a8a"], pants: "#2f3542" }
+  look: { skin: "#e6b48e", hair: "#3a2a22", hairStyle: mid, clothes: ["#4fa9b8", "#4fa9b8", "#4fa9b8"], pants: "#2f3542" }
 - id: netFriend
   name: SNSの相手
   relation: 会ったことのない人
   role: ユウがSNSで知り合った相手（顔アイコンだけ。画面には描かない）
   peerOffset: 0
-  look: { skin: "#d9c2ad", hair: "#55505a", hairStyle: short, clothes: ["#6a6f7a", "#6a6f7a", "#6a6f7a"], pants: "#3a3f4a" }
+  look: { skin: "#d9c2ad", hair: "#55505a", hairStyle: short, clothes: ["#a3a9b8", "#a3a9b8", "#a3a9b8"], pants: "#3a3f4a" }
 - id: saki
   name: サキ
   about: "最近、よく話す。"
@@ -130,12 +130,12 @@
   relation: クラスメイト
   role: ケイの交際相手
   peerOffset: 0
-  look: { skin: "#f0c6a4", hair: "#5a3a2a", hairStyle: long, clothes: ["#e0a526", "#7a9e3b", "#9c6644"], pants: "#3d5a80" }
+  look: { skin: "#f0c6a4", hair: "#5a3a2a", hairStyle: long, clothes: ["#f2c14e", "#9cc24e", "#d39a6a"], pants: "#3d5a80" }
 - id: aoi
   name: アオイ
   role: ユウのパートナー
   peerOffset: 1
-  look: { skin: "#e9bf9c", hair: "#2b2622", hairStyle: short, clothes: ["#3d5a80", "#8d6e63", "#5e8c61"], pants: "#4a4a5a" }
+  look: { skin: "#e9bf9c", hair: "#2b2622", hairStyle: short, clothes: ["#5f86c0", "#c49a86", "#7fbf86"], pants: "#4a4a5a" }
 - id: sou
   name: ソウ
   about: "最近、よく話す。"
@@ -144,34 +144,34 @@
   relation: クラスメイト
   role: ミナミのパートナー
   peerOffset: 0
-  look: { skin: "#e3b38f", hair: "#3a2c26", hairStyle: mid, clothes: ["#5e8c61", "#5e8c61", "#4c7a8a"], pants: "#3a3f4a" }
+  look: { skin: "#e3b38f", hair: "#3a2c26", hairStyle: mid, clothes: ["#7fbf86", "#7fbf86", "#4fa9b8"], pants: "#3a3f4a" }
 - id: nao
   name: ナオ
   role: ハルトのパートナー
   peerOffset: 0
-  look: { skin: "#f2c9a8", hair: "#6a4632", hairStyle: tied, clothes: ["#c0563a", "#c0563a", "#9c6644"], pants: "#4a4038" }
+  look: { skin: "#f2c9a8", hair: "#6a4632", hairStyle: tied, clothes: ["#e57a6a", "#e57a6a", "#d39a6a"], pants: "#4a4038" }
 - id: haruChild
   name: ハルトの子ども
   role: ハルトとナオの子ども
   bornAt: 30
-  look: { skin: "#f0c6a4", hair: "#2b2622", hairStyle: short, clothes: ["#e0a526", "#e0a526", "#e0a526"], pants: "#3d5a80" }
+  look: { skin: "#f0c6a4", hair: "#2b2622", hairStyle: short, clothes: ["#f2c14e", "#f2c14e", "#f2c14e"], pants: "#3d5a80" }
 - id: keiChild
   name: ケイの子ども
   role: ケイとサキの子ども
   bornAt: 22
-  look: { skin: "#e3b08c", hair: "#2a2320", hairStyle: short, clothes: ["#2a9d8f", "#2a9d8f", "#2a9d8f"], pants: "#34404f" }
+  look: { skin: "#e3b08c", hair: "#2a2320", hairStyle: short, clothes: ["#3fbfae", "#3fbfae", "#3fbfae"], pants: "#34404f" }
 - id: minamiChild
   name: ナツキの子ども
   role: ミナミとソウの子ども
   bornAt: 30
-  look: { skin: "#f2c9a8", hair: "#3a2a22", hairStyle: short, clothes: ["#e0a526", "#e0a526", "#e0a526"], pants: "#5b6170" }
+  look: { skin: "#f2c9a8", hair: "#3a2a22", hairStyle: short, clothes: ["#f2c14e", "#f2c14e", "#f2c14e"], pants: "#5b6170" }
 - id: counselor
   name: 相談員
   role: 相談窓口の相談員
   age: 40
-  look: { skin: "#ecc19e", hair: "#4a3a30", hairStyle: bob, clothes: ["#5e8c61", "#5e8c61", "#5e8c61"], pants: "#3a3f4a" }
+  look: { skin: "#ecc19e", hair: "#4a3a30", hairStyle: bob, clothes: ["#7fbf86", "#7fbf86", "#7fbf86"], pants: "#3a3f4a" }
 - id: coworker
   name: ユキ
   role: ミナミの同期
   peerOffset: 0
-  look: { skin: "#f0c8a6", hair: "#6a4632", hairStyle: long, clothes: ["#8a5a7a", "#8a5a7a", "#8a5a7a"], pants: "#2f3542" }
+  look: { skin: "#f0c8a6", hair: "#6a4632", hairStyle: long, clothes: ["#c784b0", "#c784b0", "#c784b0"], pants: "#2f3542" }

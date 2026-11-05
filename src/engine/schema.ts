@@ -78,7 +78,8 @@ export const chanceNodeSchema = z.strictObject({
   actorLabel: z.string().optional(),
 });
 
-export const FACES = ['normal', 'smile', 'anxious', 'sad', 'relieved'] as const;
+// calm（落ち着いた）・thinking（考えている）は付録B-57。表情は出来事ではなく、その人の受け止め方としてセリフごとに選ぶ
+export const FACES = ['normal', 'smile', 'anxious', 'sad', 'relieved', 'calm', 'thinking'] as const;
 export const PLACES = ['classroom', 'nurse', 'hallway', 'bedroom', 'living', 'campus', 'station', 'office', 'clinic', 'home2', 'gate', 'izakaya'] as const;
 export const TIMES = ['day', 'dusk', 'night'] as const;
 // fade は暗転（付録B-30）。画面を暗くして、地の文を1行だけ出す

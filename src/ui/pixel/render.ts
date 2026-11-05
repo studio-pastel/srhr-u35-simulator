@@ -1,10 +1,18 @@
-// ドット絵の人物と背景を、コードで計算して描く（付録B-1）。画像ファイルは使わない。
-// 光と影は光源の向きとの内積で、年齢は頭身と服で、時間帯は色の混ぜ合わせで表す。
+// 人物と背景を、コードで計算して描く（付録B-1、付録B-57）。画像ファイルは使わない。
+// 人物は「まめ」：頭とからだがひとつながりの丸い形で、小さな丸い手と足だけを持つ。体つきを描かないので、
+// からだの性別や体型を絵から決めつけない。年齢は大きさと服で、時間帯は色の混ぜ合わせで表す。
+// 呼び出し側との約束（W・H の座標、drawScene・drawFace）は、ドット絵のころと同じにしている。
 
+/** 人物の立ち位置（Actor.x）の座標の幅と高さ。描くときは 360×240 に広げる */
 export const W = 96;
 export const H = 64;
+const SW = 360;
+const SH = 240;
+const K = SW / W;
+const FLOOR = 186;
+const FEET = 212;
 
-export type Face = 'normal' | 'smile' | 'anxious' | 'sad' | 'relieved';
+export type Face = 'normal' | 'smile' | 'anxious' | 'sad' | 'relieved' | 'calm' | 'thinking';
 export type Pose = 'stand' | 'phone';
 export type TimeOfDay = 'day' | 'dusk' | 'night';
 export type Place = 'classroom' | 'nurse' | 'hallway' | 'bedroom' | 'living' | 'campus' | 'station' | 'office' | 'clinic' | 'home2' | 'gate' | 'izakaya';
@@ -16,8 +24,9 @@ export interface Look {
   skin: string;
   hair: string;
   hairStyle: HairStyle;
-  /** 年齢ごとの服の色：[〜19歳, 20〜30歳, 31歳〜] */
+  /** 年齢ごとの服の色：[〜19歳, 20〜30歳, 31歳〜]。まめでは、からだ全体の色になる */
   clothes: [string, string, string];
+  /** 足の色 */
   pants: string;
   accessory?: Accessory;
   accent?: string;
@@ -28,9 +37,9 @@ export interface Actor {
   age: number;
   face?: Face;
   pose?: Pose;
-  /** 立ち位置（足もとの中心の x 座標） */
+  /** 立ち位置（足もとの中心の x 座標。0〜96） */
   x: number;
-  /** 呼吸で上半身を持ち上げるドット数（0か1） */
+  /** 呼吸の伸び（0〜1） */
   bob?: number;
   /** まばたき中 */
   blink?: boolean;
@@ -44,80 +53,43 @@ function h2r(h: string): [number, number, number] {
 function r2h(r: number, g: number, b: number): string {
   return '#' + [r, g, b].map((v) => Math.max(0, Math.min(255, Math.round(v))).toString(16).padStart(2, '0')).join('');
 }
-function toHsl([r, g, b]: [number, number, number]): [number, number, number] {
-  r /= 255;
-  g /= 255;
-  b /= 255;
-  const mx = Math.max(r, g, b);
-  const mn = Math.min(r, g, b);
-  let h = 0;
-  let s = 0;
-  const l = (mx + mn) / 2;
-  if (mx !== mn) {
-    const d = mx - mn;
-    s = l > 0.5 ? d / (2 - mx - mn) : d / (mx + mn);
-    h = mx === r ? (g - b) / d + (g < b ? 6 : 0) : mx === g ? (b - r) / d + 2 : (r - g) / d + 4;
-    h *= 60;
-  }
-  return [h, s, l];
-}
-function fromHsl(h: number, s: number, l: number): string {
-  h = ((h % 360) + 360) % 360;
-  const c = (1 - Math.abs(2 * l - 1)) * s;
-  const x = c * (1 - Math.abs(((h / 60) % 2) - 1));
-  const m = l - c / 2;
-  const [r, g, b] = h < 60 ? [c, x, 0] : h < 120 ? [x, c, 0] : h < 180 ? [0, c, x] : h < 240 ? [0, x, c] : h < 300 ? [x, 0, c] : [c, 0, x];
-  return r2h((r + m) * 255, (g + m) * 255, (b + m) * 255);
-}
-/** 明るく（a > 0）・暗く（a < 0）。明るい側は暖色に、暗い側は寒色に少しずらす */
-export function shade(hex: string, a: number): string {
-  let [h, s, l] = toHsl(h2r(hex));
-  l = Math.max(0.03, Math.min(0.95, l + a * 0.16));
-  h += a > 0 ? -8 * a : 12 * -a;
-  return fromHsl(h, Math.min(1, s * (a < 0 ? 1.1 : 0.95)), l);
-}
-function mix(hex: string, to: string, k: number): string {
+export function mix(hex: string, to: string, k: number): string {
   const [r, g, b] = h2r(hex);
   const [tr, tg, tb] = h2r(to);
   return r2h(r * (1 - k) + tr * k, g * (1 - k) + tg * k, b * (1 - k) + tb * k);
 }
+/** 明るく（a > 0）・暗く（a < 0） */
+export function shade(hex: string, a: number): string {
+  return a > 0 ? mix(hex, '#ffffff', a * 0.5) : mix(hex, '#1b1d2a', -a * 0.45);
+}
 
 const TIME: Record<TimeOfDay, { sky: string; tint: string; k: number }> = {
-  day: { sky: '#9fd0f0', tint: '#ffffff', k: 0 },
-  dusk: { sky: '#f2a65a', tint: '#ff9a50', k: 0.16 },
-  night: { sky: '#24305a', tint: '#1a2240', k: 0.42 },
+  day: { sky: '#bfe3f5', tint: '#ffffff', k: 0 },
+  dusk: { sky: '#f6b886', tint: '#ff9a50', k: 0.16 },
+  night: { sky: '#2e3a68', tint: '#1a2240', k: 0.4 },
 };
 
-// ── 描画の土台 ──
-type Grid = (string | null)[][];
-const grid = (): Grid => Array.from({ length: H }, () => Array<string | null>(W).fill(null));
-function put(g: Grid, x: number, y: number, c: string) {
-  x = Math.floor(x);
-  y = Math.floor(y);
-  if (x >= 0 && y >= 0 && x < W && y < H) g[y]![x] = c;
+// ── 形 ──
+const circ = (cx: number, cy: number, r: number) => `M${cx - r} ${cy}a${r} ${r} 0 1 0 ${2 * r} 0a${r} ${r} 0 1 0 ${-2 * r} 0Z`;
+const ell = (cx: number, cy: number, rx: number, ry: number) => `M${cx - rx} ${cy}a${rx} ${ry} 0 1 0 ${2 * rx} 0a${rx} ${ry} 0 1 0 ${-2 * rx} 0Z`;
+function rr(x: number, y: number, w: number, h: number, r: number): string {
+  r = Math.max(0, Math.min(r, w / 2, h / 2));
+  return `M${x + r} ${y}h${w - 2 * r}a${r} ${r} 0 0 1 ${r} ${r}v${h - 2 * r}a${r} ${r} 0 0 1 ${-r} ${r}h${-(w - 2 * r)}a${r} ${r} 0 0 1 ${-r} ${-r}v${-(h - 2 * r)}a${r} ${r} 0 0 1 ${r} ${-r}Z`;
 }
-function rect(g: Grid, x: number, y: number, w: number, h: number, c: string, shaded = false) {
-  for (let j = 0; j < h; j++)
-    for (let i = 0; i < w; i++) {
-      let col = c;
-      if (shaded) {
-        const f = i / (w - 1 || 1);
-        col = f < 0.22 ? shade(c, 0.5) : f > 0.72 ? shade(c, -0.6) : c;
-      }
-      put(g, x + i, y + j, col);
-    }
+
+type Ctx = CanvasRenderingContext2D;
+function fill(ctx: Ctx, d: string, c: string, alpha = 1) {
+  ctx.globalAlpha = alpha;
+  ctx.fillStyle = c;
+  ctx.fill(new Path2D(d));
+  ctx.globalAlpha = 1;
 }
-/** 楕円。光源（左上）との内積で3段階の陰影を付ける */
-function ell(g: Grid, cx: number, cy: number, rx: number, ry: number, c: string, clip?: (x: number, y: number) => boolean) {
-  for (let y = Math.floor(cy - ry - 1); y <= cy + ry + 1; y++)
-    for (let x = Math.floor(cx - rx - 1); x <= cx + rx + 1; x++) {
-      const nx = (x + 0.5 - cx) / rx;
-      const ny = (y + 0.5 - cy) / ry;
-      if (nx * nx + ny * ny > 1) continue;
-      if (clip && !clip(x, y)) continue;
-      const d = -(nx * 0.55 + ny * 0.75);
-      put(g, x, y, d > 0.45 ? shade(c, 0.6) : d < -0.35 ? shade(c, -0.7) : c);
-    }
+function line(ctx: Ctx, d: string, c: string, w: number) {
+  ctx.strokeStyle = c;
+  ctx.lineWidth = w;
+  ctx.lineCap = 'round';
+  ctx.lineJoin = 'round';
+  ctx.stroke(new Path2D(d));
 }
 function seeded(n: number) {
   let a = n;
@@ -128,322 +100,292 @@ function seeded(n: number) {
 }
 
 // ── 背景 ──
-function window_(g: Grid, x: number, y: number, w: number, h: number, time: TimeOfDay) {
+function window_(ctx: Ctx, x: number, y: number, w: number, h: number, time: TimeOfDay, t: (c: string) => string) {
   const T = TIME[time];
-  rect(g, x, y, w, h, T.sky);
+  fill(ctx, rr(x - 4, y - 4, w + 8, h + 8, 14), t('#f7f3ea'));
+  fill(ctx, rr(x, y, w, h, 10), T.sky);
   if (time === 'night') {
     const r = seeded(7);
-    for (let i = 0; i < 12; i++) put(g, x + r() * w, y + r() * h, '#f4f0c8');
-  }
-  if (time === 'dusk') rect(g, x, y + h - 7, w, 7, shade(T.sky, -0.4));
-  const frame = mix('#f4f1ea', T.tint, T.k);
-  rect(g, x + Math.floor(w / 2) - 1, y, 2, h, frame);
-  rect(g, x, y + Math.floor(h / 2) - 1, w, 2, frame);
-  rect(g, x - 2, y - 2, w + 4, 2, mix('#d9d2c2', T.tint, T.k));
-  rect(g, x - 2, y + h, w + 4, 2, mix('#d9d2c2', T.tint, T.k));
+    for (let i = 0; i < 9; i++) fill(ctx, circ(x + 6 + r() * (w - 12), y + 6 + r() * (h - 12), 1.4), '#f4f0c8');
+    fill(ctx, circ(x + w * 0.75, y + h * 0.3, 7), '#fff4c4');
+  } else if (time === 'dusk') fill(ctx, rr(x, y + h * 0.6, w, h * 0.4, 10), '#f19a74', 0.6);
+  else fill(ctx, ell(x + w * 0.3, y + h * 0.35, 12, 5), '#ffffff', 0.8);
+  line(ctx, `M${x + w / 2} ${y}V${y + h}M${x} ${y + h / 2}H${x + w}`, t('#f7f3ea'), 3);
 }
 
-function background(place: Place, time: TimeOfDay): Grid {
-  const g = grid();
+function background(ctx: Ctx, place: Place, time: TimeOfDay) {
   const T = TIME[time];
   const t = (c: string) => mix(c, T.tint, T.k);
-  const floorY = 50;
   const wallBase: Record<Place, string> = {
-    classroom: '#ece4d2',
-    nurse: '#e8f0ee',
-    hallway: '#e3ded2',
-    bedroom: '#e6dccb',
-    living: '#efe3cf',
-    campus: '#bfe0f2',
-    station: '#2b3355',
-    office: '#e3e6ea',
-    clinic: '#e8f0ee',
-    home2: '#efe3cf',
-    gate: '#9fd0f0',
-    izakaya: '#c99a63',
+    classroom: '#f1ead9',
+    nurse: '#eef4f1',
+    hallway: '#ece6d9',
+    bedroom: '#ece2d1',
+    living: '#f2e7d4',
+    campus: '#cfe8f3',
+    station: '#3b4466',
+    office: '#e7eaee',
+    clinic: '#f3eef6',
+    home2: '#f2e7d4',
+    gate: T.sky,
+    izakaya: '#d9ad7c',
   };
-  const floorBase: Partial<Record<Place, string>> = { izakaya: '#7a5236', gate: '#a89f90', station: '#6b6f78', office: '#9aa0a8', clinic: '#c2ccc9', nurse: '#c9d4d1', campus: '#8db36a' };
-  const wall = t(wallBase[place]);
-  const floor = t(floorBase[place] ?? '#b58c5f');
-  rect(g, 0, 0, W, H, wall);
-  rect(g, 0, floorY, W, H - floorY, floor);
-  if (place !== 'campus' && place !== 'station' && place !== 'gate') for (let x = 0; x < W; x += 12) rect(g, x, floorY, 1, H - floorY, shade(floor, -0.5));
-  rect(g, 0, floorY - 1, W, 1, shade(wall, -0.6));
+  const floorBase: Record<Place, string> = {
+    classroom: '#dcc7a4',
+    nurse: '#d6e2dd',
+    hallway: '#d9cbb2',
+    bedroom: '#cdb08a',
+    living: '#d4b48c',
+    campus: '#a9cf88',
+    station: '#8a8f99',
+    office: '#bcc2cb',
+    clinic: '#e2d9ea',
+    home2: '#d4b48c',
+    gate: '#c9c0b0',
+    izakaya: '#8a5f3e',
+  };
+  const wall = place === 'gate' ? T.sky : t(wallBase[place]);
+  fill(ctx, `M0 0H${SW}V${SH}H0Z`, wall);
+  fill(ctx, `M0 ${FLOOR}H${SW}V${SH}H0Z`, t(floorBase[place]));
 
   switch (place) {
     case 'classroom':
-      rect(g, 4, 8, 36, 20, t('#3f5a4a'));
-      rect(g, 4, 28, 36, 2, t('#8a6d4a'));
-      rect(g, 8, 13, 14, 1, '#dfe8df');
-      rect(g, 8, 17, 22, 1, '#dfe8df');
-      window_(g, 60, 8, 30, 24, time);
-      rect(g, 60, 40, 26, 3, t('#9c6644'), true);
-      rect(g, 62, 43, 2, 7, t('#7a4f33'));
-      rect(g, 82, 43, 2, 7, t('#7a4f33'));
+      fill(ctx, rr(18, 34, 150, 82, 10), t('#4f7a62'));
+      line(ctx, 'M40 62q24 -6 48 0M40 82q40 -4 80 2', '#eaf3ec', 2.5);
+      fill(ctx, rr(14, 116, 158, 8, 4), t('#c9a77c'));
+      window_(ctx, 226, 34, 112, 84, time, t);
+      fill(ctx, rr(226, 152, 96, 12, 6), t('#c08a5a'));
+      fill(ctx, rr(234, 164, 8, 24, 4), t('#9c6c44'));
+      fill(ctx, rr(306, 164, 8, 24, 4), t('#9c6c44'));
       break;
     case 'nurse':
-      window_(g, 62, 8, 28, 22, time);
-      rect(g, 4, 30, 30, 8, t('#f4f4f4'), true);
-      rect(g, 4, 38, 2, 12, t('#9fbfb8'));
-      rect(g, 32, 38, 2, 12, t('#9fbfb8'));
-      rect(g, 6, 8, 14, 18, t('#f4f4f4'));
-      rect(g, 12, 10, 2, 8, '#d06a6a');
-      rect(g, 9, 13, 8, 2, '#d06a6a');
+      window_(ctx, 230, 32, 104, 80, time, t);
+      fill(ctx, rr(24, 34, 54, 46, 10), '#ffffff');
+      line(ctx, 'M51 46v22M40 57h22', '#e48aa0', 6);
+      fill(ctx, rr(14, 128, 120, 26, 12), t('#ffffff'));
+      fill(ctx, rr(14, 118, 34, 14, 7), t('#e9eef0'));
+      fill(ctx, rr(22, 152, 8, 34, 4), t('#9fbfb8'));
+      fill(ctx, rr(118, 152, 8, 34, 4), t('#9fbfb8'));
       break;
     case 'hallway':
-      for (let x = 2; x < W; x += 24) window_(g, x + 2, 6, 18, 18, time);
-      rect(g, 0, 32, W, 2, t('#c9c2b4'));
+      for (let x = 14; x < SW; x += 90) window_(ctx, x, 28, 66, 64, time, t);
+      fill(ctx, rr(0, 118, SW, 8, 4), t('#d8cfbe'));
       break;
     case 'bedroom':
-      window_(g, 62, 6, 28, 24, time);
-      rect(g, 52, 40, 40, 6, t('#8fa6c8'), true);
-      rect(g, 52, 46, 40, 4, t('#6a5040'));
-      rect(g, 52, 36, 10, 5, t('#f4f1ea'));
-      rect(g, 6, 14, 18, 24, t('#9c6644'), true);
-      for (let y = 20; y < 38; y += 6) rect(g, 6, y, 18, 1, shade(t('#9c6644'), -0.6));
-      rect(g, 8, 15, 3, 5, t('#c0563a'));
-      rect(g, 12, 16, 3, 4, t('#3d5a80'));
+      window_(ctx, 226, 28, 108, 86, time, t);
+      fill(ctx, rr(196, 146, 156, 30, 14), t('#8fa6c8'));
+      fill(ctx, rr(196, 136, 40, 20, 10), t('#f4f1ea'));
+      fill(ctx, rr(200, 172, 148, 16, 6), t('#9c7656'));
+      fill(ctx, rr(20, 50, 70, 100, 10), t('#b88a62'));
+      for (let y = 74; y < 150; y += 24) fill(ctx, rr(26, y, 58, 4, 2), t('#9c7656'));
+      fill(ctx, rr(30, 56, 10, 16, 3), t('#e57a6a'));
+      fill(ctx, rr(44, 58, 10, 14, 3), t('#5b8fd9'));
+      fill(ctx, rr(58, 56, 10, 16, 3), t('#f2c14e'));
       break;
     case 'living':
     case 'home2':
-      window_(g, 36, 6, 26, 22, time);
-      rect(g, 4, 10, 22, 30, t('#9c6644'), true);
-      for (let y = 16; y < 40; y += 8) rect(g, 4, y, 22, 1, shade(t('#9c6644'), -0.6));
-      rect(g, 62, 40, 30, 8, t('#7a9e3b'), true);
-      rect(g, 62, 36, 30, 4, shade(t('#7a9e3b'), 0.3));
-      if (time !== 'day') ell(g, 74, 10, 4, 3, '#f7d98a');
+      window_(ctx, 138, 26, 100, 84, time, t);
+      fill(ctx, rr(18, 40, 80, 112, 10), t('#b88a62'));
+      for (let y = 66; y < 150; y += 28) fill(ctx, rr(24, y, 68, 4, 2), t('#9c7656'));
+      fill(ctx, rr(240, 146, 108, 28, 14), t('#8bb34a'));
+      fill(ctx, rr(240, 128, 108, 24, 12), t('#a2c86a'));
+      if (time !== 'day') fill(ctx, circ(280, 42, 16), '#f7d98a', 0.9);
       break;
     case 'campus':
-      rect(g, 0, 22, W, 28, t('#c9c2b4'));
-      for (let x = 4; x < W; x += 10) rect(g, x, 26, 5, 7, t('#7f9fb8'));
-      ell(g, 10, 30, 8, 9, t('#5e8c61'));
+      fill(ctx, rr(0, 84, SW, 102, 0), t('#e6dfd0'));
+      for (let x = 16; x < SW; x += 38) fill(ctx, rr(x, 100, 22, 26, 6), t('#9fc2d9'));
+      for (let x = 16; x < SW; x += 38) fill(ctx, rr(x, 140, 22, 26, 6), t('#9fc2d9'));
+      fill(ctx, circ(40, 120, 34), t('#7fb07a'));
+      fill(ctx, rr(36, 140, 8, 46, 4), t('#8a6a4a'));
       break;
     case 'station':
-      rect(g, 0, 30, W, 20, '#4a4f5c');
-      rect(g, 6, 8, 18, 7, '#f4e9a6');
-      for (let x = 0; x < W; x += 6) put(g, x, 48, '#f4e9a6');
+      fill(ctx, rr(0, 110, SW, 76, 0), '#4c5470');
+      fill(ctx, rr(24, 30, 76, 28, 8), '#f4e9a6');
+      fill(ctx, rr(34, 40, 56, 6, 3), '#4c5470');
+      for (let x = 6; x < SW; x += 22) fill(ctx, rr(x, 194, 12, 4, 2), '#f4e9a6');
       break;
     case 'office':
-      window_(g, 6, 8, 30, 22, time);
-      rect(g, 58, 38, 32, 3, t('#8a7a6a'), true);
-      rect(g, 60, 41, 2, 9, t('#5a4a3a'));
-      rect(g, 86, 41, 2, 9, t('#5a4a3a'));
-      rect(g, 66, 28, 14, 10, t('#2f3542'));
-      rect(g, 67, 29, 12, 8, time === 'night' ? '#7fb0d8' : '#a8c8e0');
+      window_(ctx, 22, 30, 112, 84, time, t);
+      fill(ctx, rr(214, 140, 124, 12, 6), t('#a8988a'));
+      fill(ctx, rr(222, 152, 8, 34, 4), t('#7a6a5a'));
+      fill(ctx, rr(322, 152, 8, 34, 4), t('#7a6a5a'));
+      fill(ctx, rr(246, 96, 58, 40, 6), t('#3a4152'));
+      fill(ctx, rr(250, 100, 50, 30, 4), time === 'night' ? '#7fb0d8' : '#bcd6e8');
+      fill(ctx, rr(270, 134, 10, 8, 2), t('#3a4152'));
       break;
     case 'gate': {
-      // 夕方の校門：空、校舎、門柱、桜の木
-      rect(g, 0, 0, W, 50, T.sky);
-      if (time === 'dusk') rect(g, 0, 30, W, 20, shade(T.sky, -0.3));
-      rect(g, 8, 14, 80, 30, t('#e8e1d3'), true);
-      for (let x = 12; x < 86; x += 8) rect(g, x, 20, 5, 6, t('#7f9fb8'));
-      for (let x = 12; x < 86; x += 8) rect(g, x, 32, 5, 6, t('#7f9fb8'));
-      rect(g, 44, 6, 8, 8, t('#e8e1d3'), true);
-      ell(g, 48, 10, 2, 2, t('#f4f1ea'));
-      rect(g, 2, 30, 5, 20, t('#9a9387'), true);
-      rect(g, 89, 30, 5, 20, t('#9a9387'), true);
-      ell(g, 6, 22, 9, 8, t('#f0b8c0'));
-      ell(g, 90, 20, 8, 7, t('#f0b8c0'));
+      if (time === 'dusk') fill(ctx, rr(0, 110, SW, 76, 0), shade(T.sky, -0.3));
+      fill(ctx, rr(30, 56, 300, 120, 10), t('#efe9dc'));
+      for (let x = 46; x < 320; x += 30) {
+        fill(ctx, rr(x, 76, 18, 22, 5), t('#9fc2d9'));
+        fill(ctx, rr(x, 120, 18, 22, 5), t('#9fc2d9'));
+      }
+      fill(ctx, rr(166, 26, 28, 32, 8), t('#efe9dc'));
+      fill(ctx, circ(180, 40, 8), t('#ffffff'));
+      fill(ctx, rr(6, 110, 20, 76, 6), t('#a8a194'));
+      fill(ctx, rr(334, 110, 20, 76, 6), t('#a8a194'));
+      fill(ctx, circ(22, 84, 32), t('#f3c1c8'));
+      fill(ctx, circ(338, 76, 30), t('#f3c1c8'));
       break;
     }
     case 'izakaya': {
-      // 居酒屋：のれん、ちょうちん、メニューの札、テーブルとジョッキ
-      rect(g, 0, 0, W, 6, t('#3a2a22'));
-      for (let x = 2; x < W; x += 16) rect(g, x, 6, 12, 8, t('#2f3b52'), true);
-      for (const cx of [14, 82]) {
-        ell(g, cx, 22, 5, 6, time === 'day' ? t('#d9534f') : '#e8664f');
-        rect(g, cx - 3, 15, 6, 1, t('#3a2a22'));
-        rect(g, cx - 3, 28, 6, 1, t('#3a2a22'));
+      fill(ctx, rr(0, 0, SW, 22, 0), t('#3a2a22'));
+      for (let x = 8; x < SW; x += 60) fill(ctx, rr(x, 22, 46, 32, 6), t('#2f3b52'));
+      for (const cx of [52, 308]) {
+        fill(ctx, ell(cx, 86, 18, 22), time === 'day' ? t('#e0665f') : '#f07a5e');
+        fill(ctx, rr(cx - 12, 62, 24, 5, 2), t('#3a2a22'));
+        fill(ctx, rr(cx - 12, 105, 24, 5, 2), t('#3a2a22'));
       }
-      for (let x = 30; x < 66; x += 6) rect(g, x, 16, 4, 12, t('#f4ead2'), true);
-      rect(g, 22, 38, 52, 4, t('#8a5a36'), true);
-      rect(g, 26, 42, 2, 8, t('#5a3a26'));
-      rect(g, 68, 42, 2, 8, t('#5a3a26'));
-      for (const mx of [32, 46, 60]) {
-        rect(g, mx, 33, 4, 5, '#f2c14e');
-        rect(g, mx, 32, 4, 1, '#fbf6e8');
+      for (let x = 112; x < 250; x += 24) fill(ctx, rr(x, 64, 16, 46, 3), t('#f4ead2'));
+      fill(ctx, rr(84, 142, 194, 14, 6), t('#a06a42'));
+      fill(ctx, rr(96, 156, 8, 30, 4), t('#6a4a32'));
+      fill(ctx, rr(258, 156, 8, 30, 4), t('#6a4a32'));
+      for (const mx of [120, 172, 224]) {
+        fill(ctx, rr(mx, 120, 18, 22, 4), '#f2c14e');
+        fill(ctx, rr(mx, 118, 18, 6, 3), '#fbf6e8');
       }
       break;
     }
     case 'clinic':
-      rect(g, 50, 30, 40, 4, t('#9fbfb8'), true);
-      rect(g, 50, 34, 40, 6, t('#7fa59c'));
-      rect(g, 6, 8, 16, 10, '#ffffff');
-      rect(g, 13, 9, 2, 8, '#d06a6a');
-      rect(g, 10, 12, 8, 2, '#d06a6a');
+      fill(ctx, rr(24, 32, 60, 48, 10), '#ffffff');
+      line(ctx, 'M54 44v24M42 56h24', '#e48aa0', 6);
+      fill(ctx, rr(190, 120, 150, 16, 8), t('#b7a6c9'));
+      fill(ctx, rr(190, 136, 150, 50, 6), t('#cbbfdb'));
       break;
   }
-  return g;
 }
 
-// ── 人物 ──
+// ── 人物（まめ） ──
+interface Size {
+  w: number;
+  h: number;
+}
+/** 年齢ごとの大きさ。頭身ではなく、からだの大きさで年齢を表す */
+function sizeOf(age: number): Size {
+  if (age < 7) return { w: 38, h: 58 };
+  if (age < 12) return { w: 40, h: 70 };
+  if (age < 16) return { w: 44, h: 86 };
+  if (age < 20) return { w: 46, h: 94 };
+  if (age < 60) return { w: 48, h: 100 };
+  return { w: 48, h: 94 };
+}
+const INK = '#2b2f3a';
+
+/** 50歳を過ぎた人は、年齢に合わせて髪を白っぽくする */
+function hairColor(look: Look, age: number): string {
+  return age >= 50 ? mix(look.hair, '#d4d1cb', Math.min(0.85, 0.35 + (age - 50) / 40)) : look.hair;
+}
+
+function fringe(cx: number, cy: number, r: number): string {
+  const L = cx - r - 1.2;
+  const R = cx + r + 1.2;
+  return `M${L} ${cy + 2}A${r + 1.2} ${r + 1.2} 0 0 1 ${R} ${cy}Q${cx + r * 0.45} ${cy - r * 0.6} ${cx - r * 0.1} ${cy - r * 0.42}Q${cx - r * 0.65} ${cy - r * 0.25} ${L} ${cy + 2}Z`;
+}
+
+function features(ctx: Ctx, face: Face, cx: number, cy: number, r: number, blink: boolean) {
+  const ex = r * 0.38;
+  const ey = cy + r * 0.14;
+  const my = cy + r * 0.55;
+  const s = (d: string) => line(ctx, d, INK, 1.7);
+  const closed = face === 'smile' || face === 'relieved';
+  const look = face === 'thinking' ? [1.3, -1.2] : [0, 0];
+  for (const x of [cx - ex, cx + ex]) {
+    if (face === 'smile') s(`M${x - 2.6} ${ey + 1}Q${x} ${ey - 2.4} ${x + 2.6} ${ey + 1}`);
+    else if (face === 'relieved') s(`M${x - 2.6} ${ey}Q${x} ${ey + 2.4} ${x + 2.6} ${ey}`);
+    else if (blink && !closed) s(`M${x - 2.2} ${ey}H${x + 2.2}`);
+    else fill(ctx, circ(x + look[0]!, ey + look[1]! + (face === 'sad' ? 1 : 0), 1.9), INK);
+  }
+  if (face === 'anxious' || face === 'sad') {
+    s(`M${cx - ex - 3} ${ey - 4}L${cx - ex + 2.5} ${ey - 6}`);
+    s(`M${cx + ex + 3} ${ey - 4}L${cx + ex - 2.5} ${ey - 6}`);
+  }
+  if (face === 'smile') s(`M${cx - 4} ${my - 1}Q${cx} ${my + 4} ${cx + 4} ${my - 1}`);
+  else if (face === 'relieved') s(`M${cx - 3} ${my}Q${cx} ${my + 2.5} ${cx + 3} ${my}`);
+  else if (face === 'calm') s(`M${cx - 2.8} ${my}Q${cx} ${my + 1.4} ${cx + 2.8} ${my}`);
+  else if (face === 'thinking') s(`M${cx - 0.5} ${my + 0.8}L${cx + 3.5} ${my + 0.2}`);
+  else if (face === 'sad') s(`M${cx - 3.5} ${my + 2}Q${cx} ${my - 1.5} ${cx + 3.5} ${my + 2}`);
+  else if (face === 'anxious') s(`M${cx - 4} ${my + 0.5}q2 -2 4 0q2 2 4 0`);
+  else s(`M${cx - 2.5} ${my + 0.5}L${cx + 2.5} ${my + 0.5}`);
+  if (face === 'smile' || face === 'relieved') for (const k of [-1, 1]) fill(ctx, ell(cx + k * r * 0.62, cy + r * 0.45, 3, 1.8), '#f29b9b', 0.6);
+}
+
+function accessory(ctx: Ctx, look: Look, cx: number, cy: number, r: number) {
+  const a = look.accent ?? '#3a3f4a';
+  switch (look.accessory) {
+    case 'glasses':
+      for (const k of [-1, 1]) line(ctx, circ(cx + k * r * 0.38, cy + r * 0.12, r * 0.27), a, 1.5);
+      line(ctx, `M${cx - r * 0.11} ${cy + r * 0.1}L${cx + r * 0.11} ${cy + r * 0.1}`, a, 1.5);
+      break;
+    case 'cap':
+      fill(ctx, `M${cx - r - 1} ${cy - 2}A${r + 1} ${r + 1} 0 0 1 ${cx + r + 1} ${cy - 2}Z`, a);
+      fill(ctx, rr(cx, cy - 4.5, r * 1.55, 4.5, 2.2), shade(a, -0.5));
+      break;
+    case 'beanie':
+      fill(ctx, `M${cx - r - 1.5} ${cy - 1}A${r + 1.5} ${r + 1.5} 0 0 1 ${cx + r + 1.5} ${cy - 1}Z`, a);
+      fill(ctx, rr(cx - r - 2, cy - 5, 2 * r + 4, 6, 3), shade(a, -0.4));
+      fill(ctx, circ(cx, cy - r - 3, 3), shade(a, 0.5));
+      break;
+    case 'headphones':
+      line(ctx, `M${cx - r - 2} ${cy}A${r + 2} ${r + 3} 0 0 1 ${cx + r + 2} ${cy}`, shade(a, -0.4), 3);
+      fill(ctx, rr(cx - r - 5, cy - 4, 6, 11, 3), a);
+      fill(ctx, rr(cx + r - 1, cy - 4, 6, 11, 3), a);
+      break;
+  }
+}
+
+/** 頭の中心と半径（顔アイコンの切り出しにも使う） */
+function headOf(age: number, x: number, feet: number, bob = 0) {
+  if (age < 2) return { cx: x, cy: feet - 72, r: 10 };
+  const s = sizeOf(age);
+  const top = feet - s.h - 3 - bob * 2;
+  const r = s.w * 0.34;
+  return { cx: x, cy: top + s.w * 0.46, r };
+}
+
 /** 2歳未満の赤ちゃん：おくるみに包まれ、となりの大人に抱かれている高さに描く */
-function baby(g: Grid, a: Actor) {
-  const y = 38 - (a.bob ?? 0);
-  ell(g, a.x, y, 4.5, 3.2, a.look.clothes[0], undefined);
-  rect(g, a.x - 4, y + 1, 9, 1, shade(a.look.clothes[0], -0.3));
-  ell(g, a.x - 3, y - 2, 2.6, 2.4, a.look.skin);
-  put(g, a.x - 4, y - 2, '#2b2b33');
-  put(g, a.x - 2, y - 2, '#2b2b33');
-  ell(g, a.x - 3, y - 4, 2.4, 1, a.look.hair, (_x, yy) => yy < y - 3.5);
+function baby(ctx: Ctx, a: Actor, x: number, feet: number) {
+  const { cx, cy, r } = headOf(a.age, x, feet);
+  fill(ctx, ell(cx, cy + 12, 16, 12), mix(a.look.clothes[0], '#ffffff', 0.5));
+  fill(ctx, circ(cx, cy, r), a.look.skin);
+  fill(ctx, `M${cx - r * 0.6} ${cy - r * 0.6}Q${cx} ${cy - r * 1.3} ${cx + r * 0.5} ${cy - r * 0.8}Q${cx} ${cy - r * 0.6} ${cx - r * 0.6} ${cy - r * 0.6}Z`, a.look.hair);
+  features(ctx, a.face ?? 'relieved', cx, cy, r, false);
 }
 
-function person(g: Grid, a: Actor) {
+function person(ctx: Ctx, a: Actor, x: number, feet: number, tint: (c: string) => string) {
   if (a.age < 2) {
-    baby(g, a);
+    baby(ctx, a, x, feet);
     return;
   }
   const { look } = a;
   const face = a.face ?? 'normal';
-  const child = a.age < 12;
-  const t = Math.max(0, Math.min(1, (a.age - 16) / 19));
+  const S = sizeOf(a.age);
+  const bob = a.bob ?? 0;
+  const h = S.h + bob * 2;
+  const top = feet - h - 3;
+  const { cx, cy, r } = headOf(a.age, x, feet, bob);
   const ci = a.age < 20 ? 0 : a.age < 31 ? 1 : 2;
-  const cl = look.clothes[ci];
-  const feet = 56;
-  const cx = a.x;
-  const s = child ? 0.7 : 1;
-  const legH = Math.round((6 + t * 4) * s);
-  const bodyH = Math.round((10 + t * 5) * s);
-  const bodyW = Math.round((11 + t * 2) * s);
-  const hr = child ? 5 : 7;
-  const top = feet - legH - bodyH - (a.bob ?? 0);
+  const body = tint(look.clothes[ci]);
+  const hand = shade(body, -0.3);
+  const hair = tint(hairColor(look, a.age));
   const sad = face === 'sad' || face === 'anxious';
 
-  rect(g, cx - 4, feet - legH, 3, legH, look.pants, true);
-  rect(g, cx + 1, feet - legH, 3, legH, look.pants, true);
-  rect(g, cx - 5, feet - 1, 4, 2, '#3a3030');
-  rect(g, cx + 1, feet - 1, 4, 2, '#3a3030');
-  const bl = cx - Math.floor(bodyW / 2);
-  const br = cx + Math.ceil(bodyW / 2);
-  rect(g, bl, top, bodyW, bodyH, cl, true);
-  rect(g, bl - 3, top + 1 + (sad ? 1 : 0), 3, bodyH - 3, cl, true);
-  put(g, bl - 2, top + bodyH - 2 + (sad ? 1 : 0), look.skin);
+  if (look.hairStyle === 'bob' || look.hairStyle === 'long') fill(ctx, rr(cx - r - 4, cy - r - 3, 2 * r + 8, look.hairStyle === 'long' ? r * 3.2 : r * 2.2, r), hair);
+  if (look.hairStyle === 'mid') fill(ctx, ell(cx, cy - 1, r + 2.5, r + 2), hair);
+  if (look.hairStyle === 'tied') fill(ctx, circ(cx + r * 1.05, cy - r * 0.8, r * 0.45), hair);
+  for (const k of [-1, 1]) fill(ctx, ell(x + k * S.w * 0.22, feet - 2.5, 7, 4), tint(shade(look.pants, -0.2)));
+  fill(ctx, rr(x - S.w / 2, top, S.w, h, S.w / 2), body);
+  // 手：落ちこんでいるときは少し下に
+  const handY = top + h * (sad ? 0.68 : 0.62);
+  fill(ctx, ell(x - S.w / 2 - 1, handY, 5, 8), hand);
   if (a.pose === 'phone') {
-    rect(g, br, top + 2, 3, 5, cl, true);
-    rect(g, br + 1, top + 1, 4, 3, cl, true);
-    rect(g, br + 4, top - 1, 3, 5, '#2f3542');
-    put(g, br + 3, top + 1, look.skin);
-  } else {
-    rect(g, br, top + 1 + (sad ? 1 : 0), 3, bodyH - 3, cl, true);
-    put(g, br + 1, top + bodyH - 2 + (sad ? 1 : 0), look.skin);
-  }
-  if (ci === 1 && !child) {
-    put(g, cx - 1, top, '#f4f4f4');
-    put(g, cx, top, '#f4f4f4');
-    put(g, cx - 1, top + 1, '#f4f4f4');
-    put(g, cx, top + 1, '#f4f4f4');
-  }
-  rect(g, cx - 1, top - 2, 3, 2, shade(look.skin, -0.4));
-
-  const hx = cx + 0.5;
-  const hy = top - hr - 1 + (face === 'sad' ? 1 : 0);
-  ell(g, hx, hy, hr, hr + 0.5, look.skin);
-  // 50歳を過ぎた人は、年齢に合わせて髪を白っぽくする（体つきは35歳ごろで止まるため、年齢は髪で表す）
-  const hc = a.age >= 50 ? mix(look.hair, '#c9c5be', Math.min(0.85, 0.35 + (a.age - 50) / 40)) : look.hair;
-  ell(g, hx, hy - 0.5, hr + 1, hr + 1, hc, (_x, y) => y < hy - 1.5);
-  for (let x = Math.floor(hx - hr); x <= hx + hr; x++) if ((x * 7) % 3 !== 0) put(g, x, hy - 1, hc);
-  const side = { short: 0, mid: 3, bob: 6, long: 13, tied: 0 }[look.hairStyle];
-  if (side) {
-    rect(g, Math.floor(hx - hr - 1), Math.floor(hy - 2), 2, side, hc, true);
-    rect(g, Math.floor(hx + hr), Math.floor(hy - 2), 2, side, hc, true);
-  }
-  if (look.hairStyle === 'tied') ell(g, hx + hr + 1, hy, 2, 3, hc);
-
-  const ey = Math.floor(hy + 1);
-  const xL = Math.floor(hx - (child ? 3 : 4));
-  const xR = Math.floor(hx + 2);
-  const E = '#2b2b33';
-  const mouth = '#a84a44';
-  const m = (pts: [number, number][]) => pts.forEach(([x, y]) => put(g, hx + x, hy + y, mouth));
-  if (a.blink && face !== 'relieved' && face !== 'smile') {
-    for (const ex of [xL, xR]) {
-      put(g, ex, ey + 1, E);
-      put(g, ex + 1, ey + 1, E);
-    }
-  } else if (face === 'relieved' || face === 'smile') {
-    for (const ex of [xL, xR]) {
-      put(g, ex, ey + 1, E);
-      put(g, ex + 1, ey, E);
-    }
-  } else {
-    for (const ex of [xL, xR]) {
-      put(g, ex, ey, E);
-      put(g, ex + 1, ey, E);
-      put(g, ex, ey + 1, E);
-      put(g, ex + 1, ey + 1, E);
-      put(g, ex, ey, '#ffffff');
-    }
-  }
-  if (face === 'normal' || face === 'relieved') m([[-1, 4], [0, 4]]);
-  if (face === 'smile') m([[-2, 4], [-1, 5], [0, 5], [1, 4]]);
-  if (face === 'anxious') {
-    put(g, xL - 1, ey - 2, hc);
-    put(g, xL, ey - 2, hc);
-    put(g, xR + 1, ey - 2, hc);
-    put(g, xR + 2, ey - 2, hc);
-    m([[-1, 5], [0, 4]]);
-  }
-  if (face === 'sad') {
-    put(g, xL, ey - 2, hc);
-    put(g, xL + 1, ey - 3, hc);
-    put(g, xR + 1, ey - 2, hc);
-    put(g, xR, ey - 3, hc);
-    m([[-2, 5], [-1, 4], [0, 4], [1, 5]]);
-    put(g, xL, ey + 2, '#6fb7e8');
-    put(g, xL, ey + 3, '#6fb7e8');
-  }
-  if (face !== 'sad' && face !== 'anxious') {
-    put(g, xL - 1, ey + 3, '#eaa08a');
-    put(g, xR + 2, ey + 3, '#eaa08a');
-  }
-  if (look.accessory) accessory(g, look.accessory, look.accent ?? '#3a3f4a', hx, hy, hr, xL, xR, ey);
-}
-
-/** 持ち物を描く（付録B-36）。頭の上・目のまわりなど、顔アイコンに切り出しても見える位置に置く */
-function accessory(g: Grid, kind: Accessory, c: string, hx: number, hy: number, hr: number, xL: number, xR: number, ey: number) {
-  const dark = shade(c, -0.45);
-  const light = shade(c, 0.35);
-  if (kind === 'glasses') {
-    // 目のまわりの四角い縁と、鼻の上のつなぎ
-    for (const ex of [xL, xR]) {
-      for (let x = ex - 1; x <= ex + 2; x++) {
-        put(g, x, ey - 1, c);
-        put(g, x, ey + 2, c);
-      }
-      put(g, ex - 1, ey, c);
-      put(g, ex - 1, ey + 1, c);
-      put(g, ex + 2, ey, c);
-      put(g, ex + 2, ey + 1, c);
-    }
-    for (let x = xL + 3; x < xR - 1; x++) put(g, x, ey, c);
-  } else if (kind === 'cap') {
-    // 頭の上半分をおおう帽子と、横に大きく出たつば
-    ell(g, hx, hy - 1, hr + 1.5, hr + 1.5, c, (_x, y) => y < hy - 2.5);
-    put(g, hx, hy - hr - 2, light);
-    for (let x = Math.floor(hx - hr - 1); x <= hx + hr + 5; x++) {
-      put(g, x, Math.floor(hy - 2.5), dark);
-      if (x > hx + hr - 1) put(g, x, Math.floor(hy - 1.5), dark);
-    }
-  } else if (kind === 'beanie') {
-    // 頭の形にそった丸いニット帽と、太い折り返し、小さなぼんぼり
-    ell(g, hx, hy - 1.5, hr + 1.5, hr + 1, c, (_x, y) => y < hy - 1.5);
-    for (let x = Math.floor(hx - hr - 1); x <= hx + hr + 1; x++) {
-      put(g, x, Math.floor(hy - 2.5), dark);
-      put(g, x, Math.floor(hy - 1.5), dark);
-      if (x % 2 === 0) put(g, x, Math.floor(hy - 2.5), shade(c, -0.25));
-    }
-    ell(g, hx, hy - hr - 2.5, 1.2, 1.2, light);
-  } else if (kind === 'headphones') {
-    // 頭の上を通る太いバンドと、耳をおおう大きなイヤーカップ
-    for (let x = Math.floor(hx - hr - 1); x <= hx + hr + 1; x++) {
-      const dx = (x - hx) / (hr + 1.5);
-      const y = Math.round(hy - 1 - (hr + 1.5) * Math.sqrt(Math.max(0, 1 - dx * dx)));
-      put(g, x, y - 1, dark);
-      put(g, x, y, dark);
-    }
-    rect(g, Math.floor(hx - hr - 2), Math.floor(hy - 2), 3, 6, c, true);
-    rect(g, Math.floor(hx + hr), Math.floor(hy - 2), 3, 6, c, true);
-  }
+    fill(ctx, ell(x + S.w / 2 - 6, top + h * 0.5, 5.5, 5), hand);
+    fill(ctx, rr(x + S.w / 2 - 12, top + h * 0.5 - 14, 9, 14, 2), '#2f3542');
+    fill(ctx, rr(x + S.w / 2 - 10.5, top + h * 0.5 - 12.5, 6, 10, 1), '#9fc6e6');
+  } else fill(ctx, ell(x + S.w / 2 + 1, handY, 5, 8), hand);
+  fill(ctx, circ(cx, cy, r), tint(look.skin));
+  fill(ctx, fringe(cx, cy, r), hair);
+  accessory(ctx, look, cx, cy, r);
+  features(ctx, face, cx, cy, r, a.blink ?? false);
 }
 
 export interface SceneSpec {
@@ -452,62 +394,41 @@ export interface SceneSpec {
   actors: Actor[];
 }
 
-/** 場面を canvas に描く。人物の外側にだけ輪郭線を引き、時間帯の色を人物にも少し混ぜる */
-export function drawScene(canvas: HTMLCanvasElement, spec: SceneSpec): void {
-  const bg = background(spec.place, spec.time);
-  const ch = grid();
-  for (const a of spec.actors) person(ch, a);
-  const T = TIME[spec.time];
-  if (canvas.width !== W) canvas.width = W;
-  if (canvas.height !== H) canvas.height = H;
+function prepare(canvas: HTMLCanvasElement, w: number, h: number): Ctx | null {
+  const dpr = Math.min(2, (typeof window !== 'undefined' && window.devicePixelRatio) || 1);
+  const pw = Math.round(w * dpr);
+  const ph = Math.round(h * dpr);
+  if (canvas.width !== pw) canvas.width = pw;
+  if (canvas.height !== ph) canvas.height = ph;
   const ctx = canvas.getContext('2d');
+  if (!ctx || typeof Path2D === 'undefined') return null;
+  return ctx;
+}
+
+/** 場面を canvas に描く。時間帯の色を、人物にも少し混ぜる */
+export function drawScene(canvas: HTMLCanvasElement, spec: SceneSpec): void {
+  const ctx = prepare(canvas, SW * 2, SH * 2);
   if (!ctx) return;
-  const img = ctx.createImageData(W, H);
-  for (let y = 0; y < H; y++)
-    for (let x = 0; x < W; x++) {
-      let c = bg[y]![x];
-      const own = ch[y]![x];
-      if (own) c = mix(own, T.tint, T.k * 0.6);
-      else if (
-        (ch[y]![x + 1] ?? null) ||
-        (ch[y]![x - 1] ?? null) ||
-        (ch[y + 1]?.[x] ?? null) ||
-        (ch[y - 1]?.[x] ?? null)
-      )
-        c = '#2a2230';
-      const [r, g, b] = h2r(c ?? '#000000');
-      const i = (y * W + x) * 4;
-      img.data[i] = r;
-      img.data[i + 1] = g;
-      img.data[i + 2] = b;
-      img.data[i + 3] = 255;
-    }
-  ctx.putImageData(img, 0, 0);
+  ctx.setTransform(canvas.width / SW, 0, 0, canvas.height / SH, 0, 0);
+  ctx.clearRect(0, 0, SW, SH);
+  background(ctx, spec.place, spec.time);
+  const T = TIME[spec.time];
+  const tint = (c: string) => mix(c, T.tint, T.k * 0.6);
+  // 奥（大人）から手前（赤ちゃん）の順に重ねる
+  const order = [...spec.actors].sort((p, q) => Number(p.age < 2) - Number(q.age < 2));
+  for (const a of order) person(ctx, a, a.x * K, FEET, tint);
 }
 
 /** 話している人の顔アイコン（頭のまわりだけを切り出す） */
 export function drawFace(canvas: HTMLCanvasElement, look: Look, age: number, face: Face = 'normal'): void {
-  const g = grid();
-  person(g, { look, age, face, x: 48 });
-  let top = 0;
-  while (top < H && !g[top]!.some((c) => c)) top++;
-  const S = 20;
-  const x0 = 38;
-  const y0 = Math.max(0, top - 1);
-  if (canvas.width !== S) canvas.width = S;
-  if (canvas.height !== S) canvas.height = S;
-  const ctx = canvas.getContext('2d');
+  const S = 96;
+  const ctx = prepare(canvas, S, S);
   if (!ctx) return;
-  const img = ctx.createImageData(S, S);
-  for (let y = 0; y < S; y++)
-    for (let x = 0; x < S; x++) {
-      const c = g[y0 + y]?.[x0 + x] ?? '#e7e5df';
-      const [r, gg, b] = h2r(c);
-      const i = (y * S + x) * 4;
-      img.data[i] = r;
-      img.data[i + 1] = gg;
-      img.data[i + 2] = b;
-      img.data[i + 3] = 255;
-    }
-  ctx.putImageData(img, 0, 0);
+  const { cx, cy, r } = headOf(age, 0, 0);
+  const span = r * 2.5;
+  const k = canvas.width / span;
+  ctx.setTransform(k, 0, 0, k, -(cx - span / 2) * k, -(cy - span / 2.1) * k);
+  ctx.clearRect(cx - span, cy - span, span * 2, span * 2);
+  fill(ctx, `M${cx - span} ${cy - span}h${span * 2}v${span * 2}h${-span * 2}Z`, '#eef3ef');
+  person(ctx, { look, age, face, x: 0 }, 0, 0, (c) => c);
 }
