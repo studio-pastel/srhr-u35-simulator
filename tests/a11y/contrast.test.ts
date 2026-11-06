@@ -43,6 +43,8 @@ const TEXT: [string, string, number, string][] = [
   ['surface', 'accent', 4.5, '主ボタンの文字'],
   ['exit-text', 'exit', 4.5, '「すぐに閉じる」'],
   ['exit', 'surface', 4.5, '「暫定値」ラベル'],
+  ['up', 'surface', 4.5, '増えた数字（▲）'],
+  ['down', 'surface', 4.5, '減った数字（▼）'],
 ];
 const GRAPHICS: [string, string, number, string][] = [
   ['accent', 'surface', 3, '選択肢の枠・フォーカス'],

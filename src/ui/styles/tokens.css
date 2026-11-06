@@ -4,15 +4,16 @@
   --surface: #ffffff;
   --text: #1e1f24;
   --text-sub: #5b5e66;
-  --accent: #3d5a80;
+  /* 基本の色は表紙と同じ緑（付録B-60）。白い地の上で文字にも使えるよう、濃いめの緑にする */
+  --accent: #17804a;
   --exit: #b42318;
   --exit-text: #ffffff;
   --caution-bg: #f3efe3;
   --line: #d9d7d0;
   --track: #e7e5df;
-  /* ふだんのゲージは無彩色。色は増減だけに使う（付録B-48）。緑と朱は色覚の違いでも見分けやすい組み合わせ */
+  /* ふだんのゲージは無彩色。色は増減だけに使う（付録B-48）。基本の色が緑になったので、増は青にする（付録B-60）。青と朱は色覚の違いでも見分けやすい組み合わせ */
   --gauge: #6f7178;
-  --up: #0b7f5c;
+  --up: #2563eb;
   --down: #c2410c;
 
   /* 5要因（色と模様を併用する） */
@@ -61,14 +62,14 @@
     --surface: #22242a;
     --text: #ececef;
     --text-sub: #a9acb4;
-    --accent: #8fb0d9;
+    --accent: #5fd49a;
     --exit: #ff6b5e;
     --exit-text: #17181c;
     --caution-bg: #2a2720;
     --line: #3a3d45;
     --track: #33363e;
     --gauge: #9a9da6;
-    --up: #4fd1a5;
+    --up: #7fb0ff;
     --down: #ff8f5c;
     --p-body: #8fb0d9;
     --p-connection: #f08a6c;

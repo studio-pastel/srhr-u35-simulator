@@ -49,7 +49,7 @@ function CountUp({ value, from: start, animate }: { value: number; from: number;
 
 /**
  * 場面の下にいつも出す4つのパラメーター（付録B-40・B-47・B-48）。名前・意味・数字・ゲージを常に見せる。
- * ふだんのゲージは無彩色にし、色は変化だけに使う（増えると緑、減ると朱。▲▼を併記）。
+ * ふだんのゲージは無彩色にし、色は変化だけに使う（増えると青、減ると朱。▲▼を併記。付録B-60）。
  * 暴力を扱う場面では、減少を強調しない（§16.6）。
  */
 export function StatusBar({ params, change, animate, quiet, onOpen }: { params: Params; change: { entries: { param: ParamKey; delta: number }[]; stamp: number | string } | null; animate: boolean; quiet?: boolean; onOpen?: () => void }) {
