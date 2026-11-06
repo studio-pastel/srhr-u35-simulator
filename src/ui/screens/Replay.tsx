@@ -55,7 +55,7 @@ export function ReplayScreen() {
             const current = prev.conditions[c.id];
             return (
               <div key={c.id} style={{ margin: '12px 0' }}>
-                <p style={{ margin: 0, fontWeight: 700 }}>{c.label}</p>
+                <p style={{ margin: 0, fontWeight: 500 }}>{c.label}</p>
                 <p class="sub" style={{ margin: 0 }}>
                   いま：{c.options.find((o) => o.id === current)?.label ?? '未設定'}
                 </p>

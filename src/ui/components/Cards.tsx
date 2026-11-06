@@ -186,7 +186,7 @@ export function ProbabilityCard({ entry, content, animate, quiet = false }: { en
             )}
           </dd>
           <dt class="sub">この人の場合</dt>
-          <dd class="num" style={{ margin: 0, fontWeight: 700 }}>
+          <dd class="num" style={{ margin: 0, fontWeight: 500 }}>
             {pct(entry.finalP)}
           </dd>
         </dl>

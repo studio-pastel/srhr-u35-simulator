@@ -28,11 +28,17 @@
   --p-autonomy: #7a6a1f;
   --p-living: #8a4f7d;
 
-  /* 表紙（付録B-47）。ライトとダークで共通 */
-  --cover-bg: #15141b;
-  --cover-text: #f6f2ea;
-  --cover-sub: #bdb8ad;
-  --cover-accent: #ffb27a;
+  /* 表紙（付録B-47・B-59）。濃い背景は使わない。明るめの緑。ライトとダークで共通 */
+  --cover-bg: #f1f9f3;
+  --cover-text: #1f2a24;
+  --cover-sub: #55645b;
+  --cover-line: #c9e9d6;
+  --cover-accent: #34c27a;
+  --cover-accent-ink: #17804a;
+  --cover-on-accent: #0f3d24;
+
+  /* 字の太さ（付録B-59）。太い字は使わない */
+  --fw-strong: 500;
 
   --font: system-ui, -apple-system, 'Hiragino Sans', 'Noto Sans JP', 'Yu Gothic UI', sans-serif;
   --fs-body: 16px;

@@ -124,7 +124,7 @@ main:focus {
   padding: 0 18px;
   font: inherit;
   font-size: 14px;
-  font-weight: 700;
+  font-weight: var(--fw-strong);
   cursor: pointer;
 }
 
@@ -153,6 +153,17 @@ main {
 }
 
 /* ── 共通の部品 ── */
+/* 太い字は使わない（付録B-59）。見出しと強調も、ふつうより少し太い程度にとどめる */
+h1,
+h2,
+h3,
+h4,
+strong,
+b,
+th {
+  font-weight: var(--fw-strong);
+}
+
 h1 {
   font-size: var(--fs-h1);
   line-height: 1.4;
@@ -206,7 +217,7 @@ h3 {
   background: var(--accent);
   color: var(--surface);
   text-align: center;
-  font-weight: 700;
+  font-weight: var(--fw-strong);
 }
 
 .btn.small {
@@ -269,7 +280,7 @@ h3 {
 .toggle[aria-pressed='true'] {
   border-color: var(--accent);
   color: var(--accent);
-  font-weight: 700;
+  font-weight: var(--fw-strong);
 }
 
 /* ── HUD（§16.2） ── */
@@ -309,7 +320,7 @@ h3 {
 }
 
 .hud-delta {
-  font-weight: 700;
+  font-weight: var(--fw-strong);
   color: var(--accent);
 }
 
@@ -332,14 +343,14 @@ h3 {
 
 .tab[aria-pressed='true'] {
   border: 2px solid var(--accent);
-  font-weight: 700;
+  font-weight: var(--fw-strong);
 }
 
 .speaker {
   display: flex;
   align-items: center;
   gap: 8px;
-  font-weight: 700;
+  font-weight: var(--fw-strong);
   margin-bottom: 4px;
 }
 
@@ -365,7 +376,7 @@ h3 {
 .chance-people {
   margin: 4px 0 8px;
   font-size: 22px;
-  font-weight: 700;
+  font-weight: var(--fw-strong);
 }
 
 .people-dots {
@@ -400,7 +411,7 @@ h3 {
   padding: 2px 10px;
   border-left: 4px solid var(--f-chance);
   font-size: 13px;
-  font-weight: 700;
+  font-weight: var(--fw-strong);
 }
 
 /* 伏せたカードがめくられるように入ってくる（付録B-53） */
@@ -482,7 +493,7 @@ h3 {
 
 .result {
   font-size: 20px;
-  font-weight: 700;
+  font-weight: var(--fw-strong);
   margin: 8px 0;
 }
 
@@ -674,7 +685,7 @@ ul.plain {
 .bubble-name {
   display: block;
   font-size: 13px;
-  font-weight: 700;
+  font-weight: var(--fw-strong);
   color: var(--text-sub);
 }
 
@@ -759,7 +770,7 @@ ul.plain {
 }
 
 .chance-deck-label {
-  font-weight: 700;
+  font-weight: var(--fw-strong);
 }
 
 .deck-cards {
@@ -784,7 +795,7 @@ ul.plain {
   background: repeating-linear-gradient(45deg, var(--f-chance) 0 5px, #edc25a 5px 10px);
   color: #1e1f24;
   font-size: 16px;
-  font-weight: 700;
+  font-weight: var(--fw-strong);
   line-height: 1;
 }
 
@@ -831,7 +842,7 @@ ul.plain {
 .people-list h3 {
   margin: 0 0 2px;
   font-size: 11px;
-  font-weight: 700;
+  font-weight: var(--fw-strong);
   color: var(--text-sub);
 }
 
@@ -850,7 +861,7 @@ ul.plain {
 }
 
 .people-list-name {
-  font-weight: 700;
+  font-weight: var(--fw-strong);
   line-height: 1.2;
   overflow-wrap: anywhere;
 }
@@ -862,7 +873,7 @@ ul.plain {
 
 .people-list li.is-partner .people-list-tie {
   color: var(--text);
-  font-weight: 700;
+  font-weight: var(--fw-strong);
 }
 
 @media (min-width: 900px) {
@@ -914,7 +925,7 @@ ul.plain {
 }
 
 .family-name {
-  font-weight: 700;
+  font-weight: var(--fw-strong);
 }
 
 .family-tie {
@@ -1116,7 +1127,7 @@ ul.plain {
 }
 
 .support-name {
-  font-weight: 700;
+  font-weight: var(--fw-strong);
 }
 
 .support-contact {
@@ -1179,7 +1190,7 @@ ul.plain {
 }
 
 .ob-key {
-  font-weight: 700;
+  font-weight: var(--fw-strong);
   font-size: 13px;
   border: 1px solid var(--line);
   border-radius: 8px;
@@ -1246,7 +1257,7 @@ ul.plain {
 .life-dot.current {
   border-color: var(--accent);
   color: var(--accent);
-  font-weight: 700;
+  font-weight: var(--fw-strong);
   transform: scale(1.15);
 }
 
@@ -1278,7 +1289,7 @@ ul.plain {
 }
 
 .life-age {
-  font-weight: 700;
+  font-weight: var(--fw-strong);
   font-size: 14px;
   background: var(--surface);
   border: 2px solid var(--line);
@@ -1346,7 +1357,7 @@ ul.plain {
 .life-here {
   margin: 4px 0 0;
   font-size: 12px;
-  font-weight: 700;
+  font-weight: var(--fw-strong);
   color: var(--accent);
 }
 
@@ -1381,7 +1392,7 @@ ul.plain {
 
 .review-other-name {
   margin: 0;
-  font-weight: 700;
+  font-weight: var(--fw-strong);
 }
 
 /* ── 会話を積み重ねる場面（付録B-27） ── */
@@ -1441,7 +1452,7 @@ ul.plain {
 .chat-name {
   display: block;
   font-size: 12px;
-  font-weight: 700;
+  font-weight: var(--fw-strong);
   color: var(--text-sub);
 }
 
@@ -1515,7 +1526,7 @@ ul.plain {
   background: var(--surface);
   color: var(--accent);
   font-size: 16px;
-  font-weight: 700;
+  font-weight: var(--fw-strong);
   cursor: pointer;
 }
 
@@ -1563,7 +1574,7 @@ ul.plain {
 
 .status-value {
   font-size: 15px;
-  font-weight: 700;
+  font-weight: var(--fw-strong);
 }
 
 .status-gauge {
@@ -1639,7 +1650,7 @@ ul.plain {
   padding: 0 6px;
   border-radius: 999px;
   font-size: 14px;
-  font-weight: 800;
+  font-weight: var(--fw-strong);
   line-height: 1.5;
   color: #fff;
   white-space: nowrap;
@@ -2022,7 +2033,7 @@ ul.plain {
 .builder-name {
   margin: 0;
   text-align: center;
-  font-weight: 700;
+  font-weight: var(--fw-strong);
 }
 .builder-group {
   border: 0;
@@ -2031,7 +2042,7 @@ ul.plain {
 }
 .builder-group legend {
   padding: 0;
-  font-weight: 700;
+  font-weight: var(--fw-strong);
   margin-bottom: 4px;
 }
 .builder-group .sub {
@@ -2145,17 +2156,17 @@ body {
 .cover-brand {
   margin: 0 0 clamp(24px, 6vw, 64px);
   font-size: 13px;
-  font-weight: 700;
+  font-weight: var(--fw-strong);
   letter-spacing: 0.18em;
-  color: var(--cover-accent);
+  color: var(--cover-accent-ink);
 }
 
 .cover-catch {
   margin: 0;
-  font-size: clamp(22px, 7.4vw, 80px);
-  font-weight: 800;
-  line-height: 1.25;
-  letter-spacing: -0.02em;
+  font-size: clamp(22px, 6vw, 60px);
+  font-weight: 400;
+  line-height: 1.35;
+  letter-spacing: 0.01em;
 }
 
 .cover-catch span {
@@ -2193,7 +2204,7 @@ body {
 .cover-actions .btn.primary {
   border-color: var(--cover-accent);
   background: var(--cover-accent);
-  color: var(--cover-bg);
+  color: var(--cover-on-accent);
 }
 
 /* 0歳から35歳へ：同じ人が年を重ねていく線 */
@@ -2213,8 +2224,7 @@ body {
   left: 0;
   right: 0;
   height: 2px;
-  background: var(--cover-sub);
-  opacity: 0.45;
+  background: var(--cover-line);
 }
 
 .cover-line li {
@@ -2231,7 +2241,8 @@ body {
   width: 48px;
   height: 48px;
   border-radius: 50%;
-  background: var(--cover-text);
+  border-color: var(--cover-line);
+  background: #ffffff;
 }
 
 .cover-theme {
@@ -2244,7 +2255,7 @@ body {
 .cover-index {
   display: block;
   font-size: 14px;
-  font-weight: 700;
+  font-weight: var(--fw-strong);
   letter-spacing: 0.1em;
   color: var(--accent);
 }
@@ -2261,7 +2272,7 @@ body {
 }
 
 .home-play {
-  font-weight: 700;
+  font-weight: var(--fw-strong);
 }
 
 .cover-stats {
@@ -2270,14 +2281,14 @@ body {
 }
 
 .stat-tile {
-  border-top: 2px solid var(--text);
+  border-top: 1px solid var(--line);
   padding: 12px 0 24px;
 }
 
 .stat-big {
   display: block;
-  font-size: clamp(38px, 5vw, 56px);
-  font-weight: 800;
+  font-size: clamp(36px, 4.6vw, 52px);
+  font-weight: 300;
   line-height: 1.15;
   letter-spacing: -0.02em;
 }
@@ -2400,7 +2411,7 @@ body {
   background: var(--accent);
   color: var(--surface);
   font-size: 12px;
-  font-weight: 700;
+  font-weight: var(--fw-strong);
   line-height: 1.5;
   white-space: nowrap;
   transition: left 0.6s ease;
@@ -2479,7 +2490,7 @@ body {
 }
 
 .life-log-age {
-  font-weight: 700;
+  font-weight: var(--fw-strong);
   color: var(--text-sub);
 }
 
