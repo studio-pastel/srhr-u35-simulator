@@ -470,7 +470,7 @@ events:
           - { who: partner, text: "ごめん。今日は、先に帰るね。", face: anxious }
           - { who: narration, text: "ひとりでホームに残された。電車の音が、やけに大きい。" }
           - { who: self, kind: inner, text: "（……いま、何を言った？）", face: sad }
-        # 押し切ろうとした側にも、学び直す選択肢を置く（付録B-30、§11-4）
+        # 押し切ろうとした側にも、学び直す選択肢を置く（付録B-30、§11-9）
         choices:
           - id: apologize
             label: "メッセージで謝る"

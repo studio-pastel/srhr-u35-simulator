@@ -1,4 +1,4 @@
-// 2周目と比較（§6.5、§7.9、§7.10）。
+// 2周目と比較（§6.5、§7）。
 import { PARAM_KEYS } from './constants';
 import type { Content, ParamKey, SocialCondition, Source } from './schema';
 import type { Profile } from './profile';
@@ -8,7 +8,7 @@ import { createRun, sortedChapters } from './progression';
 import { trajectory } from './standard';
 import { newSeed } from './rng';
 
-/** 切り替えられる社会条件（§7.9） */
+/** 切り替えられる社会条件（§7） */
 export function switchableConditions(content: Content): SocialCondition[] {
   return content.conditions.filter((c) => c.affects.length > 0);
 }

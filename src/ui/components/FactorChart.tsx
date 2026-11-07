@@ -1,4 +1,4 @@
-// 要因分解の積み上げ横棒（§7.7）。正負は中心線で分け、色と模様を併用する。表を添える（§9）。
+// 要因分解の積み上げ横棒（§7）。正負は中心線で分け、色と模様を併用する。表を添える（§9）。
 import { PARAM_KEYS, SOURCES } from '../../engine/constants';
 import type { ParamKey, Source } from '../../engine/schema';
 import { PARAM_LABELS, SOURCE_LABELS } from '../../engine/types';

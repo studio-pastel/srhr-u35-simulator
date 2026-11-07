@@ -1,4 +1,4 @@
-// 章・イベント・シーンの進行（§6.2、§6.7）。UI に依存しない純粋なロジック。
+// 章・イベント・シーンの進行（§6.2）。UI に依存しない純粋なロジック。
 // 各操作は RunState を複製して新しい状態を返す。
 import type { Chapter, CharacterId, Choice, Closeness, Content, GameEvent, Scene } from './schema';
 import { CHARACTER_IDS } from './constants';
@@ -266,7 +266,7 @@ function doChance(content: Content, s: RunState, scene: Scene, override?: Chance
 
 // ───────── UI から呼ぶ操作 ─────────
 
-/** 章を始める。skip=true は「この章を読まずに進む」（§6.2-3） */
+/** 章を始める。skip=true は「この章を読まずに進む」（v1.0 の §6.2-3） */
 export function beginChapter(content: Content, state: RunState, skip: boolean, override?: ChanceOverride): RunState {
   if (state.position.step !== 'chapterTop') throw new ProgressionError('章トップではありません');
   const s = clone(state);

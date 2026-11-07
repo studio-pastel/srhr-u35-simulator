@@ -432,7 +432,7 @@ function SceneView(props: {
   );
 }
 
-// ── 選べない出来事の結果（§7.5、付録B-50） ──
+// ── 選べない出来事の結果（§7、付録B-50） ──
 function ChanceView({ run, go, back, canBack }: { run: RunState; go: (s: RunState, v: boolean) => void; back: () => void; canBack: boolean }) {
   const { content, animate } = useApp();
   const entry = run.chanceLog[run.chanceLog.length - 1]!;
@@ -457,7 +457,7 @@ function ChanceView({ run, go, back, canBack }: { run: RunState; go: (s: RunStat
   );
 }
 
-// ── 章のふりかえり（§7.7、付録B-4：統計カードは必ずここで出す） ──
+// ── 章のふりかえり（§7、付録B-4：統計カードは必ずここで出す） ──
 function ParamChanges({ run, age }: { run: RunState; age: number }) {
   const { content } = useApp();
   const initial = run.initial;

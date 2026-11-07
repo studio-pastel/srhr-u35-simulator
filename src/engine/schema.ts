@@ -106,7 +106,7 @@ export const stageSchema = z.strictObject({
         x: z.number().optional(),
         face: z.enum(FACES).optional(),
         pose: z.enum(['stand', 'phone']).optional(),
-        /** この条件を満たすときだけ描く（例：ケイが父親になったときだけ子どもを描く） */
+        /** この条件を満たすときだけ描く（例：子どもが生まれたときだけ子どもを描く） */
         when: z.string().optional(),
       }),
     )
@@ -305,7 +305,7 @@ export const statSchema = z.strictObject({
   id: statIdSchema,
   label: z.string().min(1),
   value: z.string().min(1),
-  /** 統計カードに出す文（§11-7、付録A-10）。数字は value・definition・label にあるものだけ */
+  /** 統計カードに出す文（§11-15、付録A-10）。数字は value・definition・label にあるものだけ */
   cardText: z.string().min(1),
   numbers: z.record(z.string(), z.number()).optional(),
   definition: z.string(),

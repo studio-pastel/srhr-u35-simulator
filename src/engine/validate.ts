@@ -95,7 +95,7 @@ export function validateContent(raw: unknown, opts: ValidateOptions): ValidateRe
   content.characters.forEach((c) => c.statRefs.forEach((s) => statRef(`人物 ${c.id}`, s, 'other')));
   content.conditions.forEach((c) => c.options.forEach((o) => o.statRefs.forEach((s) => statRef(`社会条件 ${c.id}.${o.id}`, s, 'other'))));
 
-  // ── 統計カードの文（§11-7、付録A-10） ──
+  // ── 統計カードの文（§11-15、付録A-10） ──
   for (const st of content.stats) {
     const w = `統計 ${st.id}.cardText`;
     // 日本のデータは「日本では、」、海外のデータは国名から始める（例：「米国では、」「英国では、」）
@@ -317,7 +317,7 @@ function checkEvent(ev: GameEvent, k: Checkers): void {
     });
     if (hasChoices) {
       const n = sc.choices!.length;
-      if (n < 2 || n > 3) warnings.push(`${w}：選択肢が ${n}個です（§7.4 は2〜3個）`);
+      if (n < 2 || n > 3) warnings.push(`${w}：選択肢が ${n}個です（§11 は2〜3個）`);
       if (!sc.choices!.some((c) => c.canonical)) warnings.push(`${w}：canonical の選択肢がありません（最初の選択肢を使います）`);
       dupCheck(sc.choices!.map((c) => c.id), `${w} の選択肢ID`, errors);
     }

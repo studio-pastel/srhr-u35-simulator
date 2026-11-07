@@ -1,4 +1,4 @@
-// 統計カード（§7.6）、選べない出来事の結果（§7.5）、相談窓口の一覧（§7.11）。
+// 統計カード（§7）、選べない出来事の結果（§7）、相談窓口の一覧（§7）。
 import { useEffect, useState } from 'preact/hooks';
 import type { Content, Resource, Stat } from '../../engine/schema';
 import type { ChanceLogEntry } from '../../engine/types';
@@ -38,7 +38,7 @@ export function StatSource({ stat }: { stat: Stat }) {
   );
 }
 
-/** 文型「日本では、〜（S01、2023年度）」（§11-7）。文は stats.yaml の cardText */
+/** 文型「日本では、〜（S01、2023年度）」（§11-15）。文は stats.yaml の cardText */
 export function StatCard({ stat }: { stat: Stat }) {
   return (
     <article class="panel" aria-labelledby={`stat-${stat.id}`}>
@@ -94,7 +94,7 @@ export function peopleOf(p: number): { denom: number; count: number; text: strin
 }
 
 /**
- * 自分では選べない出来事の結果（§7.5、付録B-50・B-52）。可能性を人数で見せ、結果を文で言う。数字の根拠は開いて読む。
+ * 自分では選べない出来事の結果（§7、付録B-50・B-52）。可能性を人数で見せ、結果を文で言う。数字の根拠は開いて読む。
  * 演出：カードが入ってくる → 可能性の人数だけ点が灯る → 印が点のあいだを動き、「あなた」の位置で止まる → 結果。
  * 暴力の場面（quiet）は印を動かさない（§16.6）。演出オフのときは、はじめから全部を見せる。押すと最後まで進む。
  */
