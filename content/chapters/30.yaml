@@ -1,0 +1,303 @@
+# 30歳の章（SPEC.md §10.3、docs/life-map.md）。Claude Code の下書き。すべて status: draft。
+#
+# 分け合う。妊娠と出産、流産、育休、保育園に入れるか、家事と育児の分担、仕事を続けるか。
+# 妊娠・出産をプラスの結末として扱わない（P1）。子どもを持たない人生も、同じ重さで描く。
+# 流産は、偶然の染色体異常が原因の多くを占め、誰のせいでもないことを書く（S55）。
+# 低出生体重は、妊娠した人の責任として描かない（v1.0 §10.4 の CH-LBW と同じ扱い）。
+# 待機児童は統計の表にまだ値がないため、確率を使わずに物語の決まりで描く。数字は書かない。
+age: 30
+title: "30歳"
+season: "分け合う"
+status: draft
+intro:
+  me: "30歳になった。思い描いていた30歳と、少し違う。"
+events:
+  # ───────── 子どもを望んだ場合：妊娠と出産 ─────────
+  - id: E30-BIRTH
+    age: 30
+    characters: [me]
+    kind: fixed
+    trigger: { kind: choice, text: "子どもを持ちたいと話した続き" }
+    domains: [妊娠, 不妊, 流産, 出産]
+    requires: "flags.dating == true && flags.wantChild == 'want' && flags.pregnancyPossible == true && flags.child != 'early'"
+    statCard: [S16, S55, S15]
+    resources: [health]
+    stage: { place: home2, time: night, cast: [{ id: self, x: 28 }, { id: partner, x: 62 }] }
+    summary: "子どもを望んで、妊娠と出産のことが起きた。"
+    status: draft
+    scenes:
+      - id: start
+        lines:
+          - { who: narration, text: "子どもを望むようになって、1年がたった。" }
+          - { who: narration, text: "SNSには「これで授かった」というサプリの広告が、毎日のように流れてくる。" }
+        chance:
+          id: CH-INFERTILITY
+          label: "不妊の検査や治療が必要になる可能性"
+          result:
+            happens: "なかなか妊娠しませんでした。"
+            notHappens: "妊娠しました。"
+          # S16 の「不妊の検査や治療を受けたことがある夫婦の割合」を、検査や治療が必要になる確率とみなす（解釈）
+          base: { value: 0.228, statRef: S16 }
+          outcomes:
+            happens: { setFlags: { infertile: true }, next: notYet }
+            notHappens: { setFlags: { infertile: false }, next: pregnant }
+      - id: notYet
+        lines:
+          - { who: partner, text: "……今月も、だめだったね。", face: sad }
+          - { who: self, kind: inner, text: "（自分のからだのどこかが、悪いのかな）", face: sad }
+        choices:
+          - id: both
+            label: "「二人とも、検査を受けてみよう」"
+            canonical: true
+            effects:
+              - { param: body, sign: 1, size: M, source: choice, note: "二人で検査を受けた" }
+              - { param: connection, sign: 1, size: S, source: choice, note: "一緒に向き合った" }
+            next: tested
+          - id: wait
+            label: "「もう少し、自然に待ちたい」"
+            neutral: true
+            next: waited
+      - id: tested
+        stage: { place: clinic, time: day, cast: [{ id: self, x: 28 }, { id: partner, x: 50 }, { id: doctor, x: 76 }] }
+        lines:
+          - { who: doctor, text: "不妊の原因は、男性側にあることも、両方にあることも、よくあります。" }
+          - { who: doctor, text: "どちらかのせいではありません。これからのことを、一緒に考えましょう。" }
+          - { who: self, kind: inner, text: "（責めるためじゃなく、知るための検査だった）", face: calm }
+        next: END
+      - id: waited
+        lines:
+          - { who: narration, text: "季節がもうひとつ過ぎた。" }
+          - { who: self, kind: inner, text: "（35歳までには、もう一度ちゃんと話そう）", face: thinking }
+        next: END
+      - id: pregnant
+        lines:
+          - { who: narration, text: "妊娠がわかった。", when: "up.body == 'canBePregnant'" }
+          - { who: partner, text: "……陽性だった。", face: smile, when: "up.body != 'canBePregnant'" }
+          - { who: self, kind: inner, text: "（うれしい。でも、こわい）", face: thinking }
+          - { who: self, kind: inner, text: "（たばこは、今日でやめよう）", when: "flags.smokes == true" }
+        chance:
+          id: CH-MISCARRIAGE
+          label: "流産になる可能性"
+          result:
+            happens: "流産しました。"
+            notHappens: "妊娠は続きました。"
+          base: { value: 0.15, statRef: S55 }
+          outcomes:
+            happens: { next: lost }
+            notHappens: { next: continued }
+      - id: lost
+        stage: { place: clinic, time: day, cast: [{ id: self, x: 24 }, { id: partner, x: 50 }, { id: doctor, x: 76 }] }
+        effects:
+          - { param: body, sign: -1, size: M, source: chance, note: "流産した" }
+          - { param: connection, sign: -1, size: S, source: chance, note: "悲しみの中にいた" }
+        lines:
+          - { who: doctor, text: "早い時期の流産の多くは、偶然の染色体の異常によるものです。" }
+          - { who: doctor, text: "誰かのせいでも、何かをしたせいでもありません。" }
+          - { who: self, kind: inner, text: "（わかってる。わかってるけど……）", face: sad }
+          - { who: partner, text: "……泣いていいよ。こっちも、泣く。", face: sad }
+          - { who: narration, text: "半年後、もう一度、妊娠がわかった。" }
+        next: continued
+      - id: continued
+        stage: { place: home2, time: day, cast: [{ id: self, x: 28 }, { id: partner, x: 62 }] }
+        lines:
+          - { who: narration, text: "お腹が少しずつ大きくなり、季節が変わった。", when: "up.body == 'canBePregnant'" }
+          - { who: narration, text: "%partner%のお腹が少しずつ大きくなり、季節が変わった。", when: "up.body != 'canBePregnant'" }
+        chance:
+          id: CH-LBW
+          label: "生まれる子どもが、2,500g未満になる可能性"
+          result:
+            happens: "小さく生まれました。"
+            notHappens: "2,500g以上で生まれました。"
+          base: { value: 0.098, statRef: S15 }
+          modifiers:
+            # 16歳の極端な食事制限が、妊娠前のやせにつながったという設定は物語上のもの（解釈）
+            - { when: "flags.extremeDiet == true && up.body == 'canBePregnant'", op: odds, value: 1.61, source: upbringing, statRef: S30, note: "妊娠前のやせ" }
+          outcomes:
+            happens: { setFlags: { child: later }, next: small }
+            notHappens: { setFlags: { child: later }, next: born }
+      - id: small
+        stage: { place: clinic, time: day, cast: [{ id: self, x: 28 }, { id: doctor, x: 64 }] }
+        lines:
+          - { who: narration, text: "ヒナタは、小さく生まれた。しばらく、保育器の中で過ごした。" }
+          - { who: doctor, text: "小さく生まれる理由は、さまざまです。誰のせいでもありません。" }
+          - { who: self, kind: inner, text: "（小さな手が、指をにぎり返した）", face: smile }
+        next: END
+      - id: born
+        lines:
+          - { who: narration, text: "ヒナタが生まれた。泣き声が、部屋じゅうに響いた。" }
+          - { who: self, kind: inner, text: "（はじめまして）", face: smile }
+        next: END
+
+  # ───────── 30歳で子どもが生まれた場合：育休 ─────────
+  - id: E30-LEAVE
+    age: 30
+    characters: [me]
+    kind: fixed
+    trigger: { kind: choice, text: "子どもが生まれた続き" }
+    domains: [両立, ジェンダー規範, 子育て]
+    requires: "flags.child == 'later'"
+    statCard: [S21, S47]
+    stage: { place: home2, time: night, cast: [{ id: self, x: 24 }, { id: kid30, x: 48 }, { id: partner, x: 72 }] }
+    summary: "育児休業を取るかどうか、家事と育児をどう分けるかを決めた。"
+    status: draft
+    scenes:
+      - id: start
+        lines:
+          - { who: narration, text: "夜中の3回目の授乳のあと、二人で台所に座った。" }
+          - { who: partner, text: "育休、どうする？" }
+          - { who: self, kind: inner, text: "（職場で育休を取った男性は、まだ数えるほどしかいない）", when: "up.gender == 'man' || up.gender == 'transMan'" }
+          - { who: self, kind: inner, text: "（「休むのは当然でしょ」って、みんな思ってる）", when: "up.gender == 'woman' || up.gender == 'transWoman'" }
+          - { who: self, kind: inner, text: "（うちの職場は、育休を言い出しやすい雰囲気だ）", when: "cond.parentalLeave == 'easy'" }
+          - { who: self, kind: inner, text: "（うちの職場で育休を取ると、戻る席があるかわからない）", when: "cond.parentalLeave == 'hard'", face: anxious }
+        choices:
+          - id: take
+            label: "「自分も育休を取る」"
+            canonical: true
+            effects:
+              - { param: connection, sign: 1, size: M, source: choice, note: "子どもと過ごした" }
+              - { param: living, sign: -1, size: S, source: society, statRef: S21, when: "cond.parentalLeave == 'hard'", note: "職場で居場所が減った" }
+            setFlags: { tookLeave: true }
+            next: take
+          - id: notTake
+            label: "「仕事は休めない。夜と週末は担当する」"
+            effects:
+              - { param: connection, sign: -1, size: S, source: choice, note: "育児の時間が少ない" }
+            setFlags: { tookLeave: false }
+            next: notTake
+      - id: take
+        lines:
+          - { who: narration, text: "半年間、ヒナタと過ごした。おむつの替え方も、泣き方の違いも覚えた。" }
+          - { who: partner, text: "一緒に分かり合える人がいるって、全然ちがうね。", face: smile }
+        next: daycare
+      - id: notTake
+        lines:
+          - { who: narration, text: "平日の家事と育児は、ほとんど%partner%がしていた。" }
+          - { who: partner, text: "……正直、ひとりで限界。", face: sad }
+          - { who: self, kind: inner, text: "（手伝っているつもりだった。でも、手伝うって、何なんだろう）", face: thinking }
+        next: daycare
+      - id: daycare
+        stage: { place: living, time: day, cast: [{ id: self, x: 30 }, { id: kid30, x: 54 }] }
+        lines:
+          - { who: narration, text: "保育園の結果が届いた。第1希望には入れず、家から遠い園に決まった。" }
+          - { who: self, kind: inner, text: "（入れただけ、よかった。でも、送り迎えは毎日1時間かかる）", face: thinking }
+        choices:
+          - id: share
+            label: "「送りと迎え、曜日で分けよう」"
+            canonical: true
+            effects:
+              - { param: connection, sign: 1, size: S, source: choice, note: "家事育児を分けた" }
+            next: shared
+          - id: one
+            label: "「近いほうが、全部やるしかないよ」"
+            next: one
+      - id: shared
+        lines:
+          - { who: narration, text: "冷蔵庫に、送り迎えの当番表が貼られた。" }
+          - { who: self, kind: inner, text: "（分け合うって、話し合い続けることなんだ）", face: calm }
+        next: END
+      - id: one
+        lines:
+          - { who: narration, text: "送り迎えは、いつの間にか片方だけの仕事になっていた。" }
+          - { who: self, kind: inner, text: "（このままで、二人とも続けられるかな）", face: thinking }
+        next: END
+
+  # ───────── 30歳で子どもが生まれた場合：仕事を続けるか ─────────
+  - id: E30-RETURN
+    age: 30
+    characters: [me]
+    kind: fixed
+    trigger: { kind: choice, text: "子どもが生まれた続き" }
+    domains: [両立, 労働]
+    requires: "flags.child == 'later'"
+    statCard: [S20, S45]
+    stage: { place: office, time: day, cast: [{ id: self, x: 28 }, { id: boss, x: 64 }] }
+    summary: "子どもが生まれたあと、仕事をどう続けるかを決めた。"
+    status: draft
+    scenes:
+      - id: start
+        lines:
+          - { who: boss, text: "復帰おめでとう。時短にする？　それとも、フルで戻る？" }
+          - { who: self, kind: inner, text: "（時短にすると、リーダーの仕事は外れることになる）", when: "flags.leader == true", face: thinking }
+          - { who: self, kind: inner, text: "（契約のままだと、時短で働ける仕組みが使えない）", when: "flags.job == 'contract' && flags.changedJob != true", face: anxious }
+        choices:
+          - id: short
+            label: "「しばらく、時短で戻ります」"
+            canonical: true
+            neutral: true
+            next: short
+          - id: full
+            label: "「フルで戻ります。お迎えは、家族と分けます」"
+            neutral: true
+            next: full
+          - id: quit
+            label: "「いったん、仕事を辞めます」"
+            neutral: true
+            setFlags: { quitJob: true }
+            next: quit
+      - id: short
+        effects:
+          - { param: living, sign: -1, size: S, source: society, statRef: S45, note: "収入と役割が減った" }
+        lines:
+          - { who: narration, text: "17時に会社を出て、保育園へ走る毎日が始まった。" }
+          - { who: self, kind: inner, text: "（仕事も、子どもも、どっちも大事だ）", face: thinking }
+        next: END
+      - id: full
+        effects:
+          - { param: body, sign: -1, size: S, source: society, note: "仕事と育児で余裕がない" }
+        lines:
+          - { who: narration, text: "夜、ヒナタが眠ってから、残りのメールを返した。" }
+          - { who: self, kind: inner, text: "（どこかで、自分の時間を取り戻さないと）", face: thinking }
+        next: END
+      - id: quit
+        stage: { place: office, time: day, cast: [{ id: self, x: 30 }, { id: ao, x: 64 }] }
+        effects:
+          - { param: living, sign: -1, size: M, source: society, statRef: S45, note: "収入がなくなった" }
+        lines:
+          - { who: narration, text: "退職の日、アオが小さな花束をくれた。" }
+          - { who: ao, text: "また一緒に働けるの、待ってるからね。", face: smile }
+          - { who: self, kind: inner, text: "（いつか戻れるかな。戻れる場所は、あるのかな）", face: thinking }
+        next: END
+
+  # ───────── 30歳で子どもが生まれていない場合：自分の30歳 ─────────
+  - id: E30-SELF
+    age: 30
+    characters: [me]
+    kind: fixed
+    trigger: { kind: story, text: "誰にでも起きる" }
+    domains: [ライフコース, 友人関係]
+    requires: "flags.child != 'later'"
+    stage: { place: izakaya, time: night, cast: [{ id: self, x: 28 }, { id: kanata, x: 62 }] }
+    summary: "30歳の誕生日に、これからやりたいことを考えた。"
+    status: draft
+    scenes:
+      - id: start
+        lines:
+          - { who: kanata, text: "30歳、おめでとう！　……で、なにか変わった？", face: smile }
+          - { who: self, kind: inner, text: "（ヒナタは10歳。気づけば、自分のための時間がほとんどなかった）", when: "flags.child == 'early'" }
+          - { who: self, kind: inner, text: "（子どものいる友だちとは、話題が少しずつずれてきた）", when: "flags.child != 'early'" }
+          - { who: self, kind: inner, text: "（でも、いまの暮らしは、自分で選んできたものだ）", face: calm }
+        choices:
+          - id: learn
+            label: "「前から気になってた勉強、始めようと思う」"
+            canonical: true
+            neutral: true
+            effects:
+              - { param: autonomy, sign: 1, size: M, source: choice, note: "学び直しを始めた" }
+            next: learn
+          - id: rest
+            label: "「別に何も。毎日けっこう楽しいよ」"
+            neutral: true
+            effects:
+              - { param: connection, sign: 1, size: S, source: choice, note: "いまを楽しんでいる" }
+            next: rest
+      - id: learn
+        lines:
+          - { who: kanata, text: "いいね。応援する。", face: smile }
+          - { who: narration, text: "週に一度、仕事のあとに夜間の講座に通い始めた。" }
+          - { who: self, kind: inner, text: "（何歳でも、新しく始めていい）", face: smile }
+        next: END
+      - id: rest
+        lines:
+          - { who: kanata, text: "それがいちばん。乾杯しよ。", face: smile }
+          - { who: self, kind: inner, text: "（大きな出来事がなくても、ちゃんと30年分の自分がいる）", face: calm }
+        next: END

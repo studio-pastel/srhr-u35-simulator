@@ -9,3 +9,10 @@
     - { id: riko, initial: 2, from: 16 }
     - { id: sou, initial: 1, from: 16, when: "flags.partnerId == 'sou'" }
     - { id: saki, initial: 1, from: 16, when: "flags.partnerId == 'saki'" }
+    - { id: kanata, initial: 1, from: 19 }
+    - { id: ren, initial: 0, from: 19, when: "flags.dateId == 'ren'" }
+    - { id: nana, initial: 0, from: 19, when: "flags.dateId == 'nana'" }
+    - { id: ao, initial: 1, from: 24 }
+    - { id: kid20, initial: 3, from: 20, when: "flags.child == 'early'" }
+    - { id: kid30, initial: 3, from: 30, when: "flags.child == 'later'" }
+    - { id: kid35, initial: 3, from: 35, when: "flags.child == 'art'" }

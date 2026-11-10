@@ -1,0 +1,331 @@
+# 27歳の章（SPEC.md §10.3、docs/life-map.md）。Claude Code の下書き。すべて status: draft。
+#
+# 家族のかたちを考える。結婚するか・しないか、名字、パートナーシップ制度、子どもを持つか、妊娠前からのからだ。
+# 結婚・子ども・制度の選択は、どれも正解として扱い、負の効果を付けない（P1・P6）。
+# 同性カップルが子どもを持つときの制度は、具体名を書かない（T10）。
+# 友だちが配偶者から受ける暴力は、行為を描かず、打ち明けられた場面として描く（P4）。
+age: 27
+title: "27歳"
+season: "家族のかたち"
+status: draft
+intro:
+  me: "まわりで、結婚や出産の知らせが増えてきた。"
+events:
+  # ───────── 誰にでも：親からの電話と、SNSの報告 ─────────
+  - id: E27-PRESSURE
+    age: 27
+    characters: [me]
+    kind: fixed
+    trigger: { kind: story, text: "誰にでも起きる" }
+    domains: [ライフコース, ジェンダー規範]
+    statCard: [S19]
+    stage: { place: bedroom, time: night, cast: [{ id: self, x: 40, pose: phone }] }
+    summary: "親からの電話とSNSの報告で、まわりとくらべる気持ちが生まれた。"
+    status: draft
+    scenes:
+      - id: start
+        lines:
+          - { who: narration, text: "SNSを開くと、高校の同級生の結婚式の写真が並んでいた。" }
+          - { who: narration, text: "その下には、「第一子が生まれました」の報告。" }
+          - { who: yuMother, kind: message, text: "元気？　いい人はいないの？　お母さん、孫の顔が見たいな。", when: "flags.dating != true && flags.child != 'early'" }
+          - { who: yuMother, kind: message, text: "%partner%さんとは、結婚しないの？", when: "flags.dating == true" }
+          - { who: yuMother, kind: message, text: "ヒナタは元気？　たまには顔を見せてね。", when: "flags.child == 'early'" }
+          - { who: self, kind: inner, text: "（みんな、ちゃんと「次」に進んでいるように見える）", face: thinking }
+        choices:
+          - id: own
+            label: "「自分のペースで考えてるから、大丈夫」と返す"
+            canonical: true
+            neutral: true
+            effects:
+              - { param: autonomy, sign: 1, size: S, source: choice, note: "自分のペースを守った" }
+            next: own
+          - id: mute
+            label: "SNSのアプリを、しばらく消す"
+            neutral: true
+            effects:
+              - { param: body, sign: 1, size: S, source: choice, note: "情報から距離を置いた" }
+            next: mute
+      - id: own
+        lines:
+          - { who: yuMother, kind: message, text: "そう。……あなたが元気なら、それでいいの。" }
+          - { who: self, kind: inner, text: "（結婚も子どもも、するかどうかは、自分で決めていいことだ）", face: calm }
+        next: END
+      - id: mute
+        lines:
+          - { who: narration, text: "一週間、SNSを見なかった。そのぶん、本を2冊読んだ。" }
+          - { who: self, kind: inner, text: "（くらべる相手が見えないと、自分の毎日が、ちゃんと自分のものに見える）", face: calm }
+        next: END
+
+  # ───────── 付き合っている場合：結婚するか ─────────
+  - id: E27-FUTURE
+    age: 27
+    characters: [me]
+    kind: fixed
+    trigger: { kind: choice, text: "付き合い続けてきた続き" }
+    domains: [関係性, 制度, ジェンダー規範]
+    requires: "flags.dating == true"
+    statCard: [S48, S29]
+    stage: { place: home2, time: night, cast: [{ id: self, x: 28 }, { id: partner, x: 62 }] }
+    summary: "付き合っている人と、これからの暮らし方を話した。"
+    status: draft
+    scenes:
+      - id: start
+        lines:
+          - { who: partner, text: "ねえ。そろそろ、これからのこと、ちゃんと話さない？" }
+          - { who: self, kind: inner, text: "（結婚という形が、自分たちに合うのかな）", face: thinking }
+        branches:
+          - when: "(up.gender == 'woman' && flags.partnerId == 'saki') || (up.gender == 'man' && flags.partnerId == 'sou')"
+            next: sameSex
+        next: marriage
+      - id: marriage
+        lines:
+          - { who: partner, text: "結婚するのか、しないのか。どっちでもいいから、二人で決めたい。" }
+          - { who: self, kind: inner, text: "（法律上の性別によっては、結婚の手続きも、名前も、考えることが増える）", when: "up.gender == 'transWoman' || up.gender == 'transMan' || up.gender == 'nonbinary'" }
+        choices:
+          - id: marry
+            label: "「結婚しよう」"
+            neutral: true
+            setFlags: { married: true }
+            next: surname
+          - id: together
+            label: "「結婚はしないで、一緒に暮らそう」"
+            canonical: true
+            neutral: true
+            setFlags: { married: false }
+            next: together
+          - id: later
+            label: "「まだ、いまのままがいい」"
+            neutral: true
+            setFlags: { married: false }
+            next: later
+      - id: surname
+        lines:
+          - { who: partner, text: "名字、どうする？" }
+          - { who: self, kind: inner, text: "（ほとんどの夫婦が、夫の名字を選んでいるらしい。当たり前みたいに）", face: thinking }
+        choices:
+          - id: talk
+            label: "「どっちが変えるか、ちゃんと話し合おう」"
+            canonical: true
+            effects:
+              - { param: autonomy, sign: 1, size: S, source: choice, note: "名字を話し合った" }
+            next: married
+          - id: auto
+            label: "「どっちでもいいよ。そっちに合わせる」"
+            next: married
+      - id: married
+        effects:
+          - { param: living, sign: 1, size: S, source: society, statRef: S48, note: "制度に守られる" }
+        lines:
+          - { who: narration, text: "春に、二人で役所に届けを出した。" }
+          - { who: narration, text: "名字を変えた側は、銀行や免許証の手続きに、何日も追われた。" }
+          - { who: self, kind: inner, text: "（同じ「結婚」でも、手間をかける側が決まっている）", face: thinking }
+        next: END
+      - id: together
+        lines:
+          - { who: partner, text: "うん。それがいちばん、自分たちらしいかも。", face: smile }
+          - { who: narration, text: "二人で住む部屋を借りた。" }
+        next: END
+      - id: later
+        lines:
+          - { who: partner, text: "わかった。また話そうね。", face: smile }
+          - { who: self, kind: inner, text: "（決めないことも、決めたことのひとつだ）", face: calm }
+        next: END
+      # 同性どうし：日本では結婚できない。住む自治体にパートナーシップ制度があるかは、統計の割合で決まる
+      - id: sameSex
+        lines:
+          - { who: self, kind: inner, text: "（結婚という選択肢は、自分たちにはない）", face: sad }
+          - { who: partner, text: "パートナーシップ制度、うちの市にあるか調べてみた。" }
+        chance:
+          id: CH-PARTNERSHIP
+          label: "住んでいる自治体に、パートナーシップ制度がある可能性"
+          result:
+            happens: "住んでいる自治体に、制度がありました。"
+            notHappens: "住んでいる自治体には、制度がありませんでした。"
+          # S29 の人口カバー率を、住む自治体に制度がある確率とみなす（解釈）
+          base: { value: 0.925, statRef: S29 }
+          outcomes:
+            happens: { next: hasSystem }
+            notHappens: { effects: [{ param: living, sign: -1, size: M, note: "制度がなかった" }], next: noSystem }
+      - id: hasSystem
+        lines:
+          - { who: narration, text: "市役所で、パートナーシップの宣誓をした。" }
+          - { who: partner, text: "法律の結婚とは違う。でも、ちょっとうれしい。", face: smile }
+          - { who: self, kind: inner, text: "（認められることが、こんなにほっとするなんて）", face: relieved }
+        next: END
+      - id: noSystem
+        lines:
+          - { who: partner, text: "……ない、みたい。", face: sad }
+          - { who: self, kind: inner, text: "（住む場所で、守られるかどうかが変わる）", face: sad }
+          - { who: narration, text: "二人で、公正証書を作ることにした。" }
+        next: END
+
+  # ───────── 付き合っていて、まだ子どもがいない場合：子どもを持つか ─────────
+  - id: E27-CHILDREN
+    age: 27
+    characters: [me]
+    kind: fixed
+    trigger: { kind: choice, text: "付き合い続けてきた続き" }
+    domains: [妊孕性, ライフコース, プレコンセプションケア]
+    requires: "flags.dating == true && flags.child != 'early'"
+    statCard: [S41, S17]
+    resources: [health]
+    stage: { place: living, time: day, cast: [{ id: self, x: 28 }, { id: partner, x: 62 }] }
+    summary: "子どもを持つかどうか、二人で話した。"
+    status: draft
+    scenes:
+      - id: start
+        lines:
+          - { who: partner, text: "子どものこと、どう思ってる？" }
+          - { who: self, kind: inner, text: "（ほしいのか、ほしくないのか。自分でも、まだわからない）", face: thinking }
+          - { who: self, kind: inner, text: "（自分たちが子どもを迎えるなら、制度の壁がいくつもある）", when: "flags.pregnancyPossible != true" }
+        choices:
+          - id: yes
+            label: "「いつか、持ちたいと思ってる」"
+            neutral: true
+            setFlags: { wantChild: want }
+            next: yes
+          - id: no
+            label: "「二人で生きていくのがいいと思ってる」"
+            neutral: true
+            setFlags: { wantChild: notWant }
+            next: no
+          - id: unsure
+            label: "「まだ、決められない」"
+            canonical: true
+            neutral: true
+            setFlags: { wantChild: unsure }
+            next: unsure
+      - id: yes
+        lines:
+          - { who: partner, text: "うん。こっちも同じ。", face: smile }
+        branches:
+          - when: "flags.pregnancyPossible == true"
+            next: precon
+        next: other
+      - id: precon
+        stage: { place: clinic, time: day, cast: [{ id: self, x: 28 }, { id: doctor, x: 64 }] }
+        lines:
+          - { who: narration, text: "職場の健康相談で、妊娠を考えていると話してみた。" }
+          - { who: doctor, text: "妊娠の1か月以上前から、葉酸をとることがすすめられています。" }
+          - { who: doctor, text: "たばこは、二人ともやめられるといいですね。", when: "flags.smokes == true" }
+          - { who: doctor, text: "年齢とともに、妊娠のしやすさは変わります。でも、決めるのは、あなたたちです。" }
+        choices:
+          - id: prepare
+            label: "「二人で、できることから始めます」"
+            canonical: true
+            effects:
+              - { param: body, sign: 1, size: M, source: choice, note: "妊娠前からの準備" }
+            setFlags: { smokes: false }
+            next: prepared
+          - id: later
+            label: "「もう少し、仕事が落ち着いてから考えます」"
+            neutral: true
+            next: prepared
+      - id: prepared
+        lines:
+          - { who: self, kind: inner, text: "（からだのことを、二人の話として話せるのがうれしい）", face: smile }
+        next: END
+      - id: other
+        lines:
+          - { who: narration, text: "里親や養子縁組の説明会があると知り、二人で申し込んだ。", when: "flags.pregnancyPossible != true" }
+          - { who: self, kind: inner, text: "（家族のつくり方は、ひとつじゃない）", face: calm }
+        next: END
+      - id: no
+        lines:
+          - { who: partner, text: "そっか。……実は、ほっとした。", face: relieved }
+          - { who: self, kind: inner, text: "（持たないと決めることも、ちゃんとした選択だ）", face: calm }
+        next: END
+      - id: unsure
+        lines:
+          - { who: partner, text: "急がなくていいよ。また話そう。" }
+          - { who: self, kind: inner, text: "（わからないままでいい時間も、あっていい）", face: calm }
+        next: END
+
+  # ───────── 誰にでも：友だちが打ち明ける（配偶者からの暴力） ─────────
+  - id: E27-FRIEND
+    age: 27
+    characters: [me]
+    kind: fixed
+    trigger: { kind: story, text: "誰にでも起きる" }
+    domains: [対人暴力, 友人関係]
+    statCard: [S04]
+    resources: [violence]
+    stage: { place: izakaya, time: night, cast: [{ id: self, x: 28 }, { id: kanata, x: 62, face: sad }] }
+    summary: "結婚したカナタから、配偶者のことを打ち明けられた。"
+    status: draft
+    scenes:
+      - id: start
+        lines:
+          - { who: narration, text: "去年結婚したカナタと、久しぶりに会った。" }
+          - { who: kanata, text: "最近、スマホを毎晩チェックされるんだ。お金も、全部向こうが管理してて。" }
+          - { who: kanata, text: "……でも、怒らせる自分も悪いのかなって。", face: sad }
+          - { who: self, kind: inner, text: "（19歳のとき、カナタが言ってくれた言葉を思い出した）", when: "flags.controlled == true" }
+        choices:
+          - id: listen
+            label: "「カナタは悪くない。相談先、一緒に調べよう」"
+            canonical: true
+            effects:
+              - { param: connection, sign: 1, size: M, source: choice, note: "友だちを支えた" }
+            closeness:
+              - { who: kanata, delta: 1, note: "話を受けとめた" }
+            next: listen
+          - id: leave
+            label: "「そんな人とは、すぐ別れたほうがいいよ」"
+            next: leave
+      - id: listen
+        lines:
+          - { who: narration, text: "その場で、配偶者からの暴力の相談先を一緒に調べた。" }
+          - { who: kanata, text: "……ありがとう。電話してみる。", face: relieved }
+          - { who: self, kind: inner, text: "（決めるのはカナタだ。自分は、そばにいる）", face: calm }
+        next: END
+      - id: leave
+        lines:
+          - { who: kanata, text: "……そんな簡単じゃないんだよ。", face: sad }
+          - { who: self, kind: inner, text: "（責めるつもりはなかった。でも、急かしてしまった）", face: thinking }
+          - { who: self, text: "ごめん。カナタが決めることだよね。いつでも話して。" }
+        next: END
+
+  # ───────── 誰にでも：仕事の転機 ─────────
+  - id: E27-CAREER
+    age: 27
+    characters: [me]
+    kind: fixed
+    trigger: { kind: story, text: "誰にでも起きる" }
+    domains: [労働, ジェンダー規範]
+    statCard: [S44, S43]
+    stage: { place: office, time: day, cast: [{ id: self, x: 28 }, { id: boss, x: 64 }] }
+    summary: "リーダーになる話が来て、働き方を考えた。"
+    status: draft
+    scenes:
+      - id: start
+        lines:
+          - { who: boss, text: "来年から、チームのリーダーをやってみない？" }
+          - { who: self, kind: inner, text: "（管理職の会議に出ると、女性はほとんどいない）", when: "up.gender == 'woman' || up.gender == 'transWoman'" }
+          - { who: self, kind: inner, text: "（ヒナタは小学生になった。学童のお迎えは、18時まで）", when: "flags.child == 'early'" }
+          - { who: self, kind: inner, text: "（任されるのはうれしい。でも、時間はいまでもぎりぎりだ）", face: thinking }
+        choices:
+          - id: accept
+            label: "「やってみます」"
+            canonical: true
+            neutral: true
+            effects:
+              - { param: autonomy, sign: 1, size: M, source: choice, note: "新しい役割を選んだ" }
+              - { param: living, sign: 1, size: S, source: choice, note: "給料が上がった" }
+            setFlags: { leader: true }
+            next: accept
+          - id: decline
+            label: "「いまの仕事を、もう少し深めたいです」"
+            neutral: true
+            effects:
+              - { param: autonomy, sign: 1, size: S, source: choice, note: "自分の働き方を選んだ" }
+            next: decline
+      - id: accept
+        lines:
+          - { who: boss, text: "期待してるよ。" }
+          - { who: self, kind: inner, text: "（自分みたいな人が上にいれば、次の人が少し楽になるかもしれない）", face: smile }
+        next: END
+      - id: decline
+        lines:
+          - { who: boss, text: "そうか。また声をかけるよ。" }
+          - { who: self, kind: inner, text: "（上を目指すだけが、仕事のやりがいじゃない）", face: calm }
+        next: END

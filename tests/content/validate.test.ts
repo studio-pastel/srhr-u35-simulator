@@ -18,12 +18,13 @@ const ks = (raw: any, sceneId: string) => ev(raw, 'E17-TRIP').scenes.find((s: an
 const mind = (raw: any, sceneId: string) => ev(raw, 'E17-MIND').scenes.find((s: any) => s.id === sceneId);
 
 describe('実コンテンツ', () => {
+  // 16〜35歳の全章の到達性を調べるので時間がかかる（結果は覚えて、このあとのテストで使い回す）
   it('開発モードの検証を通る', () => {
     const r = validateContent(rawContent(), dev);
     expect(r.errors).toEqual([]);
-  });
-  it('章が欠けていても、requireAllChapters のときだけ失敗する（試作は16〜17歳だけ）', () => {
-    expect(validateContent(rawContent(), { ...dev, requireAllChapters: true }).errors.join()).toMatch(/19歳の章がありません/);
+  }, 300_000);
+  it('16〜35歳の全章がそろっている（requireAllChapters）', () => {
+    expect(validateContent(rawContent(), { ...dev, requireAllChapters: true }).errors).toEqual([]);
   });
   it('S01〜S60 がすべてある', () => {
     const r = validateContent(rawContent(), dev);

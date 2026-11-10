@@ -1,7 +1,7 @@
 // コンテンツ検証（§12.1）。npm run validate、ビルド、テストで共有する。
 import { contentSchema, CHARACTER_IDS } from './schema';
 import type { Closeness, Content, GameEvent, Scene } from './schema';
-import { ATTRACTIONS, BODIES, economyOf, FAMILY_STORIES, GENDERS, PROFILE_KEYS, type Profile } from './profile';
+import { ATTRACTIONS, BODIES, economyOf, FAMILY_STORIES, GENDERS, PROFILE_KEYS, upOf, type Profile } from './profile';
 import type { RunState } from './types';
 import { collectComparisons, collectRefs, FlagExprError, parseFlagExpr } from './flags';
 import { countChars, TEXT_LIMITS } from './limits';
@@ -150,7 +150,7 @@ export function validateContent(raw: unknown, opts: ValidateOptions): ValidateRe
   // ── 登場人物（付録B-1・B-5） ──
   dupCheck(content.cast.map((c) => c.id), '登場人物ID', errors);
   // self は「いま遊んでいる主人公」（全員が出るイベントで使う）
-  const castIds = new Set([...content.cast.map((c) => c.id), 'self', 'partner']);
+  const castIds = new Set([...content.cast.map((c) => c.id), 'self', 'partner', 'date']);
   for (const id of CHARACTER_IDS) if (!castIds.has(id)) errors.push(`cast.yaml に主人公 ${id} の見た目がありません`);
   // 人との距離（付録B-9）：主人公ごとの近しい人
   const bondsOf = new Map(content.characters.map((c) => [c.id as string, new Set(c.bonds.map((b) => b.id))]));
@@ -215,7 +215,17 @@ export function validateContent(raw: unknown, opts: ValidateOptions): ValidateRe
   }
 
   // ── 到達性（スキーマと参照が正しいときだけ） ──
-  if (errors.length === 0) reachability(content, errors);
+  if (errors.length === 0) {
+    // 到達性の検査は重い（全属性 × 全選択）。同じ内容なら結果も同じなので、覚えておいて使い回す（テストで何度も呼ぶため）
+    const key = JSON.stringify(content);
+    let found = reachCache.get(key);
+    if (!found) {
+      found = [];
+      reachability(content, found);
+      reachCache.set(key, found);
+    }
+    errors.push(...found);
+  }
 
   if (drafts.length) warnings.push(`status: draft のイベント・章が ${drafts.length}件あります`);
   return { errors, warnings, drafts, unverifiedUses, content };
@@ -275,7 +285,7 @@ function checkEvent(ev: GameEvent, k: Checkers): void {
       const n = countChars(c.note);
       if (n > TEXT_LIMITS.effectNote) errors.push(`${cw}：note「${c.note}」が ${n}字です（上限 ${TEXT_LIMITS.effectNote}字）`);
       k.expr(`${cw}.when`, c.when);
-      if ((ev.resources ?? []).includes('violence') && c.who === 'partner' && !c.end)
+      if ((ev.resources ?? []).includes('violence') && (c.who === 'partner' || c.who === 'date') && !c.end)
         errors.push(`${cw}：暴力の場面では、${c.who} との近さを変えられません（関係の終わり end だけ書けます。付録B-9）`);
     });
   };
@@ -472,6 +482,43 @@ function flowFlags(content: Content): Set<string> {
   return out;
 }
 
+/** 進行（発生条件・分岐・選択肢の表示条件）に関係する属性 */
+function flowUpKeys(content: Content): Set<string> {
+  const out = new Set<string>();
+  const add = (src?: string) => {
+    if (!src) return;
+    for (const r of collectRefs(parseFlagExpr(src))) if (r.ns === 'up') out.add(r.name);
+  };
+  for (const ch of content.chapters)
+    for (const ev of ch.events) {
+      add(ev.requires);
+      for (const sc of ev.scenes) {
+        sc.branches?.forEach((b) => add(b.when));
+        sc.choices?.forEach((c) => add(c.requires));
+      }
+    }
+  return out;
+}
+
+/** 進行（発生条件・分岐・選択肢の表示条件）に関係する社会条件 */
+function flowConditions(content: Content, relevantFlags: Set<string>): Set<string> {
+  const out = new Set<string>();
+  const add = (src?: string) => {
+    if (!src) return;
+    for (const r of collectRefs(parseFlagExpr(src))) if (r.ns === 'cond') out.add(r.name);
+  };
+  for (const ch of content.chapters)
+    for (const ev of ch.events) {
+      add(ev.requires);
+      for (const sc of ev.scenes) {
+        sc.branches?.forEach((b) => add(b.when));
+        sc.choices?.forEach((c) => add(c.requires));
+      }
+    }
+  for (const c of content.conditions) if (c.options.some((o) => Object.keys(o.setFlags ?? {}).some((k) => relevantFlags.has(k)))) out.add(c.id);
+  return out;
+}
+
 /** 進行に関係する部分だけで状態を同一視する（パラメーターや、進行に影響しないフラグは除く） */
 function flowKey(s: RunState, relevant: Set<string>): string {
   const f: Record<string, unknown> = {};
@@ -506,10 +553,26 @@ export function sampleProfiles(content: Content): Profile[] {
  * 各属性 × 社会条件の全組み合わせ × 全選択 × 確率の両方の結果で、
  * 最初の章から最後の章のふりかえりまで到達できることを確かめる。
  */
+const reachCache = new Map<string, string[]>();
+
 export function reachability(content: Content, errors: string[], limit = 500_000): void {
   const relevant = flowFlags(content);
-  for (const profile of sampleProfiles(content)) {
-    for (const conditions of conditionCombinations(content)) {
+  // 進行に関係する社会条件だけを組み合わせる（場面の出し分けや分岐に使われない条件は、到達性を変えないため）
+  const flowConds = flowConditions(content, relevant);
+  const combos = conditionCombinations({ ...content, conditions: content.conditions.filter((c) => flowConds.has(c.id)) });
+  // 進行に関係する属性が同じなら、到達できる範囲も同じ。代表の1人だけを調べる
+  // （性自認とからだは、妊娠の可能性 flags.pregnancyPossible を決めるので、常に区別する）
+  const upKeys = flowUpKeys(content);
+  const seen = new Set<string>();
+  const profiles = sampleProfiles(content).filter((p) => {
+    const up = upOf(p);
+    const key = JSON.stringify([p.gender, p.body, ...[...upKeys].sort().map((k) => up[k])]);
+    if (seen.has(key)) return false;
+    seen.add(key);
+    return true;
+  });
+  for (const profile of profiles) {
+    for (const conditions of combos) {
       const start = createRun(content, { profile, seed: '0'.repeat(32), conditions: conditions as Record<string, string> });
       const label = `到達性：${profile.gender}/${profile.body}/${profile.attractedTo}/${economyOf(profile.familyStory)}/${profile.familyStory}（${JSON.stringify(conditions)}）`;
       const visited = new Set<string>();

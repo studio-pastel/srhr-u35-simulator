@@ -1,0 +1,355 @@
+# 35歳の章（SPEC.md §10.3、docs/life-map.md）。Claude Code の下書き。すべて status: draft。
+#
+# 選べないことと選べること。不妊の検査と治療、がん、仕事に戻る・転職する、暮らしの差。最後に全体のふりかえり。
+# 不妊治療は、1回ごとに「続ける／やめる」を選ぶ。どちらも正解として扱う（P1・P6）。
+# 35歳の生殖補助医療で出産に至る割合（S17）を、1回ごとの確率として使う（解釈）。この章では3回まで。
+age: 35
+title: "35歳"
+season: "これまでと、これから"
+status: draft
+intro:
+  me: "35歳。ふり返ると、選んだことと、選べなかったことが、両方ある。"
+events:
+  # ───────── 30歳で検査を受けた場合：不妊治療 ─────────
+  - id: E35-ART
+    age: 35
+    characters: [me]
+    kind: chance
+    trigger: { kind: chance, text: "30歳で、なかなか妊娠しなかった続き" }
+    domains: [不妊, 生殖補助医療, 両立]
+    requires: "flags.infertile == true && flags.dating == true"
+    statCard: [S17, S18, S31]
+    resources: [health]
+    stage: { place: clinic, time: day, cast: [{ id: self, x: 24 }, { id: partner, x: 50 }, { id: doctor, x: 76 }] }
+    summary: "不妊治療を始めるか、続けるかを、1回ずつ決めた。"
+    status: draft
+    scenes:
+      - id: start
+        lines:
+          - { who: doctor, text: "体外受精などの治療は、条件を満たせば、保険が使えます。" }
+          - { who: doctor, text: "始めるかどうか、続けるかどうかは、お二人が決めることです。" }
+          - { who: self, kind: inner, text: "（通院は月に何度も。仕事の予定を、どうやって空けよう）", face: thinking }
+        choices:
+          - id: begin
+            label: "「始めてみます」"
+            canonical: true
+            neutral: true
+            next: try1
+          - id: notBegin
+            label: "「治療はしないと、二人で決めました」"
+            neutral: true
+            effects:
+              - { param: autonomy, sign: 1, size: S, source: choice, note: "二人で決めた" }
+            next: stop
+      - id: try1
+        lines:
+          - { who: narration, text: "1回目。仕事を抜けて、何度も病院に通った。" }
+          - { who: self, kind: inner, text: "（職場には、まだ言えていない）", face: anxious }
+        chance:
+          id: CH-ART-1
+          label: "生殖補助医療の1回で、出産に至る可能性（35歳）"
+          result:
+            happens: "妊娠し、出産に至りました。"
+            notHappens: "今回は、妊娠に至りませんでした。"
+          base: { value: 0.296, statRef: S17 }
+          outcomes:
+            happens: { setFlags: { child: art }, next: born }
+            notHappens: { next: after1 }
+      - id: after1
+        effects:
+          - { param: body, sign: -1, size: S, source: chance, note: "治療の負担" }
+        lines:
+          - { who: partner, text: "……つらいね。でも、ちゃんと休もう。", face: sad }
+        choices:
+          - id: again
+            label: "「もう一度、やってみたい」"
+            canonical: true
+            neutral: true
+            next: try2
+          - id: end
+            label: "「ここで、終わりにしたい」"
+            neutral: true
+            next: stop
+      - id: try2
+        stage: { place: office, time: day, cast: [{ id: self, x: 30 }, { id: boss, x: 64 }] }
+        lines:
+          - { who: narration, text: "2回目。職場の上司に、通院のことを話した。" }
+          - { who: boss, text: "わかった。休みは調整するから、遠慮しないで。" }
+        chance:
+          id: CH-ART-2
+          label: "生殖補助医療の1回で、出産に至る可能性（35歳）"
+          result:
+            happens: "妊娠し、出産に至りました。"
+            notHappens: "今回も、妊娠に至りませんでした。"
+          base: { value: 0.296, statRef: S17 }
+          outcomes:
+            happens: { setFlags: { child: art }, next: born }
+            notHappens: { next: after2 }
+      - id: after2
+        effects:
+          - { param: connection, sign: -1, size: S, source: chance, note: "期待と落胆のくり返し" }
+        lines:
+          - { who: self, kind: inner, text: "（期待して、落ちこんで。そのくり返しに、からだも心もすり減っていく）", face: sad }
+        choices:
+          - id: again
+            label: "「もう一度だけ」"
+            neutral: true
+            next: try3
+          - id: end
+            label: "「もう十分、がんばったと思う」"
+            canonical: true
+            neutral: true
+            next: stop
+      - id: try3
+        stage: { place: clinic, time: day, cast: [{ id: self, x: 24 }, { id: partner, x: 50 }, { id: doctor, x: 76 }] }
+        lines:
+          - { who: narration, text: "3回目。" }
+        chance:
+          id: CH-ART-3
+          label: "生殖補助医療の1回で、出産に至る可能性（35歳）"
+          result:
+            happens: "妊娠し、出産に至りました。"
+            notHappens: "今回も、妊娠に至りませんでした。"
+          base: { value: 0.296, statRef: S17 }
+          outcomes:
+            happens: { setFlags: { child: art }, next: born }
+            notHappens: { next: stop }
+      - id: born
+        stage: { place: home2, time: day, cast: [{ id: self, x: 24 }, { id: kid35, x: 48 }, { id: partner, x: 72 }] }
+        lines:
+          - { who: narration, text: "ヒナタが生まれた。" }
+          - { who: partner, text: "……来てくれて、ありがとう。", face: smile }
+          - { who: self, kind: inner, text: "（長かった。でも、いま、ここにいる）", face: smile }
+        next: END
+      - id: stop
+        stage: { place: home2, time: night, cast: [{ id: self, x: 28 }, { id: partner, x: 62 }] }
+        lines:
+          - { who: partner, text: "二人で決めたことだから。これからも、二人で生きていこう。", face: calm }
+          - { who: self, kind: inner, text: "（子どもがいない人生も、ちゃんと人生だ）", face: calm }
+          - { who: narration, text: "里親制度の説明会のチラシを、冷蔵庫に貼った。" }
+        next: END
+
+  # ───────── 30歳で仕事を辞めた場合：仕事に戻る ─────────
+  - id: E35-WORKBACK
+    age: 35
+    characters: [me]
+    kind: fixed
+    trigger: { kind: choice, text: "30歳で仕事を辞めた続き" }
+    domains: [労働, 社会経済, ジェンダー規範]
+    requires: "flags.quitJob == true"
+    statCard: [S45, S46]
+    stage: { place: office, time: day, cast: [{ id: self, x: 30 }] }
+    summary: "仕事に戻ろうとして、正社員の道の狭さを知った。"
+    status: draft
+    scenes:
+      - id: start
+        effects:
+          - { param: living, sign: -1, size: M, source: society, statRef: S45, note: "正社員に戻りにくい" }
+        lines:
+          - { who: narration, text: "ヒナタが5歳になり、仕事を探し始めた。" }
+          - { who: narration, text: "面接では、何度も「お子さんが熱を出したら、どうしますか」と聞かれた。" }
+          - { who: self, kind: inner, text: "（前と同じ仕事ができるのに、正社員の求人には、なかなか通らない）", face: sad }
+        choices:
+          - id: part
+            label: "パートで、前と同じ業界に戻る"
+            canonical: true
+            neutral: true
+            effects:
+              - { param: autonomy, sign: 1, size: S, source: choice, note: "働き方を選んだ" }
+            next: part
+          - id: new
+            label: "まったく新しい仕事に挑戦する"
+            neutral: true
+            effects:
+              - { param: autonomy, sign: 1, size: M, source: choice, note: "新しい道を選んだ" }
+            next: new
+      - id: part
+        lines:
+          - { who: narration, text: "週4日のパートで、前の職場の取引先に戻った。" }
+          - { who: self, kind: inner, text: "（給料は前の半分くらい。でも、仕事の手応えは戻ってきた）", face: thinking }
+        next: END
+      - id: new
+        lines:
+          - { who: narration, text: "夜間の講座で資格を取り、小さな会社で働き始めた。" }
+          - { who: self, kind: inner, text: "（遠回りした。でも、遠回りの分だけ、できることも増えた）", face: smile }
+        next: END
+
+  # ───────── 子どもがいる場合：子どもと、からだの話をする ─────────
+  - id: E35-TALK
+    age: 35
+    characters: [me]
+    kind: fixed
+    trigger: { kind: choice, text: "子どもを育ててきた続き" }
+    domains: [包括的性教育, 子育て, 同意]
+    requires: "flags.child == 'early' || flags.child == 'later'"
+    statCard: [S06]
+    stage: { place: living, time: dusk, cast: [{ id: self, x: 30 }, { id: kid20, x: 62, when: "flags.child == 'early'" }, { id: kid30, x: 62, when: "flags.child == 'later'" }] }
+    summary: "子どもに、からだや気持ちのことを聞かれた。"
+    status: draft
+    scenes:
+      - id: start
+        lines:
+          - { who: kid20, text: "ねえ。クラスで、付き合ってる子たちがいるんだけど。", when: "flags.child == 'early'" }
+          - { who: kid20, text: "「好き」とか「付き合う」って、どういうこと？", when: "flags.child == 'early'" }
+          - { who: kid30, text: "ねえ、なんでおしりは、人に見せちゃだめなの？", when: "flags.child == 'later'" }
+          - { who: self, kind: inner, text: "（自分が15歳のころ、こういう話をできる大人はいたかな）", face: thinking }
+        choices:
+          - id: talk
+            label: "ちゃんと向き合って、話す"
+            canonical: true
+            effects:
+              - { param: connection, sign: 1, size: M, source: choice, note: "子どもと話した" }
+            next: talk
+          - id: later
+            label: "「それは、もう少し大きくなったらね」"
+            next: later
+      - id: talk
+        lines:
+          - { who: self, text: "どんなに好きな人とでも、嫌なことは嫌って言っていいんだよ。", when: "flags.child == 'early'" }
+          - { who: self, text: "相手が嫌って言ったら、そこで止まる。それが大事。", when: "flags.child == 'early'" }
+          - { who: self, text: "水着で隠れるところは、自分だけの大事なところなんだよ。", when: "flags.child == 'later'" }
+          - { who: self, text: "誰かにさわられて嫌だったら、すぐ教えてね。あなたは悪くないから。", when: "flags.child == 'later'" }
+          - { who: kid20, text: "……ふうん。わかった。", when: "flags.child == 'early'", face: smile }
+          - { who: kid30, text: "わかった！", when: "flags.child == 'later'", face: smile }
+          - { who: self, kind: inner, text: "（自分が受け取れなかったものを、少しだけ手渡せた気がする）", face: relieved }
+        next: END
+      - id: later
+        lines:
+          - { who: self, kind: inner, text: "（……本当は、いま話してもよかったのかもしれない）", face: thinking }
+          - { who: narration, text: "からだや気持ちの話は、何歳からでも、少しずつ話せる。" }
+        next: END
+
+  # ───────── 誰にでも：検診（がんは統計の割合で見つかる） ─────────
+  - id: E35-CHECKUP
+    age: 35
+    characters: [me]
+    kind: chance
+    trigger: { kind: chance, text: "伏せたカードを1枚引いた（統計の割合で決まる）" }
+    domains: [がん予防, 選べない出来事]
+    statCard: [S52]
+    resources: [health]
+    stage: { place: clinic, time: day, cast: [{ id: self, x: 30 }, { id: doctor, x: 64 }] }
+    summary: "検診の案内が届き、受けるかどうかを決めた。"
+    status: draft
+    scenes:
+      - id: start
+        stage: { place: bedroom, time: night, cast: [{ id: self, x: 40, pose: phone }] }
+        lines:
+          - { who: narration, text: "自治体から、がん検診の案内が届いた。" }
+          - { who: self, kind: inner, text: "（忙しいし、どこも悪くない。……たぶん）", face: thinking }
+        choices:
+          - id: go
+            label: "予約する"
+            canonical: true
+            effects:
+              - { param: body, sign: 1, size: S, source: choice, note: "検診を受けた" }
+            setFlags: { screened: true }
+            next: chance
+          - id: skip
+            label: "（来年でいいか）"
+            setFlags: { screened: false }
+            next: chance
+      - id: chance
+        lines:
+          - { who: narration, text: "その年の冬。" }
+        chance:
+          id: CH-CANCER
+          label: "30代で、1年のあいだにがんと診断される可能性"
+          result:
+            happens: "がんが見つかりました。"
+            notHappens: "がんになるかもしれませんでしたが、今回はなりませんでした。"
+          # S52 の30代の値（1年あたり人口10万人に105.4人）を、1年に1回の判定に使う（解釈）
+          base: { value: 0.001054, statRef: S52 }
+          outcomes:
+            happens: { next: found }
+            notHappens: { next: fine }
+      - id: fine
+        lines:
+          - { who: doctor, text: "結果は、異常なしでした。", when: "flags.screened == true" }
+          - { who: narration, text: "何事もなく、年が明けた。" }
+        next: END
+      - id: found
+        effects:
+          - { param: body, sign: -1, size: L, source: chance, note: "がんと診断された" }
+        lines:
+          - { who: doctor, text: "検診で、早い段階で見つかりました。治療の方法を、一緒に考えましょう。", when: "flags.screened == true" }
+          - { who: doctor, text: "体調の変化があって来られたんですね。治療の方法を、一緒に考えましょう。", when: "flags.screened != true" }
+          - { who: self, kind: inner, text: "（自分には関係ないと思っていた）", face: sad }
+          - { who: narration, text: "誰にでも起こり得ることで、あなたのせいではない。" }
+        next: END
+
+  # ───────── 誰にでも：同窓会 ─────────
+  - id: E35-REUNION
+    age: 35
+    characters: [me]
+    kind: fixed
+    trigger: { kind: story, text: "誰にでも起きる" }
+    domains: [友人関係, ライフコース]
+    stage: { place: izakaya, time: night, cast: [{ id: self, x: 24 }, { id: riko, x: 50 }, { id: kanata, x: 76 }] }
+    summary: "高校の同窓会で、みんなの20年の違いを感じた。"
+    status: draft
+    scenes:
+      - id: start
+        lines:
+          - { who: narration, text: "高校の同窓会。20年ぶりの顔もあった。" }
+          - { who: riko, text: "こっちは、いまは小児科の医師。夜中の呼び出しにも、もう慣れた。" }
+          - { who: narration, text: "大学に残って研究者になった人。会社を立ち上げた人。" }
+          - { who: narration, text: "契約の仕事を掛け持ちしている人。子育てで一度仕事を離れた人。" }
+          - { who: narration, text: "同じ教室から、こんなにばらばらの道に分かれていた。" }
+          - { who: self, kind: inner, text: "（同じスタートじゃなかった。家も、からだも、まわりの事情も）", face: thinking }
+        choices:
+          - id: share
+            label: "自分の20年を、ありのままに話す"
+            canonical: true
+            effects:
+              - { param: connection, sign: 1, size: M, source: choice, note: "自分の道を話せた" }
+            next: share
+          - id: listen
+            label: "みんなの話を、聞いている"
+            neutral: true
+            next: listen
+      - id: share
+        lines:
+          - { who: riko, text: "なんか、話し方が昔より楽そう。いい20年だったんだね。", face: smile }
+          - { who: self, kind: inner, text: "（いいことも、つらいこともあった。でも、全部、自分のものだ）", face: calm }
+        next: END
+      - id: listen
+        lines:
+          - { who: kanata, text: "地元の友だち、いい人ばっかりだね。", face: smile }
+          - { who: self, kind: inner, text: "（それぞれの道に、それぞれの理由がある）", face: calm }
+        next: END
+
+  # ───────── 誰にでも：35歳の自分 ─────────
+  - id: E35-NOW
+    age: 35
+    characters: [me]
+    kind: fixed
+    trigger: { kind: story, text: "誰にでも起きる" }
+    domains: [ライフコース]
+    stage: { place: home2, time: dusk, cast: [{ id: self, x: 40 }] }
+    summary: "35歳。ここまでの道のりと、これからを考えた。"
+    status: draft
+    scenes:
+      - id: start
+        lines:
+          - { who: narration, text: "帰り道、少し遠回りをして歩いた。" }
+          - { who: self, kind: inner, text: "（16歳のころの自分に、何か言えるとしたら）", face: thinking }
+        choices:
+          - id: body
+            label: "（からだのことは、自分で決めていい）"
+            canonical: true
+            neutral: true
+            next: end
+          - id: ask
+            label: "（困ったら、誰かに頼っていい）"
+            neutral: true
+            next: end
+          - id: choose
+            label: "（選べないこともある。でも、選べることもある）"
+            neutral: true
+            next: end
+      - id: end
+        lines:
+          - { who: self, kind: inner, text: "（これからも、ここから選んでいく）", face: calm }
+          - { who: narration, text: "35歳までの人生を、ふりかえります。" }
+        next: END

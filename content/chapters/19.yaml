@@ -1,0 +1,555 @@
+# 19歳の章（SPEC.md §10.3、docs/life-map.md）。Claude Code の下書き。すべて status: draft。
+#
+# 進学か就職かは、プレイヤーが選ぶ（2026-11-10 決定）。家計が苦しいと、奨学金やアルバイトの重さが加わる。
+# 束縛は、アプリで知り合った人と付き合った場合だけ起きる（2026-11-10 決定）。相手の行動は統計で決まり、
+# 主人公の選択では止まらない（P7）。行為は描かず、前後の会話と気持ちで描く（P4）。
+age: 19
+title: "19歳"
+season: "新しい暮らし"
+status: draft
+intro:
+  me: "高校を卒業した。毎日の景色が、がらりと変わった。"
+events:
+  # ───────── 誰にでも：進学か就職か ─────────
+  - id: E19-START
+    age: 19
+    characters: [me]
+    kind: fixed
+    trigger: { kind: story, text: "誰にでも起きる" }
+    domains: [ライフコース, 社会経済]
+    statCard: [S22]
+    stage: { place: campus, time: day, cast: [{ id: self, x: 30 }, { id: kanata, x: 64 }] }
+    summary: "高校を出て、進学か就職かを選び、新しい友だちができた。"
+    status: draft
+    scenes:
+      - id: start
+        stage: { place: bedroom, time: night, cast: [{ id: self, x: 40, pose: phone }] }
+        lines:
+          - { who: narration, text: "高校3年の冬。進路を決める日が近づいていた。" }
+          - { who: self, kind: inner, text: "（大学に行くなら、奨学金を借りることになる）", when: "up.economy == 'hardship'", face: thinking }
+          - { who: self, kind: inner, text: "（4年分の学費と、家に入れるお金。考えると眠れない）", when: "up.economy == 'hardship'", face: anxious }
+          - { who: self, kind: inner, text: "（進学か、就職か。どっちの自分も、まだうまく想像できない）", when: "up.economy != 'hardship'", face: thinking }
+          - { who: self, kind: inner, text: "（家のことを考えると、早く働いたほうがいいのかな）", when: "up.familyCare == true" }
+        choices:
+          - id: college
+            label: "大学に進む"
+            canonical: true
+            effects:
+              - { param: autonomy, sign: 1, size: S, source: choice, note: "自分で進路を決めた" }
+              - { param: living, sign: -1, size: M, source: upbringing, statRef: S22, when: "up.economy == 'hardship'", note: "奨学金とアルバイト" }
+            setFlags: { path: college }
+            next: college
+          - id: work
+            label: "就職する"
+            effects:
+              - { param: autonomy, sign: 1, size: S, source: choice, note: "自分で進路を決めた" }
+              - { param: living, sign: 1, size: S, source: choice, note: "自分の収入ができた" }
+            setFlags: { path: work }
+            next: work
+      - id: college
+        lines:
+          - { who: narration, text: "春。大学の最初の授業で、となりの席になった人がいた。" }
+          - { who: kanata, text: "ねえ、この授業の教室、ここで合ってる？" }
+          - { who: self, text: "たぶん。……自信ないけど。" }
+          - { who: kanata, text: "よかった、仲間がいた。カナタ。よろしく。", face: smile }
+          - { who: narration, text: "放課後は、週に4日、駅前の店でアルバイトをした。", when: "up.economy == 'hardship'" }
+          - { who: self, kind: inner, text: "（授業とバイトで、一日が終わる。それでも、ここに来たかった）", when: "up.economy == 'hardship'" }
+          - { who: self, kind: inner, text: "（知らない人ばかり。でも、ここから始められる）", face: smile }
+        next: friend
+      - id: work
+        stage: { place: office, time: day, cast: [{ id: self, x: 30 }, { id: kanata, x: 64 }] }
+        lines:
+          - { who: narration, text: "春。工場の事務の仕事に就いた。同期は2人だけだった。" }
+          - { who: kanata, text: "同期だよね。カナタ。ここ、知り合いいなくてさ。" }
+          - { who: self, text: "こっちも。よろしく。" }
+          - { who: narration, text: "初めての給料で、家に少しお金を入れた。", when: "up.economy == 'hardship' || up.familyCare == true" }
+          - { who: self, kind: inner, text: "（自分で稼いだお金だ。なんだか、背が伸びた気がする）", face: smile }
+        next: friend
+      - id: friend
+        stage: { place: izakaya, time: night, cast: [{ id: self, x: 30 }, { id: kanata, x: 64 }] }
+        lines:
+          - { who: narration, text: "5月。カナタと、安い定食屋で夕ごはんを食べた。" }
+          - { who: kanata, text: "地元の友だちとは、まだ連絡とってる？" }
+          - { who: self, text: "ルイとは、ときどき。向こうは医学部で、勉強が大変みたい。" }
+          - { who: kanata, text: "すごいな。みんな、ばらばらになっていくね。" }
+          - { who: self, kind: inner, text: "（ばらばらになるのは、少しさびしい。でも、新しい友だちもできた）" }
+        choices:
+          - id: open
+            label: "「カナタに会えてよかったよ」"
+            canonical: true
+            closeness:
+              - { who: kanata, delta: 1, note: "気持ちを伝えた" }
+            next: openEnd
+          - id: quiet
+            label: "笑って、うなずく"
+            next: quietEnd
+      - id: openEnd
+        lines:
+          - { who: kanata, text: "なに急に。……でも、こっちも。", face: smile }
+        next: END
+      - id: quietEnd
+        lines:
+          - { who: narration, text: "店を出ると、夜の風が少し暖かかった。" }
+        next: END
+
+  # ───────── 17歳から付き合っている場合：離れて暮らす ─────────
+  - id: E19-DISTANCE
+    age: 19
+    characters: [me]
+    kind: fixed
+    trigger: { kind: choice, text: "17歳で付き合うと決めた続き" }
+    domains: [関係性]
+    requires: "flags.dating == true"
+    stage: { place: station, time: dusk, cast: [{ id: self, x: 28 }, { id: partner, x: 62 }] }
+    summary: "進路が分かれ、付き合っている人と会う時間が減った。"
+    status: draft
+    scenes:
+      - id: start
+        lines:
+          - { who: narration, text: "%partner%とは、別々の道に進んだ。会えるのは月に一度になった。" }
+          - { who: partner, text: "最近、返信おそいよね。……忙しい？" }
+          - { who: self, text: "うん。慣れないことばっかりで。" }
+          - { who: partner, text: "わかってる。責めてるんじゃなくて、さびしいだけ。", face: sad }
+          - { who: self, kind: inner, text: "（このまま続けたい？　それとも……）", face: thinking }
+        choices:
+          - id: keep
+            label: "「会える日を、ちゃんと決めよう」"
+            canonical: true
+            neutral: true
+            effects:
+              - { param: connection, sign: 1, size: S, source: choice, note: "話し合って続けた" }
+            next: keep
+          - id: part
+            label: "「少し、離れて考えたい」"
+            neutral: true
+            effects:
+              - { param: autonomy, sign: 1, size: S, source: choice, note: "自分の気持ちを言えた" }
+            setFlags: { dating: false }
+            next: part
+      - id: keep
+        lines:
+          - { who: partner, text: "うん。第2土曜は空けとく。", face: relieved }
+          - { who: narration, text: "カレンダーに、小さな印が増えた。" }
+        next: END
+      - id: part
+        lines:
+          - { who: partner, text: "……そっか。言ってくれて、ありがとう。", face: sad }
+          - { who: narration, text: "その日、ふたりは別々の電車に乗った。" }
+          - { who: self, kind: inner, text: "（終わりにするのも、自分で決めていいことなんだ）", face: calm }
+        next: END
+
+  # ───────── 付き合っている人がいない場合：アプリでの出会い ─────────
+  - id: E19-APP
+    age: 19
+    characters: [me]
+    kind: fixed
+    trigger: { kind: story, text: "誰にでも起きる" }
+    domains: [オンラインの安全, 関係性]
+    requires: "flags.dating != true"
+    stage: { place: bedroom, time: night, cast: [{ id: self, x: 40, pose: phone }] }
+    summary: "アプリで知り合った人と、会うかどうかを決めた。"
+    status: draft
+    scenes:
+      - id: start
+        lines:
+          - { who: kanata, kind: message, text: "このアプリ、まわりみんな使ってるよ。入れてみたら？" }
+          - { who: self, kind: inner, text: "（プロフィールに、何を書けばいいんだろう）", when: "up.attractedTo == 'men' || up.attractedTo == 'women' || up.attractedTo == 'any'" }
+          - { who: self, kind: inner, text: "（恋人を探すアプリ。……自分には、あんまり関係ない気がする）", when: "up.attractedTo == 'none' || up.attractedTo == 'unsure'" }
+        choices:
+          - id: tryRen
+            label: "入れてみる（男性と知り合う）"
+            requires: "up.attractedTo == 'men' || up.attractedTo == 'any'"
+            setFlags: { dateId: ren }
+            next: matched
+          - id: tryNana
+            label: "入れてみる（女性と知り合う）"
+            requires: "up.attractedTo == 'women' || up.attractedTo == 'any'"
+            setFlags: { dateId: nana }
+            next: matched
+          - id: skip
+            label: "「いまは、いいかな」"
+            canonical: true
+            neutral: true
+            next: skip
+      - id: skip
+        lines:
+          - { who: kanata, kind: message, text: "了解。週末、映画でも行く？" }
+          - { who: self, kind: inner, text: "（無理にしなくていい。いまの毎日で、十分楽しい）", face: smile }
+        next: END
+      - id: matched
+        lines:
+          - { who: narration, text: "何人かとやりとりをした。%date%とは、好きな音楽が同じだった。" }
+          - { who: date, kind: message, text: "今度、直接会って話さない？" }
+          - { who: self, kind: inner, text: "（会ってみたい。でも、まだ顔も声も知らない）", face: thinking }
+        choices:
+          - id: safe
+            label: "「昼間に、駅前のカフェでなら」"
+            canonical: true
+            effects:
+              - { param: autonomy, sign: 1, size: S, source: choice, note: "安全な会い方を選んだ" }
+            next: tellFriend
+          - id: notYet
+            label: "「もう少し、ここで話してからにしたい」"
+            neutral: true
+            next: wait
+      - id: wait
+        lines:
+          - { who: date, kind: message, text: "そっか、わかった。ゆっくりでいいよ。" }
+          - { who: narration, text: "ひと月ほどメッセージを続けてから、昼間に会うことにした。" }
+        next: tellFriend
+      - id: tellFriend
+        stage: { place: station, time: day, cast: [{ id: self, x: 28 }, { id: date, x: 62 }] }
+        lines:
+          - { who: self, kind: message, text: "土曜、アプリの人と会ってくる。駅前のカフェ。" }
+          - { who: kanata, kind: message, text: "了解。終わったら一言ちょうだい。何かあったら電話して。" }
+          - { who: narration, text: "%date%は、写真よりよく笑う人だった。" }
+          - { who: date, text: "話してて楽しい。また会いたいな。", face: smile }
+        choices:
+          - id: date
+            label: "「付き合ってみたい」"
+            neutral: true
+            setFlags: { dateDating: true }
+            next: dating
+          - id: friends
+            label: "「友だちとして、また会いたい」"
+            canonical: true
+            neutral: true
+            next: friends
+      - id: dating
+        stage: { place: bedroom, time: night, cast: [{ id: self, x: 40, pose: phone }] }
+        lines:
+          - { who: narration, text: "こうして、%date%と付き合うことになった。" }
+          - { who: self, kind: message, text: "無事に帰ったよ。……付き合うことになった。" }
+          - { who: kanata, kind: message, text: "え！　おめでとう。今度ちゃんと聞かせて。" }
+        next: END
+      - id: friends
+        stage: { place: station, time: day, cast: [{ id: self, x: 28 }, { id: date, x: 62 }] }
+        lines:
+          - { who: date, text: "うん、それもいいね。", face: smile }
+          - { who: narration, text: "何度か会ううちに、連絡は少しずつ減っていった。" }
+        next: END
+
+  # ───────── 付き合っていて、妊娠の可能性がある組み合わせ：避妊を二人で決める ─────────
+  - id: E19-CONTRA
+    age: 19
+    characters: [me]
+    kind: fixed
+    trigger: { kind: choice, text: "付き合っている人と話した続き" }
+    domains: [避妊・緊急避妊, 同意]
+    requires: "flags.dating == true && flags.pregnancyPossible == true"
+    statCard: [S25, S26, S11]
+    resources: [ec]
+    stage: { place: home2, time: night, cast: [{ id: self, x: 28 }, { id: partner, x: 62 }] }
+    summary: "付き合っている人と、避妊のことを二人で決めた。"
+    status: draft
+    scenes:
+      - id: start
+        lines:
+          - { who: narration, text: "ひとり暮らしの部屋に、%partner%が泊まりに来た。" }
+          - { who: partner, text: "……ねえ、前に話したこと、覚えてる？" }
+          - { who: self, kind: inner, text: "（いつか、の話。今日がその日なのかもしれない）", face: thinking }
+        choices:
+          - id: notYet
+            label: "「今日は、まだやめておきたい」"
+            neutral: true
+            effects:
+              - { param: autonomy, sign: 1, size: M, source: choice, note: "気持ちを言えた" }
+            next: notYet
+          - id: condom
+            label: "「するなら、コンドームは必ず使おう」"
+            canonical: true
+            neutral: true
+            effects:
+              - { param: autonomy, sign: 1, size: M, source: choice, note: "避妊を二人で決めた" }
+            setFlags: { method: condom }
+            next: decided
+          - id: withdrawal
+            label: "（外に出せば大丈夫って、聞いたことがある）"
+            requires: "flags.knowsWithdrawalUnreliable != true"
+            effects:
+              - { param: body, sign: -1, size: S, source: society, statRef: S09, when: "cond.sexEducation == 'notTaught'", note: "学ぶ機会がなかった" }
+            setFlags: { method: withdrawal }
+            next: decided
+      - id: notYet
+        effects:
+          - { param: connection, sign: 1, size: S, source: others, note: "相手が受けとめた" }
+        lines:
+          - { who: partner, text: "わかった。言ってくれてよかった。", face: smile }
+          - { who: narration, text: "その夜は、映画を2本見て、いつの間にか眠った。" }
+        next: END
+      - id: decided
+        lines:
+          - { who: partner, text: "うん。ちゃんと話せて、よかった。", when: "flags.method == 'condom'" }
+          - { who: self, kind: inner, text: "（学校で習ったことを、ちゃんと覚えててよかった）", when: "flags.method == 'condom' && flags.knowsWithdrawalUnreliable == true" }
+          - { who: partner, text: "……うん。気をつけるね。", when: "flags.method == 'withdrawal'" }
+          - { who: narration, kind: fade, text: "（暗転）" }
+          - { who: narration, text: "それから、季節がひとつ過ぎた。" }
+        chance:
+          id: CH-CONTRACEPTION
+          label: "この1年に、避妊のトラブルで妊娠に至りうる出来事が起きる確率"
+          result:
+            happens: "避妊のトラブルが起きました。"
+            notHappens: "トラブルが起きるかもしれませんでしたが、今回は起きませんでした。"
+          # S25 は「典型的な使用での1年目の妊娠率」（米国）。物語の1年を1回の判定とする（解釈）
+          base: { value: 0.13, statRef: S25 }
+          modifiers:
+            - { when: "flags.method == 'withdrawal'", op: set, value: 0.2, source: choice, statRef: S25, note: "外に出す方法だった" }
+          outcomes:
+            happens: { next: notice }
+            notHappens: { setFlags: { pregnant: false }, next: noTrouble }
+      - id: noTrouble
+        lines:
+          - { who: narration, text: "大きなトラブルはなく、ふたりの時間は続いた。" }
+          - { who: self, kind: inner, text: "（なんでも話せる相手で、よかった）", face: smile }
+        next: END
+      - id: notice
+        lines:
+          - { who: partner, text: "……あ。ごめん、コンドーム、破れてたかも。", face: anxious, when: "flags.method == 'condom'" }
+          - { who: narration, text: "ふだんどおりの夜だった。何かが起きたとは、思わなかった。", when: "flags.method == 'withdrawal' && flags.knowsWithdrawalUnreliable != true" }
+          - { who: self, kind: inner, text: "（外に出す方法は、確実じゃないって、授業で聞いた）", when: "flags.method == 'withdrawal' && flags.knowsWithdrawalUnreliable == true", face: anxious }
+        branches:
+          - when: "flags.method == 'withdrawal' && flags.knowsWithdrawalUnreliable != true"
+            next: result
+          - when: "up.body == 'canBePregnant'"
+            next: ecSelf
+        next: ecPartner
+      # 自分が妊娠する可能性がある：緊急避妊薬を使うかは、本人が決める
+      - id: ecSelf
+        lines:
+          - { who: self, kind: inner, text: "（緊急避妊薬は、72時間以内なら薬局で買える）", when: "cond.ecAccess == 'otc2026'" }
+          - { who: self, kind: inner, text: "（緊急避妊薬は、病院で処方してもらわないと手に入らない）", when: "cond.ecAccess == 'prescriptionOnly'" }
+          - { who: self, kind: inner, text: "（値段は7,480円。今月のバイト代から出せるかな）", when: "up.economy == 'hardship'", face: anxious }
+        choices:
+          - id: buy
+            label: "朝いちばんに、薬局へ行く"
+            canonical: true
+            effects:
+              - { param: body, sign: 1, size: M, source: choice, note: "自分で決めて動いた" }
+              - { param: living, sign: -1, size: S, source: upbringing, statRef: S11, when: "up.economy == 'hardship'", note: "薬代が重かった" }
+              - { param: living, sign: -1, size: S, source: society, statRef: S11, when: "cond.ecAccess == 'prescriptionOnly'", note: "受診が必要だった" }
+            setFlags: { usedEC: true }
+            next: pharmacy
+          - id: wait
+            label: "たぶん大丈夫。様子を見る"
+            setFlags: { usedEC: false }
+            next: result
+      # 相手が妊娠する可能性がある：使うかどうかを決めるのは相手。主人公は支える側
+      - id: ecPartner
+        lines:
+          - { who: partner, text: "明日の朝、薬局に行ってくる。緊急避妊薬、買えるはずだから。" }
+          - { who: self, kind: inner, text: "（決めるのは%partner%だ。自分にできることは何だろう）", face: thinking }
+        choices:
+          - id: go
+            label: "「一緒に行く。お金も半分出す」"
+            canonical: true
+            effects:
+              - { param: connection, sign: 1, size: M, source: choice, note: "一緒に向き合った" }
+            setFlags: { usedEC: true }
+            next: pharmacy
+          - id: leave
+            label: "「わかった。……任せるね」"
+            effects:
+              - { param: connection, sign: -1, size: S, source: choice, note: "相手ひとりに任せた" }
+            setFlags: { usedEC: true }
+            next: result
+      - id: pharmacy
+        stage: { place: clinic, time: day, cast: [{ id: self, x: 28 }, { id: pharmacist, x: 64 }] }
+        lines:
+          - { who: pharmacist, text: "こちらで、いま飲んでいただきますね。お水をどうぞ。" }
+          - { who: pharmacist, text: "次の生理が遅れるようなら、検査をしてください。" }
+          - { who: self, kind: inner, text: "（責められなかった。それだけで、少し息ができた）", face: relieved }
+        next: result
+      - id: result
+        lines:
+          - { who: narration, text: "それから、数週間がたった。" }
+        chance:
+          id: CH-EC
+          label: "妊娠が成立する確率"
+          result:
+            happens: "妊娠しました。"
+            notHappens: "妊娠するかもしれませんでしたが、今回はしませんでした。"
+          # S25 の失敗＝妊娠と定義しているため、基本は1.0。緊急避妊薬の妊娠阻止率84%（S26）を差し引く（解釈）
+          base: { value: 1.0, statRef: S25 }
+          modifiers:
+            - { when: "flags.usedEC == true", op: mul, value: 0.16, source: choice, statRef: S26, note: "緊急避妊薬を使った" }
+          outcomes:
+            happens: { setFlags: { pregnant: true }, next: pregnant }
+            notHappens: { setFlags: { pregnant: false }, next: notPregnant }
+      - id: pregnant
+        lines:
+          - { who: narration, text: "ひと月後。検査薬に、くっきりと線が出た。" }
+          - { who: self, kind: inner, text: "（……どうしよう。でも、ひとりで決めなくていいはずだ）", face: anxious, when: "up.body == 'canBePregnant'" }
+          - { who: partner, kind: message, text: "……検査、陽性だった。", when: "up.body != 'canBePregnant'" }
+          - { who: self, kind: inner, text: "（%partner%のからだのことだ。まず、話を聞こう）", face: anxious, when: "up.body != 'canBePregnant'" }
+        next: END
+      - id: notPregnant
+        lines:
+          - { who: narration, text: "数週間後、生理が来た。", when: "up.body == 'canBePregnant'" }
+          - { who: partner, kind: message, text: "生理きた。……よかった。", when: "up.body != 'canBePregnant'" }
+          - { who: self, kind: inner, text: "（次からのことも、ちゃんと二人で決めよう）", face: relieved }
+        next: END
+
+  # ───────── アプリで知り合った人と付き合った場合：束縛（相手の行動は統計で決まる。P7） ─────────
+  - id: E19-CONTROL
+    age: 19
+    characters: [me]
+    kind: chance
+    trigger: { kind: chance, text: "伏せたカードを1枚引いた（統計の割合で決まる）" }
+    domains: [デートDV, 対人暴力]
+    requires: "flags.dateDating == true"
+    statCard: [S01, S07]
+    resources: [violence]
+    stage: { place: bedroom, time: night, cast: [{ id: self, x: 40, pose: phone }] }
+    summary: "付き合い始めた人の行動が、少しずつ変わっていった。"
+    status: draft
+    scenes:
+      - id: start
+        lines:
+          - { who: narration, text: "%date%と付き合って、三か月がたった。" }
+        chance:
+          id: CH-CONTROL19
+          label: "交際相手から暴力（束縛や精神的な暴力を含む）を受ける可能性"
+          actorLabel: "交際相手の行動"
+          result:
+            happens: "交際相手から、束縛を受けるようになりました。"
+            notHappens: "束縛を受けるかもしれませんでしたが、今回は受けませんでした。"
+          # S01 は交際経験のある18〜59歳の「これまでの」被害経験。19歳の1回の判定に使う（解釈）。
+          # 性自認別の値がないため、トランスジェンダー女性とノンバイナリーは女性の値、トランスジェンダー男性は男性の値を使う（解釈）。
+          # 主人公の選択は、この確率を変えない（P7）
+          base: { value: 0.227, statRef: S01 }
+          modifiers:
+            - { when: "up.gender == 'man' || up.gender == 'transMan'", op: set, value: 0.12, source: society, statRef: S01, note: "男性の割合" }
+          outcomes:
+            happens: { setFlags: { controlled: true }, next: control }
+            notHappens: { setFlags: { dateDating: false }, next: calm }
+      - id: calm
+        lines:
+          - { who: narration, text: "%date%とは、気楽な関係が続いた。" }
+          - { who: narration, text: "半年ほどたって、それぞれの毎日が忙しくなり、自然に会わなくなった。" }
+          - { who: self, kind: inner, text: "（いい時間だった。そう思える終わり方でよかった）", face: calm }
+        next: END
+      - id: control
+        effects:
+          - { param: connection, sign: -1, size: M, source: others, statRef: S07, note: "友だちと会いにくくなった" }
+          - { param: autonomy, sign: -1, size: M, source: others, statRef: S07, note: "行動を見張られた" }
+        lines:
+          - { who: date, kind: message, text: "いまどこ？　位置情報、オフにしてるよね。" }
+          - { who: date, kind: message, text: "カナタと会うの、やめてほしい。心配だから。" }
+          - { who: date, kind: message, text: "既読なのに返事ないの、なんで？" }
+          - { who: self, kind: inner, text: "（心配してくれてる……のかな。でも、息がつまる）", face: anxious }
+          - { who: self, kind: inner, text: "（返事が遅れたのは、自分が悪かったのかもしれない）", when: "up.bodyRespect == 'dismissed'", face: sad }
+          - { who: self, kind: inner, text: "（家で見てきた夜と、どこか似ている）", when: "up.witnessedDV == true", face: sad }
+        choices:
+          - id: tellKanata
+            label: "カナタに、全部話してみる"
+            canonical: true
+            effects:
+              - { param: connection, sign: 1, size: M, source: choice, note: "ひとりで抱えなかった" }
+            next: kanata
+          - id: call
+            label: "DV相談＋（プラス）に、メールしてみる"
+            requires: "flags.knowsHelplines == true"
+            effects:
+              - { param: autonomy, sign: 1, size: M, source: choice, note: "相談先に連絡した" }
+            next: helpline
+          - id: alone
+            label: "（もう少し、がまんしてみる）"
+            next: alone
+      - id: kanata
+        stage: { place: izakaya, time: night, cast: [{ id: self, x: 30 }, { id: kanata, x: 64 }] }
+        lines:
+          - { who: kanata, text: "それ、心配じゃなくて、束縛だと思う。", face: anxious }
+          - { who: kanata, text: "あなたが悪いんじゃない。それだけは、はっきり言える。" }
+          - { who: self, kind: inner, text: "（自分のせいじゃないって、言ってもらえた）", face: relieved }
+        next: decide
+      - id: helpline
+        lines:
+          - { who: narration, text: "深夜、相談のメールを送った。次の日、返事が来た。" }
+          - { who: narration, text: "「あなたが悪いのではありません。安全のために、できることを一緒に考えましょう」" }
+          - { who: self, kind: inner, text: "（知らない人なのに、ちゃんと読んでくれた）", face: relieved }
+        next: decide
+      - id: alone
+        lines:
+          - { who: narration, text: "メッセージの通知が鳴るたびに、心臓が速くなった。" }
+          - { who: self, kind: inner, text: "（誰かに話したい。でも、何から話せばいいんだろう）", face: sad }
+          - { who: narration, text: "話したくなったときは、いつでも相談できる。" }
+        next: decide
+      - id: decide
+        lines:
+          - { who: self, kind: inner, text: "（%date%は、変わらないかもしれない。変えるのは、自分の責任じゃない）", face: thinking }
+        choices:
+          - id: leave
+            label: "「距離を置きたい」と、メッセージで伝える"
+            canonical: true
+            effects:
+              - { param: autonomy, sign: 1, size: M, source: choice, note: "離れると決めた" }
+            closeness:
+              - { who: ren, end: true, note: "関係を終えた", when: "flags.dateId == 'ren'" }
+              - { who: nana, end: true, note: "関係を終えた", when: "flags.dateId == 'nana'" }
+            setFlags: { dateDating: false }
+            next: left
+          - id: stay
+            label: "（まだ、離れられない）"
+            setFlags: { stillControlled: true }
+            next: stay
+      - id: left
+        lines:
+          - { who: narration, text: "連絡先を消すまで、何度も手が止まった。" }
+          - { who: narration, text: "カナタが、その夜ずっと通話をつないでいてくれた。" }
+          - { who: self, kind: inner, text: "（終わった。……少しずつ、自分の時間が戻ってくる）", face: calm }
+        next: END
+      - id: stay
+        lines:
+          - { who: self, kind: inner, text: "（もう少しだけ。……そう思うのも、無理はないことだ）", face: sad }
+          - { who: narration, text: "離れられない理由は、人それぞれにある。相談は、いつでもできる。" }
+        next: END
+
+  # ───────── 性のあり方を、新しい友だちに話すか ─────────
+  - id: E19-WORDS
+    age: 19
+    characters: [me]
+    kind: fixed
+    trigger: { kind: profile, text: "性のあり方を、新しい場所で話す機会があったから起きた" }
+    domains: [性の多様性]
+    requires: "up.gender == 'transWoman' || up.gender == 'transMan' || up.gender == 'nonbinary' || up.attractedTo == 'any' || up.attractedTo == 'none' || up.attractedTo == 'unsure' || (up.gender == 'woman' && up.attractedTo == 'women') || (up.gender == 'man' && up.attractedTo == 'men')"
+    statCard: [S24]
+    stage: { place: izakaya, time: night, cast: [{ id: self, x: 30 }, { id: kanata, x: 64 }] }
+    summary: "新しい友だちに、自分の性のあり方を話すかどうか考えた。"
+    status: draft
+    scenes:
+      - id: start
+        lines:
+          - { who: kanata, text: "そういえば、好きなタイプとかあるの？" }
+          - { who: self, kind: inner, text: "（新しい場所では、名前の呼ばれ方を自分で選べた。それだけで、少し楽になった）", when: "up.gender == 'transWoman' || up.gender == 'transMan' || up.gender == 'nonbinary'" }
+          - { who: self, kind: inner, text: "（カナタになら、話してもいいかもしれない。……まだ、わからない）", face: thinking }
+        choices:
+          - id: tell
+            label: "「実は、話したいことがあって」"
+            neutral: true
+            effects:
+              - { param: autonomy, sign: 1, size: S, source: choice, note: "話すと自分で決めた" }
+            next: tell
+          - id: notNow
+            label: "「うーん、秘密」と笑う"
+            canonical: true
+            neutral: true
+            effects:
+              - { param: autonomy, sign: 1, size: S, source: choice, note: "話さないと自分で決めた" }
+            next: notNow
+      - id: tell
+        lines:
+          - { who: self, text: "生まれたときに決められた性別と、自分の感じ方が違うんだ。", when: "up.gender == 'transWoman' || up.gender == 'transMan'" }
+          - { who: self, text: "男とか女とか、どちらかの枠に自分を当てはめると、しっくりこなくて。", when: "up.gender == 'nonbinary'" }
+          - { who: self, text: "好きになる相手の性別は、あんまり関係ないんだ。", when: "up.attractedTo == 'any' && up.gender != 'transWoman' && up.gender != 'transMan' && up.gender != 'nonbinary'" }
+          - { who: self, text: "恋愛の「好き」が、自分にはあまりピンとこなくて。", when: "up.attractedTo == 'none' && up.gender != 'transWoman' && up.gender != 'transMan' && up.gender != 'nonbinary'" }
+          - { who: self, text: "自分が誰を好きになるのか、まだ考えているところなんだ。", when: "up.attractedTo == 'unsure' && up.gender != 'transWoman' && up.gender != 'transMan' && up.gender != 'nonbinary'" }
+          - { who: self, text: "好きになるのは、同性なんだ。", when: "((up.gender == 'woman' && up.attractedTo == 'women') || (up.gender == 'man' && up.attractedTo == 'men'))" }
+          - { who: kanata, text: "そっか。話してくれて、ありがとう。", face: smile }
+          - { who: kanata, text: "呼び方とか、気をつけてほしいことがあったら言ってね。" }
+          - { who: self, kind: inner, text: "（言っても、何も変わらなかった。それが、うれしい）", face: relieved }
+        next: END
+      - id: notNow
+        lines:
+          - { who: kanata, text: "えー、気になる。まあ、いつか教えて。", face: smile }
+          - { who: self, kind: inner, text: "（話すかどうかも、いつ話すかも、自分で決めていい）", face: calm }
+        next: END

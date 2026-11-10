@@ -1,0 +1,415 @@
+# 24歳の章（SPEC.md §10.3、docs/life-map.md）。Claude Code の下書き。すべて status: draft。
+#
+# 働くことと、からだ。仕事のやりがいと楽しさ、安い賃金と長時間労働、不安定な雇用と転職（2026-11-07 発注者の指示）。
+# 職場のセクハラと長時間労働・転職は、統計の表にまだ値がないため、確率を使わずに物語の決まりで起こす。数字は書かない。
+age: 24
+title: "24歳"
+season: "働きはじめて"
+status: draft
+intro:
+  me: "働きはじめて、何年かたった。毎日は、思っていたより速く過ぎていく。"
+events:
+  # ───────── 誰にでも：仕事のやりがいと、働きすぎ ─────────
+  - id: E24-WORK
+    age: 24
+    characters: [me]
+    kind: fixed
+    trigger: { kind: story, text: "誰にでも起きる" }
+    domains: [労働, 社会経済]
+    statCard: [S43, S46]
+    stage: { place: office, time: day, cast: [{ id: self, x: 28 }, { id: boss, x: 52 }, { id: ao, x: 76 }] }
+    summary: "任された仕事が楽しくなる一方で、働き方に無理が出てきた。"
+    status: draft
+    scenes:
+      - id: start
+        lines:
+          - { who: boss, text: "来月の新しい企画、あなたに任せたいと思ってる。" }
+          - { who: self, kind: inner, text: "（任された。……うれしい）", face: smile }
+          - { who: ao, text: "すごいじゃん。手伝えることあったら言ってね。", face: smile }
+          - { who: self, kind: inner, text: "（でも、契約のままで、給料も上がらないのに？）", when: "flags.job == 'contract'", face: thinking }
+          - { who: self, kind: inner, text: "（保育園のお迎えに、間に合うかな）", when: "flags.child == 'early'", face: anxious }
+        choices:
+          - id: take
+            label: "「やらせてください」"
+            canonical: true
+            effects:
+              - { param: autonomy, sign: 1, size: M, source: choice, note: "やりがいのある仕事" }
+            next: busy
+          - id: ask
+            label: "「条件を相談させてください」"
+            effects:
+              - { param: autonomy, sign: 1, size: M, source: choice, note: "条件を交渉した" }
+            next: ask
+      - id: ask
+        lines:
+          - { who: self, text: "引き受けたいです。ただ、残業がこれ以上増えるのは難しくて。", when: "flags.child != 'early'" }
+          - { who: self, text: "引き受けたいです。ただ、お迎えがあるので、18時には出たいです。", when: "flags.child == 'early'" }
+          - { who: boss, text: "……わかった。人を一人つけよう。" }
+          - { who: self, kind: inner, text: "（言ってみるものだ）", face: relieved }
+        next: busy
+      - id: busy
+        stage: { place: office, time: night, cast: [{ id: self, x: 36 }, { id: ao, x: 68 }] }
+        lines:
+          - { who: narration, text: "企画は、少しずつ形になっていった。" }
+          - { who: self, kind: inner, text: "（自分のアイデアが、会議で通った。仕事って、楽しいんだ）", face: smile }
+          - { who: narration, text: "それでも、夜10時のオフィスにいる日が増えた。" }
+          - { who: narration, text: "給料日に通帳を見ると、残業代を入れても家賃と奨学金でほとんど消えた。", when: "up.economy == 'hardship' && flags.path == 'college'" }
+          - { who: narration, text: "同じ仕事をしている正社員の人より、手取りはずっと少なかった。", when: "flags.job == 'contract'" }
+          - { who: ao, text: "顔色やばいよ。最後にちゃんと寝たの、いつ？", face: anxious }
+          - { who: self, kind: inner, text: "（頭が回らない。休みたい。でも、休んだら終わらない）", face: anxious }
+        choices:
+          - id: rest
+            label: "「明日、有休とる。課長にも言う」"
+            canonical: true
+            effects:
+              - { param: body, sign: 1, size: M, source: choice, note: "休むと決めた" }
+            next: rest
+          - id: push
+            label: "（あと少しだけ、がんばる）"
+            effects:
+              - { param: body, sign: -1, size: M, source: society, note: "長時間労働が続いた" }
+              - { param: connection, sign: -1, size: S, source: society, note: "人と会う時間がない" }
+            next: push
+      - id: rest
+        lines:
+          - { who: narration, text: "一日、昼まで眠った。起きたら、窓の外が明るかった。" }
+          - { who: self, kind: inner, text: "（休むのも、仕事を続けるための仕事だ）", face: calm }
+        next: END
+      - id: push
+        lines:
+          - { who: narration, text: "企画は成功した。打ち上げの日、帰りの電車で立ったまま眠りかけた。" }
+          - { who: self, kind: inner, text: "（うれしいのに、からだが追いついてこない）", face: thinking }
+          - { who: narration, text: "働きすぎや心身の不調は、ひとりで抱えなくていい。" }
+        next: END
+
+  # ───────── 誰にでも：職場のセクハラ（その場に居合わせる） ─────────
+  - id: E24-HARASS
+    age: 24
+    characters: [me]
+    kind: fixed
+    trigger: { kind: story, text: "誰にでも起きる" }
+    domains: [ハラスメント, 労働]
+    resources: [violence]
+    stage: { place: izakaya, time: night, cast: [{ id: self, x: 24 }, { id: ao, x: 50 }, { id: boss, x: 76 }] }
+    summary: "職場の飲み会で、上司が同僚にからだや恋愛のことを言った。"
+    status: draft
+    scenes:
+      - id: start
+        lines:
+          - { who: narration, text: "部署の飲み会。課長は、だいぶ酔っていた。" }
+          - { who: boss, text: "アオさんさあ、最近きれいになったよね。彼氏できた？" }
+          - { who: ao, text: "……いえ、そういうのは。", face: anxious }
+          - { who: boss, text: "またまた。そのスカート、誰に見せるの？" }
+          - { who: self, kind: inner, text: "（アオの顔がこわばっている。誰も、何も言わない）", face: anxious }
+        choices:
+          - id: change
+            label: "「課長、さっきの企画の話なんですけど」と話を変える"
+            canonical: true
+            effects:
+              - { param: connection, sign: 1, size: S, source: choice, note: "その場で割って入った" }
+            next: after
+          - id: silent
+            label: "（何も言えない）"
+            next: after
+      - id: after
+        stage: { place: station, time: night, cast: [{ id: self, x: 30 }, { id: ao, x: 64 }] }
+        lines:
+          - { who: narration, text: "帰り道、駅でアオと二人になった。" }
+          - { who: ao, text: "……ああいうの、毎回なんだよね。", face: sad }
+        choices:
+          - id: listen
+            label: "「嫌だったよね。相談窓口、一緒に調べようか」"
+            canonical: true
+            effects:
+              - { param: connection, sign: 1, size: M, source: choice, note: "同僚の話を聞いた" }
+            closeness:
+              - { who: ao, delta: 1, note: "話を聞いた" }
+            next: listen
+          - id: shrug
+            label: "「課長、悪気はないんだと思うよ」"
+            effects:
+              - { param: connection, sign: -1, size: S, source: choice, note: "同僚の話を流した" }
+            next: shrug
+      - id: listen
+        lines:
+          - { who: ao, text: "……ありがとう。一人じゃないって思えた。", face: relieved }
+          - { who: narration, text: "翌週、アオは社内の相談窓口に連絡した。その後、課長は飲み会に来なくなった。" }
+          - { who: self, kind: inner, text: "（次にもし自分が言われたら、きっと同じように声を上げられる）", face: calm }
+        next: END
+      - id: shrug
+        lines:
+          - { who: ao, text: "……そうかもね。じゃあ、また明日。", face: sad }
+          - { who: self, kind: inner, text: "（あの顔を、なかったことにしてしまった気がする）", face: thinking }
+        next: END
+
+  # ───────── 誰にでも：SNSに勝手に写真が上がる ─────────
+  - id: E24-PHOTO
+    age: 24
+    characters: [me]
+    kind: fixed
+    trigger: { kind: story, text: "誰にでも起きる" }
+    domains: [オンラインの安全, 同意]
+    stage: { place: bedroom, time: night, cast: [{ id: self, x: 40, pose: phone }] }
+    summary: "同期のグループに、酔った人の写真が勝手に載せられた。"
+    status: draft
+    scenes:
+      - id: start
+        lines:
+          - { who: narration, text: "同期のグループに、飲み会の写真が次々と上がってきた。" }
+          - { who: narration, text: "その中に、酔いつぶれて寝ている人の写真があった。" }
+          - { who: narration, text: "「拡散希望ｗ」というコメントに、笑いのスタンプが並んでいく。" }
+          - { who: self, kind: inner, text: "（本人は、この写真を知っているのかな）", face: thinking }
+        choices:
+          - id: delete
+            label: "「本人に聞いた？　消したほうがいいと思う」と書く"
+            canonical: true
+            effects:
+              - { param: autonomy, sign: 1, size: S, source: choice, note: "おかしいと言えた" }
+            next: delete
+          - id: ignore
+            label: "見なかったことにする"
+            next: ignore
+      - id: delete
+        lines:
+          - { who: narration, text: "しばらくして、写真は消えた。「ごめん、調子に乗った」と書き込みがあった。" }
+          - { who: self, kind: inner, text: "（写真ひとつでも、勝手に広げていいものじゃない）", face: calm }
+        next: END
+      - id: ignore
+        lines:
+          - { who: narration, text: "写真は、朝までグループに残っていた。" }
+          - { who: self, kind: inner, text: "（……自分が撮られた側だったら、どう思うだろう）", face: thinking }
+        next: END
+
+  # ───────── 誰にでも：高校の友だちと再会する ─────────
+  - id: E24-REUNION
+    age: 24
+    characters: [me]
+    kind: fixed
+    trigger: { kind: story, text: "誰にでも起きる" }
+    domains: [友人関係, ライフコース]
+    stage: { place: izakaya, time: night, cast: [{ id: self, x: 28 }, { id: riko, x: 62 }] }
+    summary: "久しぶりにルイと会い、それぞれの道の違いを感じた。"
+    status: draft
+    scenes:
+      - id: start
+        lines:
+          - { who: riko, text: "久しぶり！　全然変わってないね。", face: smile }
+          - { who: narration, text: "ルイは研修医になっていた。当直明けで、少し眠そうだった。" }
+          - { who: riko, text: "怒られてばっかり。でも、患者さんの「ありがとう」で全部吹き飛ぶ。" }
+          - { who: self, kind: inner, text: "（同じ教室にいたのに、ずいぶん遠くまで来たんだな）", face: thinking }
+          - { who: riko, text: "そういえば、%partner%が今度こっちに戻ってくるって。", when: "flags.dating != true && (flags.partnerId == 'sou' || flags.partnerId == 'saki')" }
+        choices:
+          - id: proud
+            label: "「ルイ、かっこいいよ。こっちも、仕事が楽しくなってきた」"
+            canonical: true
+            effects:
+              - { param: connection, sign: 1, size: S, source: choice, note: "昔の友だちと話せた" }
+            closeness:
+              - { who: riko, delta: 1, note: "久しぶりに会った" }
+            next: talk
+          - id: compare
+            label: "（それにくらべて、自分は……）"
+            effects:
+              - { param: autonomy, sign: -1, size: S, source: choice, note: "人とくらべた" }
+            next: talk
+      - id: talk
+        lines:
+          - { who: riko, text: "くらべなくていいんだよ。こっちは、まだ一人で家賃も払えてないし。" }
+          - { who: self, kind: inner, text: "（それぞれの道に、それぞれの大変さがある）", face: calm }
+        branches:
+          - when: "flags.dating != true && (flags.partnerId == 'sou' || flags.partnerId == 'saki')"
+            next: partner
+        next: END
+      - id: partner
+        stage: { place: station, time: dusk, cast: [{ id: self, x: 28 }, { id: partner, x: 62 }] }
+        lines:
+          - { who: narration, text: "翌月、ルイの声がけで、%partner%とも会った。" }
+          - { who: partner, text: "なんか、話してると高校のころに戻るね。", face: smile }
+          - { who: self, kind: inner, text: "（あのころより、ずっと落ち着いて話せる）" }
+        choices:
+          - id: date
+            label: "「また、二人で会いたい」"
+            neutral: true
+            setFlags: { dating: true }
+            closeness:
+              - { who: sou, delta: 1, note: "また会うようになった", when: "flags.partnerId == 'sou'" }
+              - { who: saki, delta: 1, note: "また会うようになった", when: "flags.partnerId == 'saki'" }
+            next: date
+          - id: friend
+            label: "「また、みんなで集まろう」"
+            canonical: true
+            neutral: true
+            next: friend
+      - id: date
+        stage: { place: station, time: dusk, cast: [{ id: self, x: 28 }, { id: partner, x: 62 }] }
+        lines:
+          - { who: partner, text: "うん。……実は、同じこと思ってた。", face: smile }
+          - { who: narration, text: "その年の秋、ふたりは付き合い始めた。" }
+        next: END
+      - id: friend
+        stage: { place: station, time: dusk, cast: [{ id: self, x: 28 }, { id: partner, x: 62 }] }
+        lines:
+          - { who: partner, text: "いいね。次は、カラオケ行こう。", face: smile }
+        next: END
+
+  # ───────── 誰にでも：からだと日ごろの生活（月経のつらさ、食事、たばこ） ─────────
+  - id: E24-BODY
+    age: 24
+    characters: [me]
+    kind: fixed
+    trigger: { kind: story, text: "誰にでも起きる" }
+    domains: [月経, 栄養, 喫煙]
+    statCard: [S40, S38]
+    resources: [health]
+    stage: { place: office, time: day, cast: [{ id: self, x: 30 }, { id: ao, x: 64 }] }
+    summary: "忙しさの中で、自分のからだの不調に向き合った。"
+    status: draft
+    scenes:
+      - id: start
+        branches:
+          - when: "up.body == 'canBePregnant'"
+            next: period
+        lines:
+          - { who: narration, text: "昼休み。コンビニのおにぎりを、デスクで食べた。" }
+        next: smoke
+      - id: period
+        lines:
+          - { who: narration, text: "月に一度、立っていられないほどの痛みが来る。" }
+          - { who: self, kind: inner, text: "（生理痛なんて、みんな我慢してる。……そう教わってきた）", when: "up.bodyRespect == 'dismissed'", face: sad }
+          - { who: self, kind: inner, text: "（鎮痛剤が、だんだん効かなくなってきた）", face: anxious }
+          - { who: ao, text: "それ、我慢するレベルじゃないと思う。婦人科、行ったことある？" }
+        choices:
+          - id: clinic
+            label: "婦人科を予約する"
+            canonical: true
+            effects:
+              - { param: body, sign: 1, size: M, source: choice, note: "受診して相談した" }
+            next: clinic
+          - id: endure
+            label: "（もう少し、様子を見る）"
+            effects:
+              - { param: body, sign: -1, size: S, source: upbringing, when: "up.bodyRespect == 'dismissed'", note: "我慢が当たり前だった" }
+            next: endure
+      - id: clinic
+        stage: { place: clinic, time: day, cast: [{ id: self, x: 30 }, { id: doctor, x: 64 }] }
+        lines:
+          - { who: doctor, text: "痛みが強いときは、原因の病気が隠れていることもあります。" }
+          - { who: doctor, text: "治療の方法はいくつかあります。一緒に考えましょう。" }
+          - { who: self, kind: inner, text: "（もっと早く来ればよかった）", face: relieved }
+        next: smoke
+      - id: endure
+        lines:
+          - { who: narration, text: "その月も、痛み止めを飲んで会議に出た。" }
+          - { who: narration, text: "強い痛みは、婦人科で相談できる。" }
+        next: smoke
+      - id: smoke
+        stage: { place: hallway, time: dusk, cast: [{ id: self, x: 30 }, { id: ao, x: 64 }] }
+        lines:
+          - { who: narration, text: "仕事の帰り、喫煙所の前で先輩に呼び止められた。" }
+          - { who: narration, text: "「一本どう？　息抜きになるよ」" }
+        choices:
+          - id: no
+            label: "「いえ、吸わないので」"
+            canonical: true
+            effects:
+              - { param: body, sign: 1, size: S, source: choice, note: "たばこを断った" }
+            next: no
+          - id: yes
+            label: "「じゃあ、一本だけ」"
+            effects:
+              - { param: body, sign: -1, size: S, source: choice, note: "たばこを吸い始めた" }
+            setFlags: { smokes: true }
+            next: yes
+      - id: no
+        lines:
+          - { who: self, kind: inner, text: "（今日は、ちゃんとした晩ごはんを作ろう）", face: calm }
+        next: END
+      - id: yes
+        lines:
+          - { who: narration, text: "その一本が、二本になり、毎日になった。" }
+          - { who: self, kind: inner, text: "（やめようと思えば、いつでもやめられる。……たぶん）", face: thinking }
+        next: END
+
+  # ───────── 性のあり方を、職場で話すか ─────────
+  - id: E24-OUT
+    age: 24
+    characters: [me]
+    kind: fixed
+    trigger: { kind: profile, text: "性のあり方を、職場で話す機会があったから起きた" }
+    domains: [性の多様性, 労働]
+    requires: "up.gender == 'transWoman' || up.gender == 'transMan' || up.gender == 'nonbinary' || up.attractedTo == 'any' || up.attractedTo == 'none' || up.attractedTo == 'unsure' || (up.gender == 'woman' && up.attractedTo == 'women') || (up.gender == 'man' && up.attractedTo == 'men')"
+    statCard: [S51]
+    stage: { place: office, time: day, cast: [{ id: self, x: 30 }, { id: ao, x: 64 }] }
+    summary: "職場で、自分の性のあり方を話すかどうか考えた。"
+    status: draft
+    scenes:
+      - id: start
+        lines:
+          - { who: ao, text: "週末なにしてたの？　恋人とデート？" }
+          - { who: self, kind: inner, text: "（更衣室も、健康診断も、毎回少しだけ気が重い）", when: "up.gender == 'transWoman' || up.gender == 'transMan' || up.gender == 'nonbinary'" }
+          - { who: self, kind: inner, text: "（職場では、まだ誰にも話していない）", face: thinking }
+        choices:
+          - id: tell
+            label: "アオになら、話してみる"
+            neutral: true
+            effects:
+              - { param: autonomy, sign: 1, size: S, source: choice, note: "話すと自分で決めた" }
+            next: tell
+          - id: keep
+            label: "「まあ、いろいろね」とはぐらかす"
+            canonical: true
+            neutral: true
+            effects:
+              - { param: autonomy, sign: 1, size: S, source: choice, note: "話さないと自分で決めた" }
+            next: keep
+      - id: tell
+        lines:
+          - { who: ao, text: "そうなんだ。教えてくれて、ありがとう。", face: smile }
+          - { who: ao, text: "困ってることがあったら、一緒に人事に言いに行くよ。" }
+          - { who: self, kind: inner, text: "（職場にも、話せる人ができた）", face: relieved }
+        next: END
+      - id: keep
+        lines:
+          - { who: self, kind: inner, text: "（話さないのも、ひとつの選び方だ）", face: calm }
+        next: END
+
+  # ───────── 誰にでも：転職を考える ─────────
+  - id: E24-CHANGE
+    age: 24
+    characters: [me]
+    kind: fixed
+    trigger: { kind: story, text: "誰にでも起きる" }
+    domains: [労働, ライフコース]
+    stage: { place: bedroom, time: night, cast: [{ id: self, x: 40, pose: phone }] }
+    summary: "契約の更新や働き方のことで、転職を考えた。"
+    status: draft
+    scenes:
+      - id: start
+        lines:
+          - { who: narration, text: "年度末。「来年度は、契約を更新しない」と告げられた。", when: "flags.job == 'contract'" }
+          - { who: narration, text: "転職サイトから、毎日のようにメールが届く。", when: "flags.job != 'contract'" }
+          - { who: self, kind: inner, text: "（頑張っても、ここでは先が見えない）", when: "flags.job == 'contract'", face: sad }
+          - { who: self, kind: inner, text: "（いまの仕事は好きだ。でも、このままの働き方で、ずっと続けられる？）", when: "flags.job != 'contract'", face: thinking }
+        choices:
+          - id: change
+            label: "転職活動を始める"
+            canonical: true
+            effects:
+              - { param: autonomy, sign: 1, size: M, source: choice, note: "働き方を選び直した" }
+            setFlags: { changedJob: true }
+            next: change
+          - id: stay
+            label: "いまの場所で、もう少し続ける"
+            requires: "flags.job != 'contract'"
+            neutral: true
+            next: stay
+      - id: change
+        lines:
+          - { who: narration, text: "三か月後、新しい職場が決まった。前より少し給料が上がり、残業は減った。" }
+          - { who: self, kind: inner, text: "（仕事は、変えてもいい。変えられる力が、少しずつついてきた）", face: smile }
+        next: END
+      - id: stay
+        lines:
+          - { who: narration, text: "上司に相談して、担当の仕事を少し減らしてもらった。" }
+          - { who: self, kind: inner, text: "（続けるのも、自分で決めたことだ）", face: calm }
+        next: END

@@ -113,3 +113,86 @@
   role: 主人公の交際相手になり得る人
   peerOffset: 0
   look: { skin: "#e3b38f", hair: "#3a2c26", hairStyle: mid, clothes: ["#7fbf86", "#7fbf86", "#4fa9b8"], pants: "#3a3f4a" }
+
+# ── 19歳以降の脇役。名前は仮（付録B-5） ──
+- id: kanata
+  name: カナタ
+  about: "19歳で知り合った。気をつかわずに話せる。"
+  tie: 友だち
+  circle: friends
+  relation: 友だち
+  role: 19歳で知り合った友だち（大学や職場）
+  peerOffset: 0
+  look: { skin: "#e9bf9c", hair: "#3a2c26", hairStyle: mid, clothes: ["#4fa9b8", "#4fa9b8", "#e09a64"], pants: "#3a3f4a" }
+- id: ren
+  name: レン
+  about: "アプリで知り合った。"
+  tie: 知り合い
+  circle: friends
+  relation: アプリで知り合った人
+  role: 19歳でアプリで知り合う人（男性）
+  peerOffset: 1
+  look: { skin: "#e3b38f", hair: "#2b2622", hairStyle: short, clothes: ["#8a8f9c", "#8a8f9c", "#8a8f9c"], pants: "#2f3542" }
+- id: nana
+  name: ナナ
+  about: "アプリで知り合った。"
+  tie: 知り合い
+  circle: friends
+  relation: アプリで知り合った人
+  role: 19歳でアプリで知り合う人（女性）
+  peerOffset: 1
+  look: { skin: "#f0c6a4", hair: "#4a3226", hairStyle: long, clothes: ["#a77fb5", "#a77fb5", "#a77fb5"], pants: "#3a3f4a" }
+- id: pharmacist
+  name: 薬剤師
+  relation: 薬局の薬剤師
+  role: 緊急避妊薬を販売する薬局の薬剤師
+  age: 42
+  look: { skin: "#ecc19e", hair: "#4a3a30", hairStyle: bob, clothes: ["#f2f2f2", "#f2f2f2", "#f2f2f2"], pants: "#5b6170" }
+- id: boss
+  name: 課長
+  relation: 職場の上司
+  role: 職場の上司
+  age: 48
+  look: { skin: "#e3b38f", hair: "#55505a", hairStyle: short, clothes: ["#6f7178", "#6f7178", "#6f7178"], pants: "#2b2b2b" }
+- id: ao
+  name: アオ
+  about: "同じ職場で、席がとなり。"
+  tie: 同僚
+  circle: other
+  relation: 同僚
+  role: 職場の同僚
+  peerOffset: 0
+  look: { skin: "#f0c8a6", hair: "#6a4632", hairStyle: tied, clothes: ["#8bb34a", "#8bb34a", "#8bb34a"], pants: "#2f3542" }
+- id: doctor
+  name: 医師
+  relation: 病院の医師
+  role: 産婦人科・内科の医師
+  age: 46
+  look: { skin: "#efc4a0", hair: "#3a2c26", hairStyle: short, clothes: ["#2f9e94", "#2f9e94", "#2f9e94"], pants: "#2f9e94" }
+- id: kid20
+  name: ヒナタ
+  about: "自分の子ども。"
+  tie: 子ども
+  circle: family
+  relation: 子ども
+  role: 20歳ごろに生まれた子ども
+  bornAt: 20
+  look: { skin: "#f0c6a4", hair: "#2b2622", hairStyle: short, clothes: ["#f2c14e", "#f2c14e", "#8bb34a"], pants: "#5b8fd9" }
+- id: kid30
+  name: ヒナタ
+  about: "自分の子ども。"
+  tie: 子ども
+  circle: family
+  relation: 子ども
+  role: 30歳ごろに生まれた子ども
+  bornAt: 30
+  look: { skin: "#f0c6a4", hair: "#2b2622", hairStyle: short, clothes: ["#f2c14e", "#f2c14e", "#8bb34a"], pants: "#5b8fd9" }
+- id: kid35
+  name: ヒナタ
+  about: "自分の子ども。"
+  tie: 子ども
+  circle: family
+  relation: 子ども
+  role: 35歳ごろに生まれた子ども（不妊治療のあと）
+  bornAt: 35
+  look: { skin: "#f0c6a4", hair: "#2b2622", hairStyle: short, clothes: ["#f2c14e", "#f2c14e", "#8bb34a"], pants: "#5b8fd9" }

@@ -50,7 +50,7 @@ async function playToEnd(page: Page): Promise<string[]> {
   const result = await page.evaluate(async () => {
     const reviews: string[] = [];
     const wait = () => new Promise((r) => setTimeout(r, 20));
-    for (let i = 0; i < 1500; i++) {
+    for (let i = 0; i < 8000; i++) {
       const main = document.querySelector('main')!;
       const h1 = main.querySelector('h1')?.textContent ?? '';
       if (h1.includes('試作はここまで') || h1.includes('16歳から35歳まで')) return { ok: true, reviews };
@@ -77,11 +77,12 @@ test.beforeEach(async ({ page }) => {
 
 for (const n of [1, 2, 3, 4]) {
   test(`ランダムな主人公${n}で最後まで通しでプレイできる（CSP の下でエラーなし）`, async ({ page }) => {
+    test.setTimeout(240_000);
     const errors = watchErrors(page);
     await start(page, n);
     await expect(page.locator('main h1')).toContainText('16歳');
     const reviews = await playToEnd(page);
-    expect(reviews).toEqual(['16', '17']);
+    expect(reviews).toEqual(['16', '17', '19', '21', '24', '27', '30', '35']);
     await expect(page.getByRole('heading', { name: '変化の理由' })).toBeVisible();
     expect(errors).toEqual([]);
   });

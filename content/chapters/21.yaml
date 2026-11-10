@@ -1,0 +1,440 @@
+# 21歳の章（SPEC.md §10.3、docs/life-map.md）。Claude Code の下書き。すべて status: draft。
+#
+# 妊娠の決定（付録B-43）：自分のからだのことは本人が決める。どちらを選んでも負の効果を付けない（P1・P6）。
+# 相手が妊娠した場合、決めるのは相手で、その決定は統計（S27）で表す。主人公の選択は確率を変えない。
+# 就活のハラスメントは統計（S49）の割合で起こす。行為は描かず、前後の会話と気持ちで描く（P4）。
+# 正社員か非正規かは、雇用者に占める非正規の割合（S46）を1回の判定に使う（解釈）。
+age: 21
+title: "21歳"
+season: "おとなの入り口"
+status: draft
+intro:
+  me: "20歳を過ぎた。できることが増えて、決めることも増えた。"
+events:
+  # ───────── 誰にでも：お酒 ─────────
+  - id: E21-DRINK
+    age: 21
+    characters: [me]
+    kind: fixed
+    trigger: { kind: story, text: "誰にでも起きる" }
+    domains: [飲酒, 日ごろの生活]
+    statCard: [S39]
+    stage: { place: izakaya, time: night, cast: [{ id: self, x: 28 }, { id: kanata, x: 62 }] }
+    summary: "飲み会で、自分のお酒の飲み方を考えた。"
+    status: draft
+    scenes:
+      - id: start
+        lines:
+          - { who: narration, text: "サークルの飲み会。20歳を過ぎて、初めての大きな集まりだった。", when: "flags.path == 'college'" }
+          - { who: narration, text: "職場の歓迎会。20歳を過ぎて、初めての飲み会だった。", when: "flags.path == 'work'" }
+          - { who: narration, text: "「一気！　一気！」と、向こうの席で声が上がった。" }
+          - { who: kanata, text: "あっちの席、すごいね。……グラス、空いてるよ。次なに飲む？" }
+          - { who: self, kind: inner, text: "（もう、顔が熱い。でも、みんなまだ飲んでる）", face: thinking }
+        choices:
+          - id: pace
+            label: "「ウーロン茶にする。今日はここまで」"
+            canonical: true
+            effects:
+              - { param: body, sign: 1, size: S, source: choice, note: "自分のペースを守った" }
+              - { param: autonomy, sign: 1, size: S, source: choice, note: "断れた" }
+            next: pace
+          - id: keep
+            label: "「じゃあ、同じのをもう1杯」"
+            effects:
+              - { param: body, sign: -1, size: S, source: choice, note: "飲みすぎた" }
+            next: keep
+      - id: pace
+        lines:
+          - { who: kanata, text: "いいね。こっちもそうしよ。", face: smile }
+          - { who: narration, text: "しばらくして、向こうの席の一人が、テーブルに突っ伏した。" }
+        next: care
+      - id: keep
+        lines:
+          - { who: narration, text: "頭が、少しずつぼんやりしてきた。" }
+          - { who: narration, text: "向こうの席の一人が、テーブルに突っ伏した。" }
+        next: care
+      - id: care
+        lines:
+          - { who: self, kind: inner, text: "（顔が真っ青だ。……誰も見ていない）", face: anxious }
+        choices:
+          - id: help
+            label: "水を持っていき、横向きに寝かせる"
+            canonical: true
+            effects:
+              - { param: connection, sign: 1, size: S, source: choice, note: "まわりを気づかえた" }
+            next: helped
+          - id: tellStaff
+            label: "お店の人に声をかける"
+            effects:
+              - { param: connection, sign: 1, size: S, source: choice, note: "まわりを気づかえた" }
+            next: helped
+      - id: helped
+        lines:
+          - { who: kanata, text: "ナイス。タクシー呼ぼうか。" }
+          - { who: narration, text: "帰り道、夜風がとても冷たかった。" }
+          - { who: self, kind: inner, text: "（飲む量も、飲まないことも、自分で決めていい）", face: calm }
+        next: END
+
+  # ───────── 19歳で妊娠した場合：どうするかを決める ─────────
+  - id: E21-PREGNANCY
+    age: 21
+    characters: [me]
+    kind: fixed
+    trigger: { kind: choice, text: "19歳の避妊のトラブルの続き" }
+    domains: [予期せぬ妊娠, 人工妊娠中絶, 自己決定]
+    requires: "flags.pregnant == true"
+    statCard: [S10, S27]
+    resources: [health]
+    stage: { place: clinic, time: day, cast: [{ id: self, x: 28 }, { id: partner, x: 62 }] }
+    summary: "19歳の冬の妊娠のことを、二人で何度も話した。"
+    status: draft
+    scenes:
+      - id: start
+        lines:
+          - { who: narration, text: "19歳の冬。妊娠がわかってから、何度も話した。" }
+        branches:
+          - when: "up.body == 'canBePregnant'"
+            next: self
+        next: other
+      # 自分のからだのこと：決めるのは本人
+      - id: self
+        stage: { place: clinic, time: day, cast: [{ id: self, x: 28 }, { id: doctor, x: 64 }] }
+        lines:
+          - { who: doctor, text: "続けるか、続けないか。どちらを選んでも、あなたの選択です。" }
+          - { who: doctor, text: "決めるための時間には、限りがあります。気になることは何でも聞いてください。" }
+          - { who: partner, kind: message, text: "どっちに決めても、一緒に考える。決めるのは、あなたでいい。" }
+          - { who: self, kind: inner, text: "（学校のこと、お金のこと、これからのこと。全部が頭の中をまわる）", face: thinking }
+        choices:
+          - id: continue
+            label: "産むと決める"
+            neutral: true
+            effects:
+              - { param: autonomy, sign: 1, size: M, source: choice, note: "自分で決めた" }
+            setFlags: { child: early }
+            next: continued
+          - id: end
+            label: "人工妊娠中絶を選ぶと決める"
+            canonical: true
+            neutral: true
+            effects:
+              - { param: autonomy, sign: 1, size: M, source: choice, note: "自分で決めた" }
+            setFlags: { child: none }
+            next: ended
+      # 相手のからだのこと：決めるのは相手。主人公の選択は確率を変えない
+      - id: other
+        lines:
+          - { who: partner, text: "どうするか、まだ決められない。でも、決めるのは自分だと思ってる。" }
+          - { who: self, kind: inner, text: "（自分のからだじゃない。でも、他人事でもない）", face: thinking }
+        choices:
+          - id: support
+            label: "「どっちに決めても、費用も通院も一緒に担う」"
+            canonical: true
+            effects:
+              - { param: connection, sign: 1, size: M, source: choice, note: "一緒に担うと伝えた" }
+            next: decision
+          - id: push
+            label: "「どうするべきか」を、自分の考えで話す"
+            effects:
+              - { param: connection, sign: -1, size: M, source: choice, note: "考えを押しつけた" }
+            next: decision
+      - id: decision
+        lines:
+          - { who: narration, text: "何日かして、%partner%が決めたことを話してくれた。" }
+        chance:
+          id: CH-PARTNER-DECISION
+          label: "20〜24歳で妊娠したとき、人工妊娠中絶を選ぶ割合"
+          actorLabel: "パートナーの決定"
+          result:
+            happens: "パートナーは、人工妊娠中絶を選びました。"
+            notHappens: "パートナーは、産むことを選びました。"
+          # 決めるのはパートナー。主人公の選択はこの確率を変えない（S27 の20〜24歳の値）
+          base: { value: 0.441, statRef: S27 }
+          outcomes:
+            happens: { setFlags: { child: none }, next: otherEnded }
+            notHappens: { setFlags: { child: early }, next: otherContinued }
+      - id: continued
+        lines:
+          - { who: narration, text: "20歳の夏、子どもが生まれた。名前は、ヒナタにした。" }
+          - { who: self, kind: inner, text: "（小さい。こんなに小さいのに、ちゃんと生きてる）", face: smile }
+        next: END
+      - id: ended
+        lines:
+          - { who: narration, text: "手術の日、%partner%が病院の待合室で待っていた。" }
+          - { who: partner, text: "おつかれさま。帰ったら、あったかいもの作るね。" }
+          - { who: self, kind: inner, text: "（自分で決めた。その重さも、ちゃんと自分のものだ）", face: calm }
+        next: END
+      - id: otherContinued
+        lines:
+          - { who: narration, text: "20歳の夏、子どもが生まれた。名前は、ヒナタにした。" }
+          - { who: self, kind: inner, text: "（この子のために、できることを全部やろう）", face: smile }
+        next: END
+      - id: otherEnded
+        lines:
+          - { who: narration, text: "手術の日、病院の待合室で、%partner%を待った。" }
+          - { who: self, kind: inner, text: "（%partner%が決めたことを、大事にしたい）", face: calm }
+        next: END
+
+  # ───────── 誰にでも：性感染症の検査（SNSで知る） ─────────
+  - id: E21-STI
+    age: 21
+    characters: [me]
+    kind: fixed
+    trigger: { kind: story, text: "誰にでも起きる" }
+    domains: [STI, オンラインの情報]
+    statCard: [S12]
+    resources: [health]
+    stage: { place: bedroom, time: night, cast: [{ id: self, x: 40, pose: phone }] }
+    summary: "梅毒が増えているという投稿を見て、検査を受けるか考えた。"
+    status: draft
+    scenes:
+      - id: start
+        lines:
+          - { who: narration, text: "寝る前、SNSを流し見していた。" }
+          - { who: narration, text: "「梅毒が増えている。症状がないこともある」という投稿が流れてきた。" }
+          - { who: narration, text: "その下には、「〇〇を飲めば治る」という広告が並んでいた。" }
+          - { who: self, kind: inner, text: "（どれが本当なんだろう。……自分も、関係あるのかな）", face: thinking }
+        choices:
+          - id: check
+            label: "国や自治体のページで調べて、検査を受ける"
+            canonical: true
+            effects:
+              - { param: body, sign: 1, size: M, source: choice, note: "検査を受けた" }
+            next: test
+          - id: ad
+            label: "広告の「治る」サプリを見てみる"
+            next: ad
+          - id: skip
+            label: "（自分には関係ない）"
+            neutral: true
+            next: skip
+      - id: test
+        stage: { place: clinic, time: day, cast: [{ id: self, x: 30 }, { id: doctor, x: 64 }] }
+        lines:
+          - { who: doctor, text: "結果は陰性でした。気になることがあったら、いつでも来てください。" }
+          - { who: self, kind: inner, text: "（受けてみたら、思ったよりあっけなかった）", face: relieved }
+        next: END
+      - id: ad
+        lines:
+          - { who: narration, text: "広告のページは、「今だけ半額」と書かれていた。" }
+          - { who: self, kind: inner, text: "（……これ、病院の情報じゃないな）", face: thinking }
+        choices:
+          - id: back
+            label: "閉じて、公的なページを探す"
+            canonical: true
+            effects:
+              - { param: body, sign: 1, size: S, source: choice, note: "情報を見分けた" }
+            next: test
+          - id: close
+            label: "閉じて、寝る"
+            next: skip
+      - id: skip
+        lines:
+          - { who: narration, text: "スマホを置いて、電気を消した。" }
+          - { who: narration, text: "検査は、気になったときにいつでも受けられる。" }
+        next: END
+
+  # ───────── 誰にでも：就職（ハラスメントは統計の割合で起きる） ─────────
+  - id: E21-JOB
+    age: 21
+    characters: [me]
+    kind: chance
+    trigger: { kind: chance, text: "伏せたカードを1枚引いた（統計の割合で決まる）" }
+    domains: [就職活動, ハラスメント, 雇用]
+    statCard: [S49, S46]
+    resources: [violence]
+    stage: { place: office, time: day, cast: [{ id: self, x: 30 }] }
+    summary: "仕事のことで、大きな決まりごとがあった。"
+    status: draft
+    scenes:
+      - id: start
+        lines:
+          - { who: narration, text: "大学3年の冬。スーツを着て、会社を回る日が続いた。", when: "flags.path == 'college'" }
+          - { who: narration, text: "働き始めて3年目。契約の更新と、正社員の試験の話が出た。", when: "flags.path == 'work'" }
+          - { who: self, kind: inner, text: "（エントリーシートの性別欄で、また手が止まる）", when: "up.gender == 'transWoman' || up.gender == 'transMan' || up.gender == 'nonbinary'", face: thinking }
+          - { who: self, kind: inner, text: "（SNSを開くと、誰かの「内定しました」が流れてくる）", face: anxious }
+        branches:
+          - when: "flags.path == 'college'"
+            next: harass
+        next: employ
+      - id: harass
+        lines:
+          - { who: narration, text: "OB訪問の帰り。社員の人に「このあと、二人で飲みに行こう」と誘われた。" }
+        chance:
+          id: CH-JOBHARASS
+          label: "就職活動で、セクシュアルハラスメントを受ける可能性"
+          result:
+            happens: "就活の中で、セクシュアルハラスメントを受けました。"
+            notHappens: "ハラスメントを受けるかもしれませんでしたが、今回は受けませんでした。"
+          # S49 の「インターンシップ以外の就職活動」の値。性自認で分けて使う（解釈）
+          base: { value: 0.235, statRef: S49 }
+          modifiers:
+            - { when: "up.gender == 'man' || up.gender == 'transMan'", op: set, value: 0.27, source: society, statRef: S49, note: "男性の割合" }
+            - { when: "up.gender == 'woman' || up.gender == 'transWoman'", op: set, value: 0.197, source: society, statRef: S49, note: "女性の割合" }
+          outcomes:
+            happens: { next: harassed }
+            notHappens: { next: declined }
+      - id: declined
+        lines:
+          - { who: self, text: "すみません、今日はこれで失礼します。" }
+          - { who: narration, text: "相手は「そう」と軽く笑って、それ以上は言わなかった。" }
+        next: employ
+      - id: harassed
+        effects:
+          - { param: autonomy, sign: -1, size: M, source: others, statRef: S49, note: "就活でのハラスメント" }
+        lines:
+          - { who: narration, text: "断ると、「内定、ほしいんでしょ」と言われた。" }
+          - { who: narration, text: "そのあとのメッセージには、からだや恋人のことが書かれていた。" }
+          - { who: self, kind: inner, text: "（気持ち悪い。でも、選考に響いたらどうしよう）", face: anxious }
+        choices:
+          - id: center
+            label: "大学のキャリアセンターに、メッセージを見せて相談する"
+            canonical: true
+            effects:
+              - { param: autonomy, sign: 1, size: S, source: choice, note: "記録して相談した" }
+            next: center
+          - id: kanata
+            label: "カナタに話す"
+            effects:
+              - { param: connection, sign: 1, size: S, source: choice, note: "ひとりで抱えなかった" }
+            next: kanata
+          - id: alone
+            label: "（誰にも言わずに、ブロックする）"
+            next: alone
+      - id: center
+        lines:
+          - { who: narration, text: "職員の人は、「あなたは悪くありません。会社に伝えることもできます」と言った。" }
+          - { who: self, kind: inner, text: "（自分のせいじゃない。言葉にしてもらえると、違う）", face: relieved }
+        next: employ
+      - id: kanata
+        stage: { place: izakaya, time: night, cast: [{ id: self, x: 30 }, { id: kanata, x: 64 }] }
+        lines:
+          - { who: kanata, text: "それ、完全にアウトだよ。あなたが悪いんじゃない。", face: anxious }
+          - { who: self, kind: inner, text: "（怒ってくれる人がいる。それだけで、少し楽になった）", face: relieved }
+        next: employ
+      - id: alone
+        lines:
+          - { who: self, kind: inner, text: "（もう考えたくない。……でも、ずっと頭に残っている）", face: sad }
+          - { who: narration, text: "話したくなったときは、いつでも相談できる。" }
+        next: employ
+      - id: employ
+        lines:
+          - { who: narration, text: "そして、春が来た。" }
+        chance:
+          id: CH-NONREGULAR
+          label: "働く人のうち、非正規雇用で働く割合"
+          result:
+            happens: "契約社員として働くことになりました。"
+            notHappens: "正社員として働くことになりました。"
+          # S46 は役員を除く雇用者に占める非正規の割合。就職の結果の1回の判定に使う（解釈）
+          base: { value: 0.365, statRef: S46 }
+          outcomes:
+            happens: { setFlags: { job: contract }, next: contract }
+            notHappens: { setFlags: { job: regular }, next: regular }
+      - id: contract
+        effects:
+          - { param: living, sign: -1, size: M, source: society, statRef: S46, note: "契約は1年ごとの更新" }
+        lines:
+          - { who: narration, text: "契約は1年ごと。更新されるかどうかは、毎年わからない。" }
+          - { who: self, kind: inner, text: "（それでも、働く場所がある。まずは、ここで頑張ろう）", face: thinking }
+        next: END
+      - id: regular
+        effects:
+          - { param: living, sign: 1, size: M, source: society, statRef: S46, note: "正社員になった" }
+        lines:
+          - { who: narration, text: "正社員としての採用が決まった。" }
+          - { who: self, kind: inner, text: "（毎月決まったお金が入る。少し、先のことを考えられる）", face: relieved }
+        next: END
+
+  # ───────── 19歳の束縛が続いている場合：離れる ─────────
+  - id: E21-LEAVE
+    age: 21
+    characters: [me]
+    kind: fixed
+    trigger: { kind: choice, text: "19歳の束縛の続き" }
+    domains: [デートDV, 対人暴力]
+    requires: "flags.stillControlled == true"
+    statCard: [S01]
+    resources: [violence]
+    stage: { place: izakaya, time: night, cast: [{ id: self, x: 30 }, { id: kanata, x: 64 }] }
+    summary: "束縛する相手から、まわりの助けを借りて離れた。"
+    status: draft
+    scenes:
+      - id: start
+        lines:
+          - { who: kanata, text: "最近、ずっとスマホ気にしてるよね。……大丈夫？" }
+          - { who: self, kind: inner, text: "（大丈夫じゃない。でも、どう言えばいいんだろう）", face: sad }
+          - { who: kanata, text: "責めたいんじゃない。力になりたいだけ。" }
+        choices:
+          - id: talk
+            label: "「……一緒に、相談先に電話してくれる？」"
+            canonical: true
+            effects:
+              - { param: connection, sign: 1, size: M, source: choice, note: "助けを求めた" }
+            next: talk
+          - id: notYet
+            label: "「ありがとう。もう少しだけ、考えさせて」"
+            next: notYet
+      - id: talk
+        lines:
+          - { who: narration, text: "カナタの部屋から、DV相談＋（プラス）に電話をかけた。" }
+          - { who: narration, text: "相談員の人と、安全に離れるための手順を、ひとつずつ決めた。" }
+        next: left
+      - id: notYet
+        lines:
+          - { who: kanata, text: "わかった。いつでも、夜中でも連絡して。" }
+          - { who: narration, text: "ひと月後、限界が来た夜に、カナタに電話をかけた。" }
+        next: left
+      - id: left
+        closeness:
+          - { who: ren, end: true, note: "関係を終えた", when: "flags.dateId == 'ren'" }
+          - { who: nana, end: true, note: "関係を終えた", when: "flags.dateId == 'nana'" }
+        lines:
+          - { who: narration, text: "引っ越しをして、連絡先をすべて変えた。" }
+          - { who: self, kind: inner, text: "（離れるのに、こんなに力がいるなんて知らなかった）", face: calm }
+          - { who: self, kind: inner, text: "（でも、ひとりじゃなかった）", face: relieved }
+        next: END
+
+  # ───────── 20歳で親になった場合：子育てと保育園 ─────────
+  - id: E21-PARENT
+    age: 21
+    characters: [me]
+    kind: fixed
+    trigger: { kind: choice, text: "子どもが生まれた続き" }
+    domains: [子育て, 両立, 社会経済]
+    requires: "flags.child == 'early'"
+    statCard: [S47]
+    stage: { place: home2, time: night, cast: [{ id: self, x: 28 }, { id: kid20, x: 50 }, { id: partner, x: 72 }] }
+    summary: "保育園の申し込みが、思うようにいかなかった。"
+    status: draft
+    scenes:
+      - id: start
+        lines:
+          - { who: narration, text: "ヒナタは1歳になった。保育園の結果の通知が届いた。" }
+          - { who: narration, text: "「入所保留」。どこにも入れなかった。" }
+          - { who: self, kind: inner, text: "（4月から、どうやって学校や仕事に行けばいいんだろう）", face: anxious }
+          - { who: partner, text: "どっちかが、しばらく休むしかないのかな……。" }
+        choices:
+          - id: share
+            label: "「交代で休めるように、二人とも職場や学校に相談しよう」"
+            canonical: true
+            effects:
+              - { param: connection, sign: 1, size: M, source: choice, note: "二人で分け合った" }
+              - { param: living, sign: -1, size: S, source: society, note: "保育園に入れなかった" }
+            next: share
+          - id: self
+            label: "「自分が休む」"
+            effects:
+              - { param: autonomy, sign: -1, size: S, source: society, note: "保育園に入れなかった" }
+              - { param: living, sign: -1, size: M, source: society, note: "収入が減った" }
+            next: self
+      - id: share
+        lines:
+          - { who: narration, text: "自治体の窓口で、一時預かりと、空きの出た園を探した。" }
+          - { who: partner, text: "火曜と木曜は、こっちが見る。" }
+          - { who: self, kind: inner, text: "（ひとりで抱えなくていい。そう言えるのが、ありがたい）", face: relieved }
+        next: END
+      - id: self
+        lines:
+          - { who: narration, text: "休学の書類を出した。友だちの話題に、少しずつついていけなくなった。" }
+          - { who: self, kind: inner, text: "（この子との時間は、大事だ。でも、自分の時間も、ほしい）", face: thinking }
+        next: END

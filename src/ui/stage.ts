@@ -40,17 +40,22 @@ function positions(n: number): number[] {
 export function resolveWho(run: RunState, id: string): string {
   if (id === 'self') return 'me';
   if (id === 'partner') return typeof run.flags.partnerId === 'string' ? run.flags.partnerId : '';
+  // date はアプリやSNSで知り合った人（19歳の章）
+  if (id === 'date') return typeof run.flags.dateId === 'string' ? run.flags.dateId : '';
   return id;
 }
 
 /** 本文の %partner% を、この周回のパートナーの名前に置きかえる */
 export function fillText(content: Content, run: RunState, text: string): string {
-  return text.replaceAll('%partner%', nameOf(content, run, resolveWho(run, 'partner')));
+  return text
+    .replaceAll('%partner%', nameOf(content, run, resolveWho(run, 'partner')))
+    .replaceAll('%date%', nameOf(content, run, resolveWho(run, 'date')));
 }
 
 /** 主人公から見た関係（付録B-48）。付き合い始めたら、パートナーの関係も変わる */
 export function relationOf(content: Content, run: RunState, id: string): string | undefined {
   if (id === run.flags.partnerId && run.flags.dating === true && !startedDatingHere(content, run)) return '付き合っている人';
+  if (id === run.flags.dateId && run.flags.dateDating === true) return '付き合っている人';
   return content.cast.find((c) => c.id === id)?.relation;
 }
 
@@ -125,6 +130,7 @@ export function chapterPeople(content: Content, run: RunState, age: number): str
   const add = (who: string) => found.add(resolveWho(run, who));
   const mention = (text: string) => {
     if (text.includes('%partner%')) add('partner');
+    if (text.includes('%date%')) add('date');
     for (const c of listed) if (text.includes(c.name)) found.add(c.id);
   };
   for (const ev of applicableEvents(content, run, age)) {
@@ -143,6 +149,7 @@ export function chapterPeople(content: Content, run: RunState, age: number): str
 
 /** 常に出す小さな関係図（付録B-53）での関係。付き合うと恋人、別れると元恋人 */
 export function tieOf(content: Content, run: RunState, id: string): string | undefined {
+  if (id === run.flags.dateId && run.flags.dateDating === true) return '恋人';
   if (id === run.flags.partnerId) {
     if (run.bonds[id]?.ended) return '元恋人';
     if (run.flags.dating === true) return '恋人';
