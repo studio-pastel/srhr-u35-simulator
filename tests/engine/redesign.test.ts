@@ -51,7 +51,8 @@ describe('会話の行と舞台の検証（付録B-1・B-2）', () => {
   const run = (mutate: (raw: any) => void) => {
     const raw: any = rawContent();
     mutate(raw);
-    return validateContent(raw, { production: false, allowUnverified: true });
+    // 行と舞台の検証だけを見る（到達性の検査は重いので省く）
+    return validateContent(raw, { production: false, allowUnverified: true, reachability: false });
   };
   const ev = (raw: any) => raw.chapters.find((c: any) => c.age === 16).events[0];
   it('cast.yaml にない人物の行はエラー', () => {

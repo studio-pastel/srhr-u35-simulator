@@ -36,7 +36,7 @@ export function rawContent(): Record<string, unknown> {
 }
 
 export function realContent(): Content {
-  const r = validateContent(rawContent(), { production: false, allowUnverified: true });
+  const r = validateContent(rawContent(), { production: false, allowUnverified: true, reachability: false });
   if (!r.content) throw new Error(r.errors.join('\n'));
   return r.content;
 }

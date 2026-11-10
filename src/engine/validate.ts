@@ -26,6 +26,8 @@ export interface ValidateOptions {
   allowUnverified: boolean;
   /** 16歳から35歳までの全章がそろっていることを求める（付録A-6。フェーズ2から true） */
   requireAllChapters?: boolean;
+  /** 到達性の検査（重い）。エンジンのテストのように、内容の読み込みだけが目的なら false にできる。既定は true */
+  reachability?: boolean;
 }
 
 export interface ValidateResult {
@@ -215,9 +217,10 @@ export function validateContent(raw: unknown, opts: ValidateOptions): ValidateRe
   }
 
   // ── 到達性（スキーマと参照が正しいときだけ） ──
-  if (errors.length === 0) {
-    // 到達性の検査は重い（全属性 × 全選択）。同じ内容なら結果も同じなので、覚えておいて使い回す（テストで何度も呼ぶため）
-    const key = JSON.stringify(content);
+  if (errors.length === 0 && opts.reachability !== false) {
+    // 到達性の検査は重い（全属性 × 全選択）。進み方に関係する部分が同じなら結果も同じなので、覚えておいて使い回す。
+    // 文言や統計の確認状況だけを変えたテストで、検査をやり直さないため
+    const key = JSON.stringify(content, (k, v) => (TEXT_ONLY_KEYS.has(k) ? undefined : v));
     let found = reachCache.get(key);
     if (!found) {
       found = [];
@@ -554,6 +557,8 @@ export function sampleProfiles(content: Content): Profile[] {
  * 最初の章から最後の章のふりかえりまで到達できることを確かめる。
  */
 const reachCache = new Map<string, string[]>();
+/** 到達性に関係しない、文言や表示だけのキー */
+const TEXT_ONLY_KEYS = new Set(['text', 'label', 'note', 'summary', 'cardText', 'definition', 'title', 'intro', 'about', 'relation', 'role', 'look', 'result', 'domains', 'trigger', 'statCard', 'resources', 'support', 'stage', 'verified', 'value', 'source', 'season', 'status']);
 
 export function reachability(content: Content, errors: string[], limit = 500_000): void {
   const relevant = flowFlags(content);
